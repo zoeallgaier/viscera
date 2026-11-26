@@ -243,7 +243,7 @@ h1{font-family:var(--f-title);font-weight:400;font-size:clamp(.62rem,calc(7.1cqw
 /* the price, in the console's own form: number in the title face, unit beside it in body bold */
 .cost{flex:none;font:400 12px/20px var(--f-title);letter-spacing:0;color:var(--lithium);white-space:nowrap;font-variant-numeric:tabular-nums}
 .cost small,.read dd small{font:700 10px/1 var(--f-body);letter-spacing:.04em;text-transform:none;margin-left:2px}
-/* the boss is three tiles across: its sprite takes both tracks above, its text stays on the text track */
+/* the boss is too big for the glyph track: its sprite takes both tracks above, its text stays on the text track */
 .ent.boss .sock{grid-column:1/-1;width:auto;height:auto;justify-self:start;margin:0 0 16px}
 .ent.boss > div{grid-column:2}
 
@@ -439,7 +439,7 @@ h1{font-family:var(--f-title);font-weight:400;font-size:clamp(.62rem,calc(7.1cqw
             <p>Goes for your <em>refineries</em> first. Takes half damage from missiles, so turrets and the EMP work best.</p>
             <dl class="read"><div><dt>HP</dt><dd data-n="infiltrator.hp"></dd></div><div><dt>Speed</dt><dd data-n="infiltrator.spd"></dd></div><div><dt>Damage</dt><dd><span data-n="infiltrator.dmg"></span><small>/s</small></dd></div><div class="w"><dt>From wave</dt><dd data-n="infil.from"></dd></div></dl></div></article>
           <article class="ent bot boss"><span class="sock"><img data-guide="megapanzer" data-box="160" alt=""></span><div><h4 class="nm">Megapanzer</h4>
-            <p>A boss, three rows wide. It doesn't hunt. It picks a lane at random and cuts <em>across the board on a diagonal</em>, never turning, crushing everything it covers. Its lane flashes red before it rolls in. It bursts when destroyed, and the EMP only stuns it for half as long.</p>
+            <p>A boss, two rows wide. Picks a lane at random and cuts <em>across the board</em>, crushing everything it covers. Bursts when destroyed, and the EMP only stuns it for half as long.</p>
             <dl class="read"><div><dt>HP</dt><dd data-n="megapanzer.hp"></dd></div><div><dt>Speed</dt><dd data-n="megapanzer.spd"></dd></div><div><dt>Crush</dt><dd><span data-n="megapanzer.dmg"></span><small>/s</small></dd></div><div><dt>Blast</dt><dd data-n="mega.blast"></dd></div><div><dt>Lane</dt><dd><span data-n="mega.rows"></span><small>rows</small></dd></div><div><dt>Bounty</dt><dd><span data-n="mega.bounty"></span><small>Li</small></dd></div><div class="w"><dt>From wave</dt><dd><span data-n="mega.from"></span><small>then every <span data-n="mega.every"></span></small></dd></div></dl></div></article>
         </div>
       </section>
@@ -489,12 +489,13 @@ const DRONE = {
   panzer:      { hp: 80, spd: 0.42, dmg: 0,  r: 0.42 },
   infiltrator: { hp: 45, spd: 1.0,  dmg: 10, r: 0.26 },
   // the boss: dmg is per second, to everything under it. hp is what it has on its first wave (10).
-  // A pass over the Base is 6 tiles of contact (3 of Base + 3 of body): 6 / 0.36 × 12 = 200 damage
-  megapanzer:  { hp: 500, spd: 0.36, dmg: 12, r: 1.5 },
+  // A pass over the Base is 6 tiles of contact (3 of Base + 3 of body length): 6 / 0.36 × 12 = 200 damage
+  megapanzer:  { hp: 500, spd: 0.36, dmg: 12, r: 1 },
 };
-// The Megapanzer: wave 10, then every 5. It doesn't hunt. It takes a random three-row lane and rolls
-// straight down the grid, crushing whatever its 3 × 3 body covers.
-const MEGA_FROM = 10, MEGA_EVERY = 5, MEGA_HALF = 1.5, MEGA_WARN = 3, MEGA_BLAST = 30, MEGA_BURST = 2.6, MEGA_BOUNTY = 3;
+// The Megapanzer: wave 10, then every 5. It doesn't hunt. It takes a random two-row lane and rolls
+// the length of it along one grid axis, crushing whatever its body covers: 2 tiles across, 3 long.
+const MEGA_FROM = 10, MEGA_EVERY = 5, MEGA_ROWS = 2, MEGA_HALF = MEGA_ROWS / 2, MEGA_LONG = 1.5,
+  MEGA_WARN = 3, MEGA_BLAST = 30, MEGA_BURST = 2.6, MEGA_BOUNTY = 3;
 const megaWave = w => w >= MEGA_FROM && (w - MEGA_FROM) % MEGA_EVERY === 0;
 const CELL = 0.25; // the unlit field's fine diamond, in tiles (8 × 4 px); the far field is twice this (16 × 8)
 const FLARE_COST = 5, CALM = 28, TURRET_RANGE = 4.2, MISSILE_RANGE = 6.2, SPLASH = 1.6, BURST = 2.2, REFINE_RATE = 1 / 8;
@@ -1085,36 +1086,36 @@ const DRONE_ART = {
     }
 
     // the hull: oxblood, a sloped glacis with an optic over each tread, plate seams across the deck
-    if (Math.abs(v) < 21 && u >= -19 && z >= 6 && z < 12 && u < 14 - (z - 6) * 0.9) {
+    if (Math.abs(v) < 14.5 && u >= -19 && z >= 6 && z < 12 && u < 14 - (z - 6) * 0.9) {
       if (Math.abs(dv) < 2.5 && z >= 8 && z < 10 && u >= 12.5 - (z - 6) * 0.9) return 'eye@3';
       if (z >= 11) return mod(u + 19, 8) < 1 ? 'plate' : 'plate+';
       return 'plate';
     }
-    // armoured ridges over the two outer treads
-    if (Math.abs(Math.abs(v) - 15) < 4 && u >= -17 && u < 7 - (z - 12) * 1.5 && z >= 12 && z < 14) return z >= 13 ? 'plate+' : 'plate';
+    // an armoured ridge over each tread, raked at the front
+    if (Math.abs(Math.abs(v) - 10.5) < 3 && u >= -13 && u < 7 - (z - 12) * 1.5 && z >= 12 && z < 14) return z >= 13 ? 'plate+' : 'plate';
 
     // the command block: slate, raked at the front, with a sensor mast
-    if (Math.abs(v) < 8 && u >= -8 && z >= 12 && z < 19 && u < 8 - (z - 12) * 0.8) {
-      if (z >= 15 && z < 16 && Math.abs(v) < 6 && u >= 7 - (z - 12) * 0.8) return 'tread';                // vision slit, dark
+    if (Math.abs(v) < 6 && u >= -8 && z >= 12 && z < 19 && u < 8 - (z - 12) * 0.8) {
+      if (z >= 15 && z < 16 && Math.abs(v) < 4.5 && u >= 7 - (z - 12) * 0.8) return 'tread';              // vision slit, dark
       return z >= 18 ? 'husk+' : 'husk';
     }
-    if (Math.abs(u - 1) < 0.8 && Math.abs(v + 5) < 0.8 && z >= 19 && z < 25) return 'husk';
-    if (Math.abs(u - 1) < 1.2 && Math.abs(v + 5) < 1.2 && z >= 25 && z < 27) return f ? 'eye@3' : 'eye@1';
+    if (Math.abs(u - 1) < 0.8 && Math.abs(v + 3.5) < 0.8 && z >= 19 && z < 25) return 'husk';
+    if (Math.abs(u - 1) < 1.2 && Math.abs(v + 3.5) < 1.2 && z >= 25 && z < 27) return f ? 'eye@3' : 'eye@1';
 
     // two exhaust stacks either side of the core
-    const sv = Math.abs(v) - 9, sr = Math.hypot(u + 16, sv);
+    const sv = Math.abs(v) - 9.5, sr = Math.hypot(u + 16.5, sv);
     if (sr < 1.8 && z >= 12 && z < 22) return z >= 21 && sr < 1 ? 'soot' : 'tread~';
 
     // the caged core: a red heart behind bars
     const cu = u + 11.5, cz = z - 18, cr = Math.hypot(cu, v, cz);
-    if (cr < 4.2) return f ? 'eye@3' : 'eye@2';
-    if (cr < 6 && z >= 12) {
+    if (cr < 4) return f ? 'eye@3' : 'eye@2';
+    if (cr < 5.8 && z >= 12) {
       const bar = Math.abs(Math.sin(2 * Math.atan2(v, cu))) < 0.22;           // four thin ribs, open above
       if (bar || Math.abs(cz) < 0.7 || z < 14.5) return 'husk~';
     }
   } },
 };
-const SHADOW_R = { walker: 0.34, runner: 0.32, panzer: 0.5, infiltrator: 0.3, megapanzer: 1.8 };
+const SHADOW_R = { walker: 0.34, runner: 0.32, panzer: 0.5, infiltrator: 0.3, megapanzer: 1.45 };
 
 /* —— overlays: the target tile, exactly one ground tile (the same partition as the ground) —— */
 function tileMark(edge, fill, dash) {
@@ -1312,7 +1313,8 @@ for (const img of document.querySelectorAll('[data-icon]')) {
 }
 
 // the field guide's sockets: each sprite trimmed to its lit pixels and shown at the largest whole
-// scale that fits, so every icon keeps square pixels (bots face the reader, d = 1)
+// scale that fits, so every icon keeps square pixels. Bots stand at the board's own isometric
+// angle, facing down-right along a grid axis (d = 0): in from the glyph track toward their text
 {
   // Data has no sprite of its own: a rack face with its green LEDs, some lit, some idle
   const rack = document.createElement('canvas'); rack.width = rack.height = 11;
@@ -1335,14 +1337,14 @@ for (const img of document.querySelectorAll('[data-icon]')) {
     for (const [i, x, y, a = 1] of parts) { g.globalAlpha = a; g.drawImage(i, x - i.ax - l, y - i.ay - t); }
     return c;
   };
-  const bot = (k, x, y) => [[SPR.shadow[k], x, y], [SPR.drone[k][1][0].img, x, y]];
+  const ISO = 0, bot =(k, x, y) => [[SPR.shadow[k], x, y], [SPR.drone[k][ISO][0].img, x, y]];
   const GUIDE = {
     ...ICON, pool: SPR.pool[0], base: SPR.base[0], data: rack,
     drag: scene([[SPR.mark.ok, 0, 0], [ICON.lamp, 0, 0, 0.55]]),
     hold: scene([[ICON.turret, 0, 0], [SPR.mark.bad, 0, 0]]),
     survive: scene([...bot('runner', -15, -5), ...bot('panzer', 15, -5), ...bot('walker', 0, 3)]),
   };
-  for (const k of Object.keys(DRONE_ART)) GUIDE[k] = SPR.drone[k][1][0].img;
+  for (const k of Object.keys(DRONE_ART)) GUIDE[k] = SPR.drone[k][ISO][0].img;
   for (const img of document.querySelectorAll('[data-guide]')) {
     const c = GUIDE[img.dataset.guide], BOX = +(img.dataset.box || 38); if (!c) continue;
     const a = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
@@ -2011,22 +2013,22 @@ function kill(h, counted) {
 }
 
 /* —— the Megapanzer ——
-   A lane is three rows of tiles, run along one grid axis (ax 0: it rolls along u, its rows are v;
+   A lane is two rows of tiles, run along one grid axis (ax 0: it rolls along u, its rows are v;
    ax 1 the other way), so on screen it runs down one of the board's diagonals. It takes any lane
    long enough to cross, at random (not where you've built), flashes it red, then rolls the
-   whole length of it. r is the middle row, so the lane is rows r−1..r+1. */
+   whole length of it. r is the first row, so the lane is rows r..r+1 and its centre line is r+1. */
 function megaLane() {
   const lanes = [];
-  for (const ax of [0, 1]) for (let r = -23; r <= 23; r++) {
+  for (const ax of [0, 1]) for (let r = -24; r <= 23; r++) {
     let n = 0, kmin = Infinity, kmax = -Infinity;
     for (const [i, j] of TILES) {
       const k = ax ? j : i, c = ax ? i : j;
-      if (Math.abs(c - r) > 1) continue;
+      if (c < r || c >= r + MEGA_ROWS) continue;
       n++; if (k < kmin) kmin = k; if (k > kmax) kmax = k;
     }
-    if (n >= 24) lanes.push({ ax, r, kmin, kmax });   // a corner clip is too short a run to count
+    if (n >= 8 * MEGA_ROWS) lanes.push({ ax, r, kmin, kmax });   // a corner clip is too short a run to count
   }
-  const best = lanes[Math.floor(Math.random() * lanes.length)], dir = Math.random() < 0.5 ? 1 : -1, off = MEGA_HALF + 0.6;
+  const best = lanes[Math.floor(Math.random() * lanes.length)], dir = Math.random() < 0.5 ? 1 : -1, off = MEGA_LONG + 0.6;
   const lo = best.kmin - off, hi = best.kmax + 1 + off;
   return { ...best, dir, start: dir > 0 ? lo : hi, end: dir > 0 ? hi : lo, boss: null };
 }
@@ -2039,17 +2041,18 @@ function spawnMega() {
   if (!L || S.over) return;
   // it grows 12% a wave like the rest, counted from its own first wave, so it's 500 on wave 10
   const d = DRONE.megapanzer, mul = 1 + (S.wave - MEGA_FROM) * 0.12, du = L.ax ? 0 : L.dir, dv = L.ax ? L.dir : 0;
-  const h = { id: S.id++, type: 'megapanzer', u: L.ax ? L.r + 0.5 : L.start, v: L.ax ? L.start : L.r + 0.5, du, dv, dir: Math.atan2(dv, du),
+  const h = { id: S.id++, type: 'megapanzer', u: L.ax ? L.r + MEGA_HALF : L.start, v: L.ax ? L.start : L.r + MEGA_HALF, du, dv, dir: Math.atan2(dv, du),
     hp: d.hp * mul, max: d.hp * mul, stun: 0, hit: 0, wob: 0, atk: 0, lane: L };
   L.boss = h; S.h.push(h);
   shake(0.3); sfx('blast', { vol: 0.7, rate: 0.6 }); buzz('burst');
 }
-// it never turns and never stops: everything its 3 × 3 body covers takes the crush, every second
+// it never turns and never stops: everything its body covers (2 across, 3 long) takes the crush, every second
 function crush(h, dt) {
   const d = DRONE.megapanzer, L = h.lane;
   h.wob += dt * 2;
   h.u += h.du * d.spd * dt; h.v += h.dv * d.spd * dt;
-  const u0 = h.u - MEGA_HALF, u1 = h.u + MEGA_HALF, v0 = h.v - MEGA_HALF, v1 = h.v + MEGA_HALF;
+  const hu = L.ax ? MEGA_HALF : MEGA_LONG, hv = L.ax ? MEGA_LONG : MEGA_HALF;
+  const u0 = h.u - hu, u1 = h.u + hu, v0 = h.v - hv, v1 = h.v + hv;
   let hit = null, n = 0;
   for (const b of S.b) if (b.hp > 0 && b.tx < u1 && b.tx + b.n > u0 && b.ty < v1 && b.ty + b.n > v0) {
     b.hp -= d.dmg * dt;
@@ -2057,7 +2060,7 @@ function crush(h, dt) {
   }
   if (hit && (h.atk -= dt) <= 0) {
     h.atk = rand(0.22, 0.4);
-    const pu = Math.max(hit.tx, Math.min(hit.tx + hit.n, h.u + h.du * MEGA_HALF)), pv = Math.max(hit.ty, Math.min(hit.ty + hit.n, h.v + h.dv * MEGA_HALF));
+    const pu = Math.max(hit.tx, Math.min(hit.tx + hit.n, h.u + h.du * MEGA_LONG)), pv = Math.max(hit.ty, Math.min(hit.ty + hit.n, h.v + h.dv * MEGA_LONG));
     strike(h, hit, pu, pv); shake(0.05);
   }
   if (((L.ax ? h.v : h.u) - L.end) * L.dir > 0) { h.dead = true; S.lane = null; say('The Megapanzer rolled through.'); }
@@ -2067,7 +2070,9 @@ function megaDown(h) {
   const { u, v } = h; S.lane = null;
   explode(u, v, 'mega', CHIP.megapanzer);
   for (const b of S.b) if (toFoot(u, v, b) <= MEGA_BURST) { b.hp -= MEGA_BLAST; b.hit = 0.1; b.jit = 0.14; if (b.type === 'lamp') b.snuff = 10; }
-  for (const t of [0.12, 0.26, 0.42]) S.tm.push({ t, fn: () => explode(u + rand(-1.2, 1.2), v + rand(-1.2, 1.2), 'chunkL', CHIP.megapanzer) });
+  // the chunks fly off along its length, inside its two rows
+  const su = h.du ? 1.2 : 0.7, sv = h.dv ? 1.2 : 0.7;
+  for (const t of [0.12, 0.26, 0.42]) S.tm.push({ t, fn: () => explode(u + rand(-su, su), v + rand(-sv, sv), 'chunkL', CHIP.megapanzer) });
   S.lithium += MEGA_BOUNTY; pip(u, v, 20, MEGA_BOUNTY);
   say(`Megapanzer down · +${MEGA_BOUNTY} Li`, 'held'); buzz('burst');
 }
@@ -2437,14 +2442,14 @@ function drawLane() {
   const L = S.lane; if (!L || S.over) return;
   const h = L.boss, warn = !h;
   if (warn && !reduceMotion && Math.floor(S.t * 4) & 1) return;
-  const from = h ? (L.ax ? h.v : h.u) + L.dir * MEGA_HALF : L.start, len = (L.end - from) * L.dir;
+  const from = h ? (L.ax ? h.v : h.u) + L.dir * MEGA_LONG : L.start, len = (L.end - from) * L.dir;
   if (len <= 0) return;
   const at = (k, c) => L.ax ? scr(c, k) : scr(k, c);                                  // k along the lane, c across it
   const on = (k, c) => L.ax ? onBoard(Math.floor(c), Math.floor(k)) : onBoard(Math.floor(k), Math.floor(c));
   ctx.fillStyle = warn ? RAMP.eye[3] : 'rgba(255,93,87,.5)';
   // dashes are pinned to the ground and march a quarter dash every step, so they never slide with it
   const phase = reduceMotion ? 0 : mod(Math.floor(S.t * 8), 4) * 0.125, k0 = Math.floor(from * L.dir * 2) / 2 + phase;
-  for (const [c, cin] of [[L.r - 1, L.r - 0.5], [L.r + 2, L.r + 1.5]])
+  for (const [c, cin] of [[L.r, L.r + 0.5], [L.r + MEGA_ROWS, L.r + MEGA_ROWS - 0.5]])
     for (let s = k0 - from * L.dir; s + 0.25 <= len; s += 0.5) {
       if (s < 0) continue;
       const k = from + L.dir * s; if (!on(k + L.dir * 0.125, cin)) continue;
@@ -2920,7 +2925,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !guideEl.hidden) cl
     'start.li': 10, 'pool.first': 20, 'pool.second': 25, 'pool.far': '35–55',
     'data.dmg': t(DATA_DMG * 100), 'data.bots': 0.8, 'hp.grow': 12,
     'panzer.from': 3, 'infil.from': 6, 'panzer.blast': 22, snuff: 10,
-    'mega.from': MEGA_FROM, 'mega.every': MEGA_EVERY, 'mega.rows': 3, 'mega.blast': MEGA_BLAST, 'mega.bounty': MEGA_BOUNTY,
+    'mega.from': MEGA_FROM, 'mega.every': MEGA_EVERY, 'mega.rows': MEGA_ROWS, 'mega.blast': MEGA_BLAST, 'mega.bounty': MEGA_BOUNTY,
     'wave.pay': `${waveBonus(1)}–${waveBonus(99)}`,
   };
   for (const [k, d] of Object.entries(DRONE)) { NUM[k + '.hp'] = d.hp; NUM[k + '.spd'] = d.spd; NUM[k + '.dmg'] = d.dmg; }
