@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="description" content="Blackout Protocol: a light-and-darkness base defense game.">
+<meta name="description" content="Eidolon: a light-and-darkness base defense game.">
 <meta name="theme-color" content="#07090c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Blackout">
+<meta name="apple-mobile-web-app-title" content="Eidolon">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>Blackout Protocol</title>
+<title>Eidolon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
 <style>
-/* Layout: a handheld console. Stat strip on top, portrait night map filling the middle, a 3×2 thumb pad at the bottom. Single dark look on purpose: the game is about darkness. */
+/* Layout: a handheld console. Stat strip on top, portrait map filling the middle, a 3×2 thumb pad at the bottom. Single dark look on purpose: the game is about darkness. */
 :root{
   --ink:#07090c; --panel:#10141a; --line:#222a33; --muted:#7c8794; --fg:#dfe5ea;
-  --sodium:#f4a54a; --bloom:#5fe3bd; --danger:#ff6359; --violet:#9d97e8;
+  --sodium:#f4a54a; --lithium:#5fe3bd; --danger:#ff6359; --violet:#9d97e8;
   --f-display:"Chakra Petch","Trebuchet MS",system-ui,sans-serif;
   --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -43,8 +43,8 @@ h1 span{color:var(--sodium)}
 .stat .v{font-family:var(--f-display);font-size:1rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar{height:3px;background:var(--line);border-radius:2px;margin-top:4px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;transition:width .2s}
-#coreBar{background:var(--sodium)}
-.v.bloom{color:var(--bloom)} .v.sod{color:var(--sodium)}
+#baseBar{background:var(--sodium)}
+.v.lithium{color:var(--lithium)} .v.sod{color:var(--sodium)}
 .stage{flex:1 1 auto;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
 canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#000;touch-action:none;cursor:crosshair}
 .toast{position:absolute;left:50%;top:8px;transform:translateX(-50%);max-width:92%;background:rgba(16,20,26,.92);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--fg);text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
@@ -56,9 +56,7 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
 .tool small{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .tool[aria-pressed="true"]{border-color:var(--sodium);box-shadow:inset 0 0 0 1px var(--sodium);background:#1a1610}
 .tool:disabled{opacity:.4}
-.tool.act b{color:var(--bloom)}
-.tool.wide{grid-column:span 2}
-.tool:focus-visible,.ib:focus-visible,.btn:focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
+.tool.act b{color:var(--lithium)}.tool:focus-visible,.ib:focus-visible,.btn:focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
 .overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(4,6,9,.78);
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .card{width:100%;max-width:420px;max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;-webkit-user-select:text;user-select:text}
@@ -67,7 +65,7 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
 .rules{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
 .rules li{font-size:13.5px;line-height:1.45;color:#c3cbd3;padding-left:12px;border-left:2px solid var(--line)}
 .rules li b{color:var(--fg)}
-.rules .s{border-color:var(--sodium)} .rules .g{border-color:var(--bloom)} .rules .d{border-color:var(--danger)}
+.rules .s{border-color:var(--sodium)} .rules .g{border-color:var(--lithium)} .rules .d{border-color:var(--danger)}
 .hint{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
 .btn{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;background:var(--sodium);color:#1a0f02;border:0;border-radius:10px;padding:14px 16px;cursor:pointer}
 @media (prefers-reduced-motion: reduce){.toast,.bar i{transition:none}}
@@ -76,7 +74,7 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
 <body>
 <div class="app">
   <div class="top">
-    <h1>Blackout <span>Protocol</span></h1>
+    <h1>Eidolon</h1>
     <div class="icons">
       <button class="ib" id="helpBtn" type="button" aria-label="How to play">?</button>
       <button class="ib" id="speedBtn" type="button" aria-label="Game speed">×1</button>
@@ -85,10 +83,10 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
   </div>
 
   <div class="stats" role="status" aria-live="off">
-    <div class="stat"><div class="k">Bloom</div><div class="v bloom" id="sBloom">0</div></div>
+    <div class="stat"><div class="k">Lithium</div><div class="v lithium" id="sLithium">0</div></div>
     <div class="stat"><div class="k">Glow</div><div class="v sod" id="sGlow">0</div></div>
-    <div class="stat"><div class="k" id="sPhaseK">Night 1</div><div class="v" id="sPhase">30s</div></div>
-    <div class="stat"><div class="k">Core</div><div class="v" id="sCore">300</div><div class="bar"><i id="coreBar"></i></div></div>
+    <div class="stat"><div class="k" id="sPhaseK">Wave 1</div><div class="v" id="sPhase">30s</div></div>
+    <div class="stat"><div class="k">Base</div><div class="v" id="sBase">300</div><div class="bar"><i id="baseBar"></i></div></div>
   </div>
 
   <div class="stage" id="stage">
@@ -97,23 +95,25 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
   </div>
 
   <div class="pad" id="tools">
-    <button class="tool" data-tool="lamp" aria-pressed="true" type="button"><b>Lamp</b><small>12</small></button>
-    <button class="tool" data-tool="harv" aria-pressed="false" type="button"><b>Harvester</b><small>25</small></button>
-    <button class="tool" data-tool="turret" aria-pressed="false" type="button"><b>Turret</b><small>30</small></button>
+    <button class="tool" data-tool="lamp" aria-pressed="true" type="button"><b>Lamp</b><small>1</small></button>
+    <button class="tool" data-tool="refinery" aria-pressed="false" type="button"><b>Refinery</b><small>2</small></button>
+    <button class="tool" data-tool="turret" aria-pressed="false" type="button"><b>Turret</b><small>3</small></button>
+    <button class="tool" data-tool="missile" aria-pressed="false" type="button"><b>Missiles</b><small>5</small></button>
     <button class="tool" data-tool="remove" aria-pressed="false" type="button"><b>Dismantle</b><small>full refund</small></button>
-    <button class="tool act wide" id="flareBtn" type="button"><b>Flare</b><small>40 · stun lit husks</small></button>
+    <button class="tool act" id="flareBtn" type="button"><b>Flare</b><small>4 · stun</small></button>
   </div>
 </div>
 
 <div class="overlay" id="overlay">
   <div class="card">
     <h2 id="ovTitle">The lights are your walls</h2>
-    <p id="ovText">Husks hide in the dark. Your turrets only hit what your lamps light up, but every lamp is also a beacon.</p>
+    <p id="ovText">Drones hide in the dark. Your turrets only hit what your lamps light up, but every lamp is also a beacon.</p>
     <ul class="rules" id="rules">
-      <li class="s"><b>Light is territory.</b> Lamps chain power out from the Core. Build within cable reach of a lit lamp.</li>
-      <li class="s"><b>Light is a beacon.</b> More lamps mean more Glow, and bigger waves each night.</li>
-      <li class="g"><b>Bloom is your budget.</b> Harvesters on glowing pools earn it. Pools run dry, so you'll have to push into the dark for more.</li>
-      <li class="d"><b>Nights get worse.</b> Bloaters (night 3+) burst and snuff nearby lamps for 10s, cutting power downstream. Shades (night 6+) hunt harvesters.</li>
+      <li class="s"><b>Light is territory.</b> Lamps chain power out from the Base. Build within cable reach of a lit lamp.</li>
+      <li class="s"><b>Light is a beacon.</b> More lamps mean more Glow, and bigger waves.</li>
+      <li class="g"><b>Lithium is your budget.</b> Lamp 1 · Refinery 2 · Turret 3 · Missiles 5. Refineries on glowing pools earn 1 Lithium every 8 seconds, and each wave you survive pays 2. Pools run dry, so push into the dark for more.</li>
+      <li class="s"><b>Turrets vs. missiles.</b> Turrets fire fast at close range. Missile launchers reach farther and hit groups with splash damage, but reload slowly.</li>
+      <li class="d"><b>Waves get worse.</b> Panzers (wave 3+) burst and snuff nearby lamps for 10s, cutting power downstream. Infiltrators (wave 6+) hunt refineries.</li>
     </ul>
     <p class="hint">Tap a tile to build. Long-press a building to dismantle it.</p>
     <button class="btn" id="ovBtn" type="button">Start the shift</button>
@@ -123,7 +123,7 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
 <script>
 (() => {
 const T = 32, GW = 15, GH = 25, W = GW * T, H = GH * T;
-const CORE_TX = 7, CORE_TY = 12;
+const BASE_TX = 7, BASE_TY = 12;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = s => document.querySelector(s);
 const cv = $('#game'), ctx = cv.getContext('2d'), stage = $('#stage');
@@ -131,19 +131,20 @@ const dark = document.createElement('canvas'), dctx = dark.getContext('2d');
 let DPR = 1;
 
 const DEF = {
-  core:   { hp: 300, radius: 4.4, link: 5.0, cost: 0 },
-  lamp:   { hp: 40,  radius: 3.3, link: 4.5, cost: 12 },
-  harv:   { hp: 50,  radius: 0.9, link: 0,   cost: 25 },
-  turret: { hp: 70,  radius: 1.3, link: 0,   cost: 30 },
+  base:   { hp: 300, radius: 4.4, link: 5.0, cost: 0 },
+  lamp:    { hp: 40,  radius: 3.3, link: 4.5, cost: 1 },
+  refinery:    { hp: 50,  radius: 0.9, link: 0,   cost: 2 },
+  turret:  { hp: 70,  radius: 1.3, link: 0,   cost: 3 },
+  missile: { hp: 80,  radius: 1.3, link: 0,   cost: 5 },
 };
-const NAME = { lamp: 'Lamp', harv: 'Harvester', turret: 'Turret' };
-const HUSK = {
-  walker:  { hp: 30, spd: 18, dmg: 7,  r: 9,  col: '#9aa38f', loot: 2 },
-  runner:  { hp: 16, spd: 42, dmg: 4,  r: 7,  col: '#cdb47a', loot: 2 },
-  bloater: { hp: 80, spd: 12, dmg: 0,  r: 13, col: '#86b56c', loot: 5 },
-  shade:   { hp: 45, spd: 30, dmg: 10, r: 8,  col: '#9d97e8', loot: 4 },
+const NAME = { lamp: 'Lamp', refinery: 'Refinery', turret: 'Turret', missile: 'Missile launcher' };
+const DRONE = {
+  walker:  { hp: 30, spd: 18, dmg: 7,  r: 9,  col: '#9aa38f' },
+  runner:  { hp: 16, spd: 42, dmg: 4,  r: 7,  col: '#cdb47a' },
+  panzer: { hp: 80, spd: 12, dmg: 0,  r: 13, col: '#86b56c' },
+  infiltrator:   { hp: 45, spd: 30, dmg: 10, r: 8,  col: '#9d97e8' },
 };
-const FLARE_COST = 40, CALM = 28, TURRET_RANGE = 4.2;
+const FLARE_COST = 4, CALM = 28, TURRET_RANGE = 4.2, MISSILE_RANGE = 6.2, WAVE_BONUS = 2, REFINE_RATE = 1 / 8;
 
 let S, tool = 'lamp', hover = null, paused = true, speed = 1, started = false, emitters = [];
 
@@ -163,24 +164,24 @@ new ResizeObserver(fit).observe(stage);
 
 /* ---------- state ---------- */
 function newGame() {
-  S = { bloom: 70, wave: 1, calm: 30, spawnLeft: 0, spawnT: 0, t: 0, mined: 0, kills: 0,
+  S = { lithium: 6, m: [], wave: 1, calm: 30, spawnLeft: 0, spawnT: 0, t: 0, mined: 0, kills: 0,
         over: false, flareCd: 0, flash: 0, pools: [], b: [], h: [], fx: [], id: 1 };
   const tryPool = (minD, maxD, amt) => {
     for (let i = 0; i < 300; i++) {
       const tx = Math.floor(rand(1, GW - 1)), ty = Math.floor(rand(1, GH - 1));
-      const d = Math.hypot(tx - CORE_TX, ty - CORE_TY);
+      const d = Math.hypot(tx - BASE_TX, ty - BASE_TY);
       if (d < minD || d > maxD) continue;
       if (S.pools.some(p => Math.hypot(p.tx - tx, p.ty - ty) < 3.2)) continue;
       const p = { tx, ty, amt, max: amt }; S.pools.push(p); return p;
     }
   };
-  const first = tryPool(3, 4.2, 260);
-  tryPool(5, 7, 300);
-  for (let i = 0; i < 6; i++) tryPool(7.5, 30, Math.round(rand(400, 700)));
-  addB('core', CORE_TX, CORE_TY);
-  if (first) addB('harv', first.tx, first.ty);
-  const goUp = first && first.ty > CORE_TY;
-  addB('lamp', CORE_TX, CORE_TY + (goUp ? -4 : 4));
+  const first = tryPool(3, 4.2, 20);
+  tryPool(5, 7, 25);
+  for (let i = 0; i < 6; i++) tryPool(7.5, 30, Math.round(rand(35, 55)));
+  addB('base', BASE_TX, BASE_TY);
+  if (first) addB('refinery', first.tx, first.ty);
+  const goUp = first && first.ty > BASE_TY;
+  addB('lamp', BASE_TX, BASE_TY + (goUp ? -4 : 4));
   power();
 }
 function addB(type, tx, ty) {
@@ -190,12 +191,12 @@ function addB(type, tx, ty) {
 }
 const poolAt = (tx, ty) => S.pools.find(p => p.tx === tx && p.ty === ty);
 const bAt = (tx, ty) => S.b.find(b => b.tx === tx && b.ty === ty);
-const core = () => S.b.find(b => b.type === 'core');
-const isNode = b => (b.type === 'core' || b.type === 'lamp') && !(b.snuff > 0);
+const base = () => S.b.find(b => b.type === 'base');
+const isNode = b => (b.type === 'base' || b.type === 'lamp') && !(b.snuff > 0);
 
 function power() {
   for (const b of S.b) b.powered = false;
-  const c = core(); if (!c) { emitters = []; return; }
+  const c = base(); if (!c) { emitters = []; return; }
   c.powered = true;
   const nodes = S.b.filter(isNode), q = [c];
   while (q.length) {
@@ -203,7 +204,7 @@ function power() {
     for (const m of nodes) if (!m.powered && d2(n.x, n.y, m.x, m.y) <= L * L) { m.powered = true; q.push(m); }
   }
   const live = nodes.filter(n => n.powered);
-  for (const b of S.b) if (b.type === 'harv' || b.type === 'turret')
+  for (const b of S.b) if (b.type === 'refinery' || b.type === 'turret' || b.type === 'missile')
     b.powered = live.some(n => d2(n.x, n.y, b.x, b.y) <= (DEF[n.type].link * T) ** 2);
   emitters = S.b.filter(b => b.powered && !(b.snuff > 0));
 }
@@ -211,21 +212,21 @@ function isLit(x, y) {
   for (const e of emitters) { const r = DEF[e.type].radius * T; if (d2(x, y, e.x, e.y) <= r * r) return true; }
   return false;
 }
-const glow = () => emitters.filter(e => e.type !== 'harv').length;
+const glow = () => emitters.filter(e => e.type !== 'refinery').length;
 
 function canPlace(t, tx, ty) {
   if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) return { ok: false };
   if (t === 'remove') {
     const b = bAt(tx, ty);
     if (!b) return { ok: false, msg: 'Nothing to dismantle there.' };
-    if (b.type === 'core') return { ok: false, msg: 'The Core cannot be dismantled.' };
+    if (b.type === 'base') return { ok: false, msg: 'The Base cannot be dismantled.' };
     return { ok: true, b };
   }
   if (bAt(tx, ty)) return { ok: false, msg: 'That tile is taken. Long-press to dismantle.' };
   const pool = poolAt(tx, ty);
-  if (t === 'harv' && !(pool && pool.amt > 0)) return { ok: false, msg: 'Harvesters go on a glowing Bloom pool.' };
-  if (t !== 'harv' && pool) return { ok: false, msg: 'Keep pools clear for harvesters.' };
-  if (S.bloom < DEF[t].cost) return { ok: false, msg: `Not enough Bloom. ${NAME[t]} costs ${DEF[t].cost}.` };
+  if (t === 'refinery' && !(pool && pool.amt > 0)) return { ok: false, msg: 'Refineries go on a glowing Lithium pool.' };
+  if (t !== 'refinery' && pool) return { ok: false, msg: 'Keep pools clear for refineries.' };
+  if (S.lithium < DEF[t].cost) return { ok: false, msg: `Not enough Lithium. ${NAME[t]} costs ${DEF[t].cost}.` };
   const x = tx * T + T / 2, y = ty * T + T / 2;
   const reach = S.b.some(n => isNode(n) && n.powered && d2(n.x, n.y, x, y) <= (DEF[n.type].link * T) ** 2);
   if (!reach) return { ok: false, msg: 'Out of cable reach. Build closer to a lit lamp.' };
@@ -244,29 +245,29 @@ function act(t, tx, ty) {
   const r = canPlace(t, tx, ty);
   if (!r.ok) { if (r.msg) say(r.msg, true); buzz(30); return; }
   if (t === 'remove') {
-    S.bloom += DEF[r.b.type].cost;
-    S.b = S.b.filter(b => b !== r.b); say(`${NAME[r.b.type]} dismantled. +${DEF[r.b.type].cost} Bloom.`);
+    S.lithium += DEF[r.b.type].cost;
+    S.b = S.b.filter(b => b !== r.b); say(`${NAME[r.b.type]} dismantled. +${DEF[r.b.type].cost} Lithium.`);
   } else {
-    S.bloom -= DEF[t].cost; addB(t, tx, ty);
-    say(t === 'lamp' ? 'Lamp lit. Glow is up, so expect a bigger crowd.' : t === 'harv' ? 'Harvester running.' : 'Turret online. It fires only into light.');
+    S.lithium -= DEF[t].cost; addB(t, tx, ty);
+    say(t === 'lamp' ? 'Lamp lit. Glow is up, so expect a bigger crowd.' : t === 'refinery' ? 'Refinery running.' : t === 'missile' ? 'Missile launcher online. Long range, splash damage, slow reload.' : 'Turret online. It fires only into light.');
   }
   buzz(10); power(); hud();
 }
 function flare() {
-  if (S.over || !started || S.bloom < FLARE_COST || S.flareCd > 0) return;
-  S.bloom -= FLARE_COST; S.flareCd = 18; S.flash = 1;
+  if (S.over || !started || S.lithium < FLARE_COST || S.flareCd > 0) return;
+  S.lithium -= FLARE_COST; S.flareCd = 18; S.flash = 1;
   let n = 0;
   for (const h of S.h) if (isLit(h.x, h.y)) { h.stun = 3; h.hp -= 15; n++; }
-  say(`Flare fired. ${n} husk${n === 1 ? '' : 's'} stunned.`); buzz(40); hud();
+  say(`Flare fired. ${n} drone${n === 1 ? '' : 's'} stunned.`); buzz(40); hud();
 }
 
 /* ---------- simulation ---------- */
-function spawnHusk() {
+function spawnDrone() {
   const w = S.wave, roll = Math.random();
   let type = 'walker';
-  const pShade = w >= 6 ? 0.14 : 0, pBloat = w >= 3 ? Math.min(0.22, 0.12 + (w - 3) * 0.02) : 0, pRun = Math.min(0.42, 0.08 + w * 0.04);
-  if (roll < pShade) type = 'shade'; else if (roll < pShade + pBloat) type = 'bloater'; else if (roll < pShade + pBloat + pRun) type = 'runner';
-  const d = HUSK[type], edge = Math.random() * (2 * W + 2 * H);
+  const pInfil = w >= 6 ? 0.14 : 0, pPanzer = w >= 3 ? Math.min(0.22, 0.12 + (w - 3) * 0.02) : 0, pRun = Math.min(0.42, 0.08 + w * 0.04);
+  if (roll < pInfil) type = 'infiltrator'; else if (roll < pInfil + pPanzer) type = 'panzer'; else if (roll < pInfil + pPanzer + pRun) type = 'runner';
+  const d = DRONE[type], edge = Math.random() * (2 * W + 2 * H);
   let x, y;
   if (edge < W) { x = edge; y = -12; } else if (edge < W + H) { x = W + 12; y = edge - W; }
   else if (edge < 2 * W + H) { x = edge - W - H; y = H + 12; } else { x = -12; y = edge - 2 * W - H; }
@@ -278,9 +279,9 @@ function boom(x, y) {
   for (const b of S.b) if (d2(x, y, b.x, b.y) <= (2.2 * T) ** 2) { b.hp -= 22; if (b.type === 'lamp') b.snuff = 10; }
   buzz(60);
 }
-function kill(h, loot) {
-  if (loot) { S.bloom += HUSK[h.type].loot; S.kills++; }
-  if (h.type === 'bloater') boom(h.x, h.y);
+function kill(h, counted) {
+  if (counted) S.kills++;
+  if (h.type === 'panzer') boom(h.x, h.y);
   h.dead = true;
 }
 function step(dt) {
@@ -292,19 +293,19 @@ function step(dt) {
 
   if (S.spawnLeft > 0) {
     S.spawnT -= dt;
-    if (S.spawnT <= 0) { spawnHusk(); S.spawnLeft--; S.spawnT = Math.max(0.25, 9 / (6 + S.wave * 2)); }
-    if (S.spawnLeft === 0) { S.calm = CALM; S.wave++; }
+    if (S.spawnT <= 0) { spawnDrone(); S.spawnLeft--; S.spawnT = Math.max(0.25, 9 / (6 + S.wave * 2)); }
+    if (S.spawnLeft === 0) { S.calm = CALM; S.wave++; S.lithium += WAVE_BONUS; }
   } else {
     S.calm -= dt;
     if (S.calm <= 0) {
       S.spawnLeft = 4 + S.wave * 2 + Math.floor(glow() * 0.8); S.spawnT = 0;
-      say(`Night ${S.wave}: ${S.spawnLeft} husks drawn by Glow ${glow()}.`, true); buzz([30, 60, 30]);
+      say(`Wave ${S.wave}: ${S.spawnLeft} drones drawn by Glow ${glow()}.`, true); buzz([30, 60, 30]);
     }
   }
 
-  for (const b of S.b) if (b.type === 'harv' && b.powered) {
+  for (const b of S.b) if (b.type === 'refinery' && b.powered) {
     const p = poolAt(b.tx, b.ty);
-    if (p && p.amt > 0) { const a = Math.min(p.amt, 1.5 * dt); p.amt -= a; S.bloom += a; S.mined += a; }
+    if (p && p.amt > 0) { const a = Math.min(p.amt, REFINE_RATE * dt); p.amt -= a; S.lithium += a; S.mined += a; }
   }
 
   for (const b of S.b) if (b.type === 'turret') {
@@ -313,22 +314,53 @@ function step(dt) {
     let best = null, bd = (TURRET_RANGE * T) ** 2;
     for (const h of S.h) { if (h.dead) continue; const dd = d2(b.x, b.y, h.x, h.y); if (dd < bd && isLit(h.x, h.y)) { bd = dd; best = h; } }
     if (best) {
-      best.hp -= best.type === 'shade' ? 5 : 10; b.cd = 0.45; b.aim = Math.atan2(best.y - b.y, best.x - b.x);
+      best.hp -= best.type === 'infiltrator' ? 5 : 10; b.cd = 0.45; b.aim = Math.atan2(best.y - b.y, best.x - b.x);
       S.fx.push({ k: 'shot', x: b.x, y: b.y, x2: best.x, y2: best.y, life: 0.08, t: 0 });
       if (best.hp <= 0) kill(best, true);
     }
   }
 
+  // missile launchers: aim at the lit drone with the most company, fire a homing missile
+  for (const b of S.b) if (b.type === 'missile') {
+    b.cd -= dt;
+    if (!b.powered || b.cd > 0) continue;
+    let best = null, bestN = -1;
+    for (const h of S.h) {
+      if (h.dead || d2(b.x, b.y, h.x, h.y) > (MISSILE_RANGE * T) ** 2 || !isLit(h.x, h.y)) continue;
+      let n = 0; for (const o of S.h) if (d2(h.x, h.y, o.x, o.y) < (1.6 * T) ** 2) n++;
+      if (n > bestN) { bestN = n; best = h; }
+    }
+    if (best) {
+      b.cd = 2.2; b.aim = Math.atan2(best.y - b.y, best.x - b.x);
+      S.m.push({ x: b.x, y: b.y, tx: best.x, ty: best.y, tgt: best, a: b.aim });
+    }
+  }
+  for (const m of S.m) {
+    if (m.tgt && !m.tgt.dead) { m.tx = m.tgt.x; m.ty = m.tgt.y; }
+    const dx = m.tx - m.x, dy = m.ty - m.y, dist = Math.hypot(dx, dy), v = 230 * dt;
+    m.a = Math.atan2(dy, dx);
+    if (dist <= v) {
+      m.done = true;
+      S.fx.push({ k: 'blast', x: m.tx, y: m.ty, life: 0.45, t: 0 });
+      for (const h of S.h) if (!h.dead && d2(m.tx, m.ty, h.x, h.y) <= (1.6 * T) ** 2) {
+        h.hp -= h.type === 'infiltrator' ? 15 : 30;
+        if (h.hp <= 0) kill(h, true);
+      }
+      buzz(20);
+    } else { m.x += dx / dist * v; m.y += dy / dist * v; }
+  }
+  S.m = S.m.filter(m => !m.done);
+
   for (const h of S.h) {
     if (h.dead) continue;
-    const d = HUSK[h.type];
+    const d = DRONE[h.type];
     if (h.hp <= 0) { kill(h, true); continue; }
     if (h.stun > 0) { h.stun -= dt; continue; }
     h.retarget -= dt;
     if (h.retarget <= 0 || !h.tgt || h.tgt.hp <= 0 || !S.b.includes(h.tgt)) {
       h.retarget = 0.6;
       let pool = S.b;
-      if (h.type === 'shade') { const hv = S.b.filter(b => b.type === 'harv'); if (hv.length) pool = hv; }
+      if (h.type === 'infiltrator') { const hv = S.b.filter(b => b.type === 'refinery'); if (hv.length) pool = hv; }
       let best = null, bd = Infinity;
       for (const b of pool) { const dd = d2(h.x, h.y, b.x, b.y); if (dd < bd) { bd = dd; best = b; } }
       h.tgt = best;
@@ -336,7 +368,7 @@ function step(dt) {
     const tg = h.tgt; if (!tg) continue;
     const dx = tg.x - h.x, dy = tg.y - h.y, dist = Math.hypot(dx, dy);
     if (dist < d.r + 13) {
-      if (h.type === 'bloater') { kill(h, false); continue; }
+      if (h.type === 'panzer') { kill(h, false); continue; }
       tg.hp -= d.dmg * dt;
     } else {
       h.wob += dt * 3;
@@ -350,7 +382,7 @@ function step(dt) {
   if (lost.length) {
     for (const b of lost) S.fx.push({ k: 'boom', x: b.x, y: b.y, life: 0.4, t: 0, small: true });
     S.b = S.b.filter(b => b.hp > 0);
-    if (!core()) return gameOver();
+    if (!base()) return gameOver();
     power();
   }
   for (const f of S.fx) f.t += dt;
@@ -359,8 +391,8 @@ function step(dt) {
 function gameOver() {
   S.over = true; setPaused(true); buzz([80, 60, 160]);
   const n = S.wave - 1;
-  $('#ovTitle').textContent = 'The Core went dark';
-  $('#ovText').textContent = `You held the site through ${n} night${n === 1 ? '' : 's'}, mined ${Math.round(S.mined)} Bloom, and put down ${S.kills} husks.`;
+  $('#ovTitle').textContent = 'The Base went dark';
+  $('#ovText').textContent = `You held the site through ${n} wave${n === 1 ? '' : 's'}, refined ${Math.round(S.mined)} Lithium, and downed ${S.kills} drones.`;
   $('#rules').hidden = true;
   $('#ovBtn').textContent = 'Run it again';
   $('#overlay').hidden = false;
@@ -370,14 +402,14 @@ function gameOver() {
 function drawBuilding(b) {
   const s = T * 0.36, on = b.powered && !(b.snuff > 0);
   ctx.save(); ctx.translate(b.x, b.y);
-  if (b.type === 'core') {
+  if (b.type === 'base') {
     ctx.fillStyle = '#1d232b'; ctx.strokeStyle = '#f4a54a'; ctx.lineWidth = 3;
     ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.lineTo(Math.cos(a) * 22, Math.sin(a) * 22); } ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#ffd08a'; ctx.beginPath(); ctx.arc(0, 0, 7 + Math.sin(S.t * 2) * (reduceMotion ? 0 : 1.2), 0, 7); ctx.fill();
   } else if (b.type === 'lamp') {
     ctx.fillStyle = '#2a313a'; ctx.fillRect(-3, -s, 6, s * 2);
     ctx.fillStyle = on ? '#ffd08a' : '#3a3f45'; ctx.beginPath(); ctx.arc(0, -s, 6, 0, 7); ctx.fill();
-  } else if (b.type === 'harv') {
+  } else if (b.type === 'refinery') {
     ctx.strokeStyle = on ? '#5fe3bd' : '#3c5a52'; ctx.lineWidth = 3; ctx.strokeRect(-s, -s, s * 2, s * 2);
     ctx.rotate(on ? S.t * 2 : 0); ctx.fillStyle = on ? '#5fe3bd' : '#3c5a52';
     ctx.fillRect(-2, -s + 2, 4, s * 2 - 4); ctx.fillRect(-s + 2, -2, s * 2 - 4, 4);
@@ -385,6 +417,15 @@ function drawBuilding(b) {
     ctx.fillStyle = '#232a33'; ctx.beginPath(); ctx.arc(0, 0, s, 0, 7); ctx.fill();
     ctx.strokeStyle = on ? '#f4a54a' : '#4d4234'; ctx.lineWidth = 2; ctx.stroke();
     ctx.rotate(b.aim || -Math.PI / 2); ctx.fillStyle = on ? '#e6ecf0' : '#555'; ctx.fillRect(0, -3, s + 6, 6);
+  } else if (b.type === 'missile') {
+    ctx.fillStyle = '#232a33'; ctx.fillRect(-s - 1, -s - 1, s * 2 + 2, s * 2 + 2);
+    ctx.strokeStyle = on ? '#ff8a4c' : '#4d3a30'; ctx.lineWidth = 2; ctx.strokeRect(-s - 1, -s - 1, s * 2 + 2, s * 2 + 2);
+    ctx.rotate(b.aim || -Math.PI / 2);
+    const ready = on && b.cd <= 0;
+    ctx.fillStyle = on ? '#cfd6dc' : '#555';
+    ctx.fillRect(-4, -7, s + 8, 5); ctx.fillRect(-4, 2, s + 8, 5);
+    ctx.fillStyle = ready ? '#ff8a4c' : '#5a4034';
+    ctx.fillRect(s + 2, -7, 3, 5); ctx.fillRect(s + 2, 2, 3, 5);
   }
   ctx.restore();
 }
@@ -408,7 +449,7 @@ function draw() {
   ctx.strokeStyle = 'rgba(244,165,74,.3)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]);
   ctx.beginPath();
   for (const b of S.b) {
-    if (!b.powered || b.type === 'core') continue;
+    if (!b.powered || b.type === 'base') continue;
     let best = null, bd = Infinity;
     for (const n of nodes) { if (n === b) continue; const dd = d2(n.x, n.y, b.x, b.y); if (dd < bd && dd <= (DEF[n.type].link * T) ** 2) { bd = dd; best = n; } }
     if (best) { ctx.moveTo(b.x, b.y); ctx.lineTo(best.x, best.y); }
@@ -417,9 +458,9 @@ function draw() {
 
   for (const b of S.b) drawBuilding(b);
   for (const h of S.h) {
-    const d = HUSK[h.type];
+    const d = DRONE[h.type];
     ctx.fillStyle = d.col; ctx.beginPath(); ctx.arc(h.x, h.y, d.r, 0, 7); ctx.fill();
-    if (h.type === 'bloater') { ctx.strokeStyle = '#c4e39a'; ctx.lineWidth = 2; ctx.stroke(); }
+    if (h.type === 'panzer') { ctx.strokeStyle = '#c4e39a'; ctx.lineWidth = 2; ctx.stroke(); }
     if (h.stun > 0) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(h.x, h.y, d.r + 4, 0, 7); ctx.stroke(); }
   }
   for (const f of S.fx) if (f.k === 'shot') {
@@ -442,7 +483,7 @@ function draw() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(dark, 0, 0); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
   ctx.globalCompositeOperation = 'lighter';
-  for (const e of emitters) if (e.type !== 'harv') {
+  for (const e of emitters) if (e.type !== 'refinery') {
     const r = DEF[e.type].radius * T, g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, r);
     g.addColorStop(0, 'rgba(244,165,74,.12)'); g.addColorStop(1, 'rgba(244,165,74,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(e.x, e.y, r, 0, 7); ctx.fill();
@@ -460,15 +501,27 @@ function draw() {
   for (const h of S.h) {
     if (isLit(h.x, h.y)) continue;
     if (!reduceMotion && Math.sin(S.t * 3 + h.wob * 4) < -0.93) continue;
-    ctx.fillStyle = h.type === 'shade' ? 'rgba(157,151,232,.85)' : 'rgba(255,99,89,.8)';
+    ctx.fillStyle = h.type === 'infiltrator' ? 'rgba(157,151,232,.85)' : 'rgba(255,99,89,.8)';
     ctx.fillRect(h.x - 4, h.y - 2, 2.5, 2.5); ctx.fillRect(h.x + 1.5, h.y - 2, 2.5, 2.5);
+  }
+  // missiles glow, so draw them above the darkness
+  for (const m of S.m) {
+    ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(m.a);
+    ctx.fillStyle = 'rgba(255,138,76,.35)'; ctx.fillRect(-14, -1.5, 12, 3);
+    ctx.fillStyle = '#ffd7b8'; ctx.fillRect(-3, -2, 8, 4);
+    ctx.restore();
+  }
+  for (const f of S.fx) if (f.k === 'blast') {
+    const k = f.t / f.life, r = 1.6 * T * (0.3 + k * 0.7);
+    ctx.fillStyle = `rgba(255,138,76,${0.35 * (1 - k)})`; ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, 7); ctx.fill();
+    ctx.strokeStyle = `rgba(255,190,140,${1 - k})`; ctx.lineWidth = 2; ctx.stroke();
   }
   for (const f of S.fx) if (f.k === 'boom') {
     const k = f.t / f.life, r = (f.small ? 1 : 2.2) * T * (0.4 + k * 0.6);
     ctx.strokeStyle = `rgba(196,227,154,${1 - k})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, 7); ctx.stroke();
   }
   for (const b of S.b) if (b.hp < b.max) {
-    const w = b.type === 'core' ? 44 : 26;
+    const w = b.type === 'base' ? 44 : 26;
     ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(b.x - w / 2, b.y - 26, w, 4);
     ctx.fillStyle = b.hp / b.max > 0.4 ? '#f4a54a' : '#ff6359'; ctx.fillRect(b.x - w / 2, b.y - 26, w * b.hp / b.max, 4);
   }
@@ -482,27 +535,27 @@ function draw() {
     const r = canPlace(t, hover.tx, hover.ty), x = hover.tx * T, y = hover.ty * T;
     ctx.strokeStyle = r.ok ? (t === 'remove' ? '#ff6359' : '#f4a54a') : 'rgba(255,99,89,.7)';
     ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, T - 2, T - 2);
-    const rad = !r.ok || t === 'remove' ? 0 : t === 'turret' ? TURRET_RANGE : t === 'lamp' ? DEF.lamp.radius : 0;
+    const rad = !r.ok || t === 'remove' ? 0 : t === 'turret' ? TURRET_RANGE : t === 'missile' ? MISSILE_RANGE : t === 'lamp' ? DEF.lamp.radius : 0;
     if (rad) { ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.arc(x + T / 2, y + T / 2, rad * T, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
   }
 }
 
 /* ---------- HUD ---------- */
 function hud() {
-  $('#sBloom').textContent = Math.floor(S.bloom);
+  $('#sLithium').textContent = Math.floor(S.lithium);
   $('#sGlow').textContent = glow();
-  const c = core();
-  $('#sCore').textContent = c ? Math.ceil(c.hp) : 0;
-  $('#coreBar').style.width = (c ? c.hp / c.max * 100 : 0) + '%';
-  if (S.spawnLeft > 0) { $('#sPhaseK').textContent = `Night ${S.wave}`; $('#sPhase').textContent = `${S.h.length + S.spawnLeft} left`; }
-  else { $('#sPhaseK').textContent = `Night ${S.wave} in`; $('#sPhase').textContent = Math.ceil(S.calm) + 's'; }
+  const c = base();
+  $('#sBase').textContent = c ? Math.ceil(c.hp) : 0;
+  $('#baseBar').style.width = (c ? c.hp / c.max * 100 : 0) + '%';
+  if (S.spawnLeft > 0) { $('#sPhaseK').textContent = `Wave ${S.wave}`; $('#sPhase').textContent = `${S.h.length + S.spawnLeft} left`; }
+  else { $('#sPhaseK').textContent = `Wave ${S.wave} in`; $('#sPhase').textContent = Math.ceil(S.calm) + 's'; }
   for (const btn of document.querySelectorAll('[data-tool]')) {
     const t = btn.dataset.tool; btn.setAttribute('aria-pressed', String(t === tool));
-    btn.disabled = t !== 'remove' && S.bloom < DEF[t].cost;
+    btn.disabled = t !== 'remove' && S.lithium < DEF[t].cost;
   }
   const fb = $('#flareBtn');
-  fb.disabled = S.bloom < FLARE_COST || S.flareCd > 0;
-  fb.querySelector('small').textContent = S.flareCd > 0 ? `ready in ${Math.ceil(S.flareCd)}s` : '40 · stun lit husks';
+  fb.disabled = S.lithium < FLARE_COST || S.flareCd > 0;
+  fb.querySelector('small').textContent = S.flareCd > 0 ? `ready in ${Math.ceil(S.flareCd)}s` : '4 · stun';
 }
 
 /* ---------- input: tap to build, long-press to dismantle ---------- */
@@ -546,7 +599,7 @@ $('#helpBtn').addEventListener('click', () => {
   if (S.over) return;
   if (started) setPaused(true);
   $('#ovTitle').textContent = 'How to play'; $('#rules').hidden = false;
-  $('#ovText').textContent = 'Husks hide in the dark. Your turrets only hit what your lamps light up, but every lamp is also a beacon.';
+  $('#ovText').textContent = 'Drones hide in the dark. Your turrets only hit what your lamps light up, but every lamp is also a beacon.';
   $('#ovBtn').textContent = started ? 'Back to the shift' : 'Start the shift';
   $('#overlay').hidden = false;
 });
@@ -557,7 +610,7 @@ $('#ovBtn').addEventListener('click', () => {
 document.addEventListener('visibilitychange', () => { if (document.hidden && started && !S.over) setPaused(true); });
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
-  if (k === '1') setTool('lamp'); else if (k === '2') setTool('harv'); else if (k === '3') setTool('turret'); else if (k === '4') setTool('remove');
+  if (k === '1') setTool('lamp'); else if (k === '2') setTool('refinery'); else if (k === '3') setTool('turret'); else if (k === '4') setTool('missile'); else if (k === '5') setTool('remove');
   else if (k === 'f') flare();
   else if (k === ' ' && started && !S.over) { e.preventDefault(); setPaused(!paused); }
 });
@@ -575,14 +628,14 @@ function frame(now) {
 }
 function start(data) {
   if (data && data.S) {
-    S = data.S; for (const h of S.h) h.tgt = null;
+    S = data.S; S.m = S.m || []; for (const h of S.h) h.tgt = null; for (const m of S.m) m.tgt = null;
     started = !!data.started; tool = data.tool || 'lamp';
     if (started && !S.over) { $('#overlay').hidden = true; setPaused(true); }
     power();
   } else newGame();
   fit(); hud(); requestAnimationFrame(frame);
 }
-window.claude?.hot?.snapshot?.(() => ({ S: { ...S, h: S.h.map(h => ({ ...h, tgt: null })) }, started, tool }));
+window.claude?.hot?.snapshot?.(() => ({ S: { ...S, h: S.h.map(h => ({ ...h, tgt: null })), m: S.m.map(m => ({ ...m, tgt: null })) }, started, tool }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
 </script>
