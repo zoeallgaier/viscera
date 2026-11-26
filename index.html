@@ -37,13 +37,12 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.05rem;letter-spacing
 h1 span{color:var(--sodium)}
 .icons{display:flex;gap:6px}
 .ib{font-family:var(--f-display);font-weight:700;font-size:14px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:44px;height:36px;padding:0 10px;cursor:pointer}
-.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .stat{background:var(--panel);padding:6px 8px;min-width:0}
 .stat .k{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat .v{font-family:var(--f-display);font-size:1rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar{height:3px;background:var(--line);border-radius:2px;margin-top:4px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;transition:width .2s}
-#mutBar{background:linear-gradient(90deg,var(--bloom),var(--violet) 60%,var(--danger))}
 #coreBar{background:var(--sodium)}
 .v.bloom{color:var(--bloom)} .v.sod{color:var(--sodium)}
 .stage{flex:1 1 auto;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
@@ -58,6 +57,7 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
 .tool[aria-pressed="true"]{border-color:var(--sodium);box-shadow:inset 0 0 0 1px var(--sodium);background:#1a1610}
 .tool:disabled{opacity:.4}
 .tool.act b{color:var(--bloom)}
+.tool.wide{grid-column:span 2}
 .tool:focus-visible,.ib:focus-visible,.btn:focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
 .overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(4,6,9,.78);
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
@@ -86,7 +86,6 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
 
   <div class="stats" role="status" aria-live="off">
     <div class="stat"><div class="k">Bloom</div><div class="v bloom" id="sBloom">0</div></div>
-    <div class="stat"><div class="k">Mutation</div><div class="v" id="sMut">0%</div><div class="bar"><i id="mutBar"></i></div></div>
     <div class="stat"><div class="k">Glow</div><div class="v sod" id="sGlow">0</div></div>
     <div class="stat"><div class="k" id="sPhaseK">Night 1</div><div class="v" id="sPhase">30s</div></div>
     <div class="stat"><div class="k">Core</div><div class="v" id="sCore">300</div><div class="bar"><i id="coreBar"></i></div></div>
@@ -102,8 +101,7 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
     <button class="tool" data-tool="harv" aria-pressed="false" type="button"><b>Harvester</b><small>25</small></button>
     <button class="tool" data-tool="turret" aria-pressed="false" type="button"><b>Turret</b><small>30</small></button>
     <button class="tool" data-tool="remove" aria-pressed="false" type="button"><b>Dismantle</b><small>½ back</small></button>
-    <button class="tool act" id="flareBtn" type="button"><b>Flare</b><small>40</small></button>
-    <button class="tool act" id="purgeBtn" type="button"><b>Purge</b><small>50 · −15%</small></button>
+    <button class="tool act wide" id="flareBtn" type="button"><b>Flare</b><small>40 · stun lit husks</small></button>
   </div>
 </div>
 
@@ -114,8 +112,8 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
     <ul class="rules" id="rules">
       <li class="s"><b>Light is territory.</b> Lamps chain power out from the Core. Build within cable reach of a lit lamp.</li>
       <li class="s"><b>Light is a beacon.</b> More lamps mean more Glow, and bigger waves each night.</li>
-      <li class="g"><b>Bloom is a bargain.</b> Harvesters on glowing pools earn Bloom but raise Mutation. Purge to bring it down.</li>
-      <li class="d"><b>Bloaters</b> burst and snuff nearby lamps for 10s, cutting power downstream. <b>Shades</b> hunt harvesters.</li>
+      <li class="g"><b>Bloom is your budget.</b> Harvesters on glowing pools earn it. Pools run dry, so you'll have to push into the dark for more.</li>
+      <li class="d"><b>Nights get worse.</b> Bloaters (night 3+) burst and snuff nearby lamps for 10s, cutting power downstream. Shades (night 6+) hunt harvesters.</li>
     </ul>
     <p class="hint">Tap a tile to build. Long-press a building to dismantle it.</p>
     <button class="btn" id="ovBtn" type="button">Start the shift</button>
@@ -145,7 +143,7 @@ const HUSK = {
   bloater: { hp: 80, spd: 12, dmg: 0,  r: 13, col: '#86b56c', loot: 5 },
   shade:   { hp: 45, spd: 30, dmg: 10, r: 8,  col: '#9d97e8', loot: 4 },
 };
-const FLARE_COST = 40, PURGE_COST = 50, CALM = 28, TURRET_RANGE = 4.2;
+const FLARE_COST = 40, CALM = 28, TURRET_RANGE = 4.2;
 
 let S, tool = 'lamp', hover = null, paused = true, speed = 1, started = false, emitters = [];
 
@@ -165,7 +163,7 @@ new ResizeObserver(fit).observe(stage);
 
 /* ---------- state ---------- */
 function newGame() {
-  S = { bloom: 70, mut: 0, wave: 1, calm: 30, spawnLeft: 0, spawnT: 0, t: 0, mined: 0, kills: 0,
+  S = { bloom: 70, wave: 1, calm: 30, spawnLeft: 0, spawnT: 0, t: 0, mined: 0, kills: 0,
         over: false, flareCd: 0, flash: 0, pools: [], b: [], h: [], fx: [], id: 1 };
   const tryPool = (minD, maxD, amt) => {
     for (let i = 0; i < 300; i++) {
@@ -250,7 +248,7 @@ function act(t, tx, ty) {
     S.b = S.b.filter(b => b !== r.b); say(`${NAME[r.b.type]} dismantled. +${Math.floor(DEF[r.b.type].cost / 2)} Bloom.`);
   } else {
     S.bloom -= DEF[t].cost; addB(t, tx, ty);
-    say(t === 'lamp' ? 'Lamp lit. Glow is up, so expect a bigger crowd.' : t === 'harv' ? 'Harvester running. Mutation climbs while it mines.' : 'Turret online. It fires only into light.');
+    say(t === 'lamp' ? 'Lamp lit. Glow is up, so expect a bigger crowd.' : t === 'harv' ? 'Harvester running.' : 'Turret online. It fires only into light.');
   }
   buzz(10); power(); hud();
 }
@@ -261,23 +259,18 @@ function flare() {
   for (const h of S.h) if (isLit(h.x, h.y)) { h.stun = 3; h.hp -= 15; n++; }
   say(`Flare fired. ${n} husk${n === 1 ? '' : 's'} stunned.`); buzz(40); hud();
 }
-function purge() {
-  if (S.over || !started || S.bloom < PURGE_COST || S.mut <= 0) return;
-  S.bloom -= PURGE_COST; S.mut = Math.max(0, S.mut - 15);
-  say('Purge complete. Mutation down 15%.'); hud();
-}
 
 /* ---------- simulation ---------- */
 function spawnHusk() {
-  const m = S.mut, roll = Math.random();
+  const w = S.wave, roll = Math.random();
   let type = 'walker';
-  const pShade = m >= 45 ? 0.14 : 0, pBloat = (m >= 15 ? 0.16 : 0) + (S.wave >= 5 ? 0.05 : 0), pRun = Math.min(0.42, 0.08 + m / 120 + S.wave * 0.02);
+  const pShade = w >= 6 ? 0.14 : 0, pBloat = w >= 3 ? Math.min(0.22, 0.12 + (w - 3) * 0.02) : 0, pRun = Math.min(0.42, 0.08 + w * 0.04);
   if (roll < pShade) type = 'shade'; else if (roll < pShade + pBloat) type = 'bloater'; else if (roll < pShade + pBloat + pRun) type = 'runner';
   const d = HUSK[type], edge = Math.random() * (2 * W + 2 * H);
   let x, y;
   if (edge < W) { x = edge; y = -12; } else if (edge < W + H) { x = W + 12; y = edge - W; }
   else if (edge < 2 * W + H) { x = edge - W - H; y = H + 12; } else { x = -12; y = edge - 2 * W - H; }
-  const mul = (1 + m / 80) * (1 + (S.wave - 1) * 0.06);
+  const mul = 1 + (w - 1) * 0.12;
   S.h.push({ type, x, y, hp: d.hp * mul, max: d.hp * mul, stun: 0, tgt: null, retarget: 0, wob: rand(0, 6.28) });
 }
 function boom(x, y) {
@@ -311,7 +304,7 @@ function step(dt) {
 
   for (const b of S.b) if (b.type === 'harv' && b.powered) {
     const p = poolAt(b.tx, b.ty);
-    if (p && p.amt > 0) { const a = Math.min(p.amt, 1.5 * dt); p.amt -= a; S.bloom += a; S.mined += a; S.mut = Math.min(100, S.mut + a * 0.032); }
+    if (p && p.amt > 0) { const a = Math.min(p.amt, 1.5 * dt); p.amt -= a; S.bloom += a; S.mined += a; }
   }
 
   for (const b of S.b) if (b.type === 'turret') {
@@ -367,7 +360,7 @@ function gameOver() {
   S.over = true; setPaused(true); buzz([80, 60, 160]);
   const n = S.wave - 1;
   $('#ovTitle').textContent = 'The Core went dark';
-  $('#ovText').textContent = `You held the site through ${n} night${n === 1 ? '' : 's'}, mined ${Math.round(S.mined)} Bloom, and put down ${S.kills} husks. Mutation reached ${Math.round(S.mut)}%.`;
+  $('#ovText').textContent = `You held the site through ${n} night${n === 1 ? '' : 's'}, mined ${Math.round(S.mined)} Bloom, and put down ${S.kills} husks.`;
   $('#rules').hidden = true;
   $('#ovBtn').textContent = 'Run it again';
   $('#overlay').hidden = false;
@@ -497,8 +490,6 @@ function draw() {
 /* ---------- HUD ---------- */
 function hud() {
   $('#sBloom').textContent = Math.floor(S.bloom);
-  $('#sMut').textContent = Math.round(S.mut) + '%';
-  $('#mutBar').style.width = S.mut + '%';
   $('#sGlow').textContent = glow();
   const c = core();
   $('#sCore').textContent = c ? Math.ceil(c.hp) : 0;
@@ -511,8 +502,7 @@ function hud() {
   }
   const fb = $('#flareBtn');
   fb.disabled = S.bloom < FLARE_COST || S.flareCd > 0;
-  fb.querySelector('small').textContent = S.flareCd > 0 ? `ready in ${Math.ceil(S.flareCd)}s` : '40';
-  $('#purgeBtn').disabled = S.bloom < PURGE_COST || S.mut <= 0;
+  fb.querySelector('small').textContent = S.flareCd > 0 ? `ready in ${Math.ceil(S.flareCd)}s` : '40 · stun lit husks';
 }
 
 /* ---------- input: tap to build, long-press to dismantle ---------- */
@@ -549,7 +539,6 @@ cv.addEventListener('contextmenu', e => { e.preventDefault(); if (!started) retu
 function setTool(t) { tool = t; hud(); }
 document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
 $('#flareBtn').addEventListener('click', flare);
-$('#purgeBtn').addEventListener('click', purge);
 function setPaused(p) { paused = p; $('#pauseBtn').textContent = p ? '▶' : 'II'; $('#pauseBtn').setAttribute('aria-label', p ? 'Resume' : 'Pause'); }
 $('#pauseBtn').addEventListener('click', () => { if (started && !S.over) setPaused(!paused); });
 $('#speedBtn').addEventListener('click', () => { speed = speed === 1 ? 2 : 1; $('#speedBtn').textContent = '×' + speed; });
@@ -569,7 +558,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && sta
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (k === '1') setTool('lamp'); else if (k === '2') setTool('harv'); else if (k === '3') setTool('turret'); else if (k === '4') setTool('remove');
-  else if (k === 'f') flare(); else if (k === 'p') purge();
+  else if (k === 'f') flare();
   else if (k === ' ' && started && !S.over) { e.preventDefault(); setPaused(!paused); }
 });
 document.addEventListener('gesturestart', e => e.preventDefault());
