@@ -2,13 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Blackout Protocol: a light-and-darkness base defense game.">
+<meta name="theme-color" content="#07090c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Blackout">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>Blackout Protocol</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
 <style>
-/* Layout: one control-room console. Stat strip on top, the night map in the middle, the build bar under it, a field manual below. Single dark look on purpose: the game is about darkness. */
+/* Layout: a handheld console. Stat strip on top, portrait night map filling the middle, a 3×2 thumb pad at the bottom. Single dark look on purpose: the game is about darkness. */
 :root{
   --ink:#07090c; --panel:#10141a; --line:#222a33; --muted:#7c8794; --fg:#dfe5ea;
   --sodium:#f4a54a; --bloom:#5fe3bd; --danger:#ff6359; --violet:#9d97e8;
@@ -19,179 +27,164 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{margin:0;background:var(--ink);color:var(--fg)}
-body{font-family:var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
-.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
-h1{font-family:var(--f-display);font-weight:700;font-size:clamp(1.5rem,3.4vw,2.2rem);letter-spacing:.06em;margin:0;text-transform:uppercase;text-wrap:balance}
+html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;background:var(--ink);color:var(--fg)}
+body{font-family:var(--f-body);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+.app{height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:8px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-bottom,0px))}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{font-family:var(--f-display);font-weight:700;font-size:1.05rem;letter-spacing:.08em;margin:0;text-transform:uppercase;white-space:nowrap}
 h1 span{color:var(--sodium)}
-.sub{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin:4px 0 0}
-.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.stat{background:var(--panel);padding:8px 12px;min-width:0}
-.stat .k{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.stat .v{font-family:var(--f-display);font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar{height:4px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:var(--bloom);transition:width .2s}
+.icons{display:flex;gap:6px}
+.ib{font-family:var(--f-display);font-weight:700;font-size:14px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:44px;height:36px;padding:0 10px;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stat{background:var(--panel);padding:6px 8px;min-width:0}
+.stat .k{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .v{font-family:var(--f-display);font-size:1rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:3px;background:var(--line);border-radius:2px;margin-top:4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;transition:width .2s}
 #mutBar{background:linear-gradient(90deg,var(--bloom),var(--violet) 60%,var(--danger))}
 #coreBar{background:var(--sodium)}
 .v.bloom{color:var(--bloom)} .v.sod{color:var(--sodium)}
-.stage{position:relative;width:100%;max-width:calc(76vh * 1.5385);margin:0 auto;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#000;touch-action:manipulation}
-canvas{display:block;width:100%;height:auto;cursor:crosshair}
-.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(4,6,9,.62);padding:16px}
-.card{max-width:440px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:22px 24px;display:flex;flex-direction:column;gap:12px}
-.card h2{font-family:var(--f-display);margin:0;font-size:1.4rem;letter-spacing:.05em;text-transform:uppercase;text-wrap:balance}
-.card p{margin:0;line-height:1.55;color:#c3cbd3;font-size:14px}
-.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
-.tool{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;cursor:pointer;min-width:0}
-.tool b{font-family:var(--f-display);font-size:14px;letter-spacing:.04em}
-.tool small{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
-.tool .key{color:var(--sodium)}
-.tool[aria-pressed="true"]{border-color:var(--sodium);box-shadow:inset 0 0 0 1px var(--sodium)}
-.tool:disabled{opacity:.42;cursor:not-allowed}
-.tool:focus-visible,.btn:focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
+.stage{flex:1 1 auto;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
+canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#000;touch-action:none;cursor:crosshair}
+.toast{position:absolute;left:50%;top:8px;transform:translateX(-50%);max-width:92%;background:rgba(16,20,26,.92);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--fg);text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
+.toast.show{opacity:1}
+.toast.err{border-color:var(--danger);color:#ffb3ad}
+.pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.tool{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:54px;padding:6px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;min-width:0;touch-action:manipulation}
+.tool b{font-family:var(--f-display);font-size:14px;letter-spacing:.03em;white-space:nowrap}
+.tool small{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tool[aria-pressed="true"]{border-color:var(--sodium);box-shadow:inset 0 0 0 1px var(--sodium);background:#1a1610}
+.tool:disabled{opacity:.4}
 .tool.act b{color:var(--bloom)}
-.spacer{flex:1 1 0}
-.btn{font-family:var(--f-display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--sodium);color:#1a0f02;border:0;border-radius:6px;padding:10px 16px;cursor:pointer;align-self:flex-start}
-.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
-#msg{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);min-height:1.4em;margin:0}
-#msg.err{color:var(--danger)}
-.manual{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:6px}
-.manual section{border-top:2px solid var(--line);padding-top:10px;min-width:0}
-.manual h3{font-family:var(--f-display);font-size:1rem;letter-spacing:.06em;text-transform:uppercase;margin:0 0 6px}
-.manual p,.manual li{font-size:14px;line-height:1.55;color:#c3cbd3;margin:0}
-.manual ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
-.manual .sod{border-color:var(--sodium)} .manual .blo{border-color:var(--bloom)} .manual .dan{border-color:var(--danger)}
-.chip{font-family:var(--f-mono);font-size:12px;padding:1px 6px;border-radius:3px;background:var(--line)}
-@media (max-width:760px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.manual{grid-template-columns:1fr}.stat .v{font-size:1.05rem}}
-@media (max-width:420px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tool:focus-visible,.ib:focus-visible,.btn:focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(4,6,9,.78);
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.card{width:100%;max-width:420px;max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;-webkit-user-select:text;user-select:text}
+.card h2{font-family:var(--f-display);margin:0;font-size:1.35rem;letter-spacing:.05em;text-transform:uppercase;text-wrap:balance}
+.card p{margin:0;line-height:1.5;color:#c3cbd3;font-size:14px}
+.rules{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.rules li{font-size:13.5px;line-height:1.45;color:#c3cbd3;padding-left:12px;border-left:2px solid var(--line)}
+.rules li b{color:var(--fg)}
+.rules .s{border-color:var(--sodium)} .rules .g{border-color:var(--bloom)} .rules .d{border-color:var(--danger)}
+.hint{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.btn{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;background:var(--sodium);color:#1a0f02;border:0;border-radius:10px;padding:14px 16px;cursor:pointer}
+@media (prefers-reduced-motion: reduce){.toast,.bar i{transition:none}}
 </style>
 </head>
 <body>
-
-<div class="wrap">
-  <header>
-    <div>
-      <h1>Blackout <span>Protocol</span></h1>
-      <p class="sub">Night-shift containment · Site K-7 · Bloom extraction</p>
+<div class="app">
+  <div class="top">
+    <h1>Blackout <span>Protocol</span></h1>
+    <div class="icons">
+      <button class="ib" id="helpBtn" type="button" aria-label="How to play">?</button>
+      <button class="ib" id="speedBtn" type="button" aria-label="Game speed">×1</button>
+      <button class="ib" id="pauseBtn" type="button" aria-label="Pause">II</button>
     </div>
-    <div class="toolbar">
-      <button class="btn ghost" id="pauseBtn" type="button">Pause</button>
-      <button class="btn ghost" id="speedBtn" type="button">Speed ×1</button>
-    </div>
-  </header>
+  </div>
 
   <div class="stats" role="status" aria-live="off">
     <div class="stat"><div class="k">Bloom</div><div class="v bloom" id="sBloom">0</div></div>
     <div class="stat"><div class="k">Mutation</div><div class="v" id="sMut">0%</div><div class="bar"><i id="mutBar"></i></div></div>
     <div class="stat"><div class="k">Glow</div><div class="v sod" id="sGlow">0</div></div>
-    <div class="stat"><div class="k" id="sPhaseK">Night 1 in</div><div class="v" id="sPhase">30s</div></div>
+    <div class="stat"><div class="k" id="sPhaseK">Night 1</div><div class="v" id="sPhase">30s</div></div>
     <div class="stat"><div class="k">Core</div><div class="v" id="sCore">300</div><div class="bar"><i id="coreBar"></i></div></div>
   </div>
 
-  <div class="stage">
-    <canvas id="game" width="1280" height="832" aria-label="Game map. Darkness with your lit base in the center."></canvas>
-    <div class="overlay" id="overlay">
-      <div class="card">
-        <h2 id="ovTitle">The lights are your walls</h2>
-        <p id="ovText">Husks only exist where you can't see them. Your turrets can only shoot what your lamps light up. But every lamp is a beacon, and every drop of Bloom you mine makes the next night stranger.</p>
-        <button class="btn" id="ovBtn" type="button">Start the shift</button>
-      </div>
-    </div>
+  <div class="stage" id="stage">
+    <canvas id="game" aria-label="Game map. Darkness with your lit base in the center."></canvas>
+    <div class="toast" id="toast"></div>
   </div>
 
-  <div class="toolbar" id="tools">
-    <button class="tool" data-tool="lamp" aria-pressed="true" type="button"><b>Lamp</b><small><span class="key">1</span> · 12 bloom</small></button>
-    <button class="tool" data-tool="harv" aria-pressed="false" type="button"><b>Harvester</b><small><span class="key">2</span> · 25 bloom</small></button>
-    <button class="tool" data-tool="turret" aria-pressed="false" type="button"><b>Turret</b><small><span class="key">3</span> · 30 bloom</small></button>
-    <button class="tool" data-tool="remove" aria-pressed="false" type="button"><b>Dismantle</b><small><span class="key">4</span> · refund half</small></button>
-    <span class="spacer"></span>
-    <button class="tool act" id="flareBtn" type="button"><b>Flare</b><small><span class="key">F</span> · 40 · stun lit husks</small></button>
-    <button class="tool act" id="purgeBtn" type="button"><b>Purge</b><small><span class="key">P</span> · 50 · −15% mutation</small></button>
+  <div class="pad" id="tools">
+    <button class="tool" data-tool="lamp" aria-pressed="true" type="button"><b>Lamp</b><small>12</small></button>
+    <button class="tool" data-tool="harv" aria-pressed="false" type="button"><b>Harvester</b><small>25</small></button>
+    <button class="tool" data-tool="turret" aria-pressed="false" type="button"><b>Turret</b><small>30</small></button>
+    <button class="tool" data-tool="remove" aria-pressed="false" type="button"><b>Dismantle</b><small>½ back</small></button>
+    <button class="tool act" id="flareBtn" type="button"><b>Flare</b><small>40</small></button>
+    <button class="tool act" id="purgeBtn" type="button"><b>Purge</b><small>50 · −15%</small></button>
   </div>
-  <p id="msg">Build within cable reach of a powered lamp. Harvesters go on glowing Bloom pools.</p>
+</div>
 
-  <div class="manual">
-    <section class="sod">
-      <h3>Light is territory</h3>
-      <ul>
-        <li>Lamps chain power outward from the Core. Anything you build must sit within cable reach of a powered lamp.</li>
-        <li>Turrets only fire at husks standing in light.</li>
-        <li>Each lit source adds to <span class="chip">Glow</span>. Waves grow with Glow, so a bigger base draws a bigger crowd.</li>
-      </ul>
-    </section>
-    <section class="blo">
-      <h3>Bloom is a bargain</h3>
-      <ul>
-        <li>Harvesters pull Bloom from the pools you can see glowing in the dark.</li>
-        <li>Every unit mined raises <span class="chip">Mutation</span>. Higher mutation means tougher husks and new strains.</li>
-        <li>Spend 50 Bloom on a Purge to knock mutation back down.</li>
-      </ul>
-    </section>
-    <section class="dan">
-      <h3>Know the strains</h3>
-      <ul>
-        <li><b>Walker</b>: slow and steady.</li>
-        <li><b>Runner</b>: fast and fragile. Common as mutation rises.</li>
-        <li><b>Bloater</b> (15%+): bursts when it dies or touches a building and snuffs nearby lamps for 10 seconds. Cut cables go dark downstream. Kill it far out.</li>
-        <li><b>Shade</b> (45%+): hunts harvesters and shrugs off half of turret fire.</li>
-      </ul>
-    </section>
+<div class="overlay" id="overlay">
+  <div class="card">
+    <h2 id="ovTitle">The lights are your walls</h2>
+    <p id="ovText">Husks hide in the dark. Your turrets only hit what your lamps light up, but every lamp is also a beacon.</p>
+    <ul class="rules" id="rules">
+      <li class="s"><b>Light is territory.</b> Lamps chain power out from the Core. Build within cable reach of a lit lamp.</li>
+      <li class="s"><b>Light is a beacon.</b> More lamps mean more Glow, and bigger waves each night.</li>
+      <li class="g"><b>Bloom is a bargain.</b> Harvesters on glowing pools earn Bloom but raise Mutation. Purge to bring it down.</li>
+      <li class="d"><b>Bloaters</b> burst and snuff nearby lamps for 10s, cutting power downstream. <b>Shades</b> hunt harvesters.</li>
+    </ul>
+    <p class="hint">Tap a tile to build. Long-press a building to dismantle it.</p>
+    <button class="btn" id="ovBtn" type="button">Start the shift</button>
   </div>
 </div>
 
 <script>
 (() => {
-const T = 32, GW = 40, GH = 26, W = GW * T, H = GH * T;
-const CORE_TX = 20, CORE_TY = 13;
+const T = 32, GW = 15, GH = 25, W = GW * T, H = GH * T;
+const CORE_TX = 7, CORE_TY = 12;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = s => document.querySelector(s);
-const cv = $('#game'), ctx = cv.getContext('2d');
-const dark = document.createElement('canvas'); dark.width = W; dark.height = H;
-const dctx = dark.getContext('2d');
+const cv = $('#game'), ctx = cv.getContext('2d'), stage = $('#stage');
+const dark = document.createElement('canvas'), dctx = dark.getContext('2d');
+let DPR = 1;
 
 const DEF = {
-  core:   { hp: 300, radius: 4.6, link: 5.2, cost: 0 },
-  lamp:   { hp: 40,  radius: 3.4, link: 4.6, cost: 12 },
+  core:   { hp: 300, radius: 4.4, link: 5.0, cost: 0 },
+  lamp:   { hp: 40,  radius: 3.3, link: 4.5, cost: 12 },
   harv:   { hp: 50,  radius: 0.9, link: 0,   cost: 25 },
   turret: { hp: 70,  radius: 1.3, link: 0,   cost: 30 },
 };
+const NAME = { lamp: 'Lamp', harv: 'Harvester', turret: 'Turret' };
 const HUSK = {
-  walker:  { hp: 30, spd: 20, dmg: 7,  r: 9,  col: '#9aa38f', loot: 2 },
-  runner:  { hp: 16, spd: 46, dmg: 4,  r: 7,  col: '#cdb47a', loot: 2 },
-  bloater: { hp: 80, spd: 13, dmg: 0,  r: 13, col: '#86b56c', loot: 5 },
-  shade:   { hp: 45, spd: 32, dmg: 10, r: 8,  col: '#9d97e8', loot: 4 },
+  walker:  { hp: 30, spd: 18, dmg: 7,  r: 9,  col: '#9aa38f', loot: 2 },
+  runner:  { hp: 16, spd: 42, dmg: 4,  r: 7,  col: '#cdb47a', loot: 2 },
+  bloater: { hp: 80, spd: 12, dmg: 0,  r: 13, col: '#86b56c', loot: 5 },
+  shade:   { hp: 45, spd: 30, dmg: 10, r: 8,  col: '#9d97e8', loot: 4 },
 };
-const FLARE_COST = 40, PURGE_COST = 50, CALM = 28;
+const FLARE_COST = 40, PURGE_COST = 50, CALM = 28, TURRET_RANGE = 4.2;
 
 let S, tool = 'lamp', hover = null, paused = true, speed = 1, started = false, emitters = [];
 
-function rand(a, b) { return a + Math.random() * (b - a); }
-function d2(ax, ay, bx, by) { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; }
+const rand = (a, b) => a + Math.random() * (b - a);
+const d2 = (ax, ay, bx, by) => { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; };
 
+/* ---------- sizing ---------- */
+function fit() {
+  const r = stage.getBoundingClientRect();
+  const s = Math.min(r.width / W, r.height / H);
+  cv.style.width = Math.floor(W * s) + 'px'; cv.style.height = Math.floor(H * s) + 'px';
+  DPR = Math.min(2, Math.max(1, (window.devicePixelRatio || 1) * s));
+  const bw = Math.round(W * DPR), bh = Math.round(H * DPR);
+  if (cv.width !== bw) { cv.width = bw; cv.height = bh; dark.width = bw; dark.height = bh; }
+}
+new ResizeObserver(fit).observe(stage);
+
+/* ---------- state ---------- */
 function newGame() {
   S = { bloom: 70, mut: 0, wave: 1, calm: 30, spawnLeft: 0, spawnT: 0, t: 0, mined: 0, kills: 0,
         over: false, flareCd: 0, flash: 0, pools: [], b: [], h: [], fx: [], id: 1 };
-  // pools: two close, the rest out in the dark
   const tryPool = (minD, maxD, amt) => {
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 300; i++) {
       const tx = Math.floor(rand(1, GW - 1)), ty = Math.floor(rand(1, GH - 1));
       const d = Math.hypot(tx - CORE_TX, ty - CORE_TY);
       if (d < minD || d > maxD) continue;
-      if (S.pools.some(p => Math.hypot(p.tx - tx, p.ty - ty) < 4)) continue;
-      S.pools.push({ tx, ty, amt, max: amt }); return S.pools[S.pools.length - 1];
+      if (S.pools.some(p => Math.hypot(p.tx - tx, p.ty - ty) < 3.2)) continue;
+      const p = { tx, ty, amt, max: amt }; S.pools.push(p); return p;
     }
   };
-  const first = tryPool(3, 4.4, 260);
+  const first = tryPool(3, 4.2, 260);
   tryPool(5, 7, 300);
-  for (let i = 0; i < 8; i++) tryPool(8, 30, Math.round(rand(400, 700)));
+  for (let i = 0; i < 6; i++) tryPool(7.5, 30, Math.round(rand(400, 700)));
   addB('core', CORE_TX, CORE_TY);
-  // demo foothold so the first frame shows the loop
   if (first) addB('harv', first.tx, first.ty);
-  const lx = CORE_TX + (first && first.tx < CORE_TX ? 4 : -4);
-  addB('lamp', lx, CORE_TY);
+  const goUp = first && first.ty > CORE_TY;
+  addB('lamp', CORE_TX, CORE_TY + (goUp ? -4 : 4));
   power();
 }
-
 function addB(type, tx, ty) {
   const d = DEF[type];
   const b = { id: S.id++, type, tx, ty, x: tx * T + T / 2, y: ty * T + T / 2, hp: d.hp, max: d.hp, cd: 0, snuff: 0, powered: false };
@@ -204,7 +197,7 @@ const isNode = b => (b.type === 'core' || b.type === 'lamp') && !(b.snuff > 0);
 
 function power() {
   for (const b of S.b) b.powered = false;
-  const c = core(); if (!c) return;
+  const c = core(); if (!c) { emitters = []; return; }
   c.powered = true;
   const nodes = S.b.filter(isNode), q = [c];
   while (q.length) {
@@ -212,15 +205,15 @@ function power() {
     for (const m of nodes) if (!m.powered && d2(n.x, n.y, m.x, m.y) <= L * L) { m.powered = true; q.push(m); }
   }
   const live = nodes.filter(n => n.powered);
-  for (const b of S.b) if (!isNode(b) && !(b.type === 'lamp'))
-    b.powered = live.some(n => { const L = DEF[n.type].link * T; return d2(n.x, n.y, b.x, b.y) <= L * L; });
+  for (const b of S.b) if (b.type === 'harv' || b.type === 'turret')
+    b.powered = live.some(n => d2(n.x, n.y, b.x, b.y) <= (DEF[n.type].link * T) ** 2);
   emitters = S.b.filter(b => b.powered && !(b.snuff > 0));
 }
 function isLit(x, y) {
   for (const e of emitters) { const r = DEF[e.type].radius * T; if (d2(x, y, e.x, e.y) <= r * r) return true; }
   return false;
 }
-function glow() { return emitters.filter(e => e.type !== 'harv').length; }
+const glow = () => emitters.filter(e => e.type !== 'harv').length;
 
 function canPlace(t, tx, ty) {
   if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) return { ok: false };
@@ -230,73 +223,73 @@ function canPlace(t, tx, ty) {
     if (b.type === 'core') return { ok: false, msg: 'The Core cannot be dismantled.' };
     return { ok: true, b };
   }
-  if (bAt(tx, ty)) return { ok: false, msg: 'That tile is taken.' };
+  if (bAt(tx, ty)) return { ok: false, msg: 'That tile is taken. Long-press to dismantle.' };
   const pool = poolAt(tx, ty);
-  if (t === 'harv' && !(pool && pool.amt > 0)) return { ok: false, msg: 'Harvesters must sit on a glowing Bloom pool.' };
+  if (t === 'harv' && !(pool && pool.amt > 0)) return { ok: false, msg: 'Harvesters go on a glowing Bloom pool.' };
   if (t !== 'harv' && pool) return { ok: false, msg: 'Keep pools clear for harvesters.' };
-  if (S.bloom < DEF[t].cost) return { ok: false, msg: `Not enough Bloom. ${t === 'harv' ? 'Harvester' : t[0].toUpperCase() + t.slice(1)} costs ${DEF[t].cost}.` };
+  if (S.bloom < DEF[t].cost) return { ok: false, msg: `Not enough Bloom. ${NAME[t]} costs ${DEF[t].cost}.` };
   const x = tx * T + T / 2, y = ty * T + T / 2;
   const reach = S.b.some(n => isNode(n) && n.powered && d2(n.x, n.y, x, y) <= (DEF[n.type].link * T) ** 2);
-  if (!reach) return { ok: false, msg: 'Out of cable reach. Build closer to a powered lamp.' };
+  if (!reach) return { ok: false, msg: 'Out of cable reach. Build closer to a lit lamp.' };
   return { ok: true };
 }
 
-function say(text, err) { const m = $('#msg'); m.textContent = text; m.classList.toggle('err', !!err); }
-
-function act(tx, ty) {
-  if (S.over) return;
-  const r = canPlace(tool, tx, ty);
-  if (!r.ok) { if (r.msg) say(r.msg, true); return; }
-  if (tool === 'remove') {
-    S.bloom += Math.floor(DEF[r.b.type].cost / 2);
-    S.b = S.b.filter(b => b !== r.b); say('Dismantled. Half the Bloom came back.');
-  } else {
-    S.bloom -= DEF[tool].cost; addB(tool, tx, ty);
-    say(tool === 'lamp' ? 'Lamp lit. Glow went up, so expect a bigger crowd.' : tool === 'harv' ? 'Harvester running. Mutation will climb while it mines.' : 'Turret online. It fires only into light.');
-  }
-  power(); hud();
+let toastT = 0;
+function say(text, err) {
+  const el = $('#toast'); el.textContent = text; el.classList.toggle('err', !!err); el.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2400);
 }
+function buzz(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} }
 
+function act(t, tx, ty) {
+  if (S.over) return;
+  const r = canPlace(t, tx, ty);
+  if (!r.ok) { if (r.msg) say(r.msg, true); buzz(30); return; }
+  if (t === 'remove') {
+    S.bloom += Math.floor(DEF[r.b.type].cost / 2);
+    S.b = S.b.filter(b => b !== r.b); say(`${NAME[r.b.type]} dismantled. +${Math.floor(DEF[r.b.type].cost / 2)} Bloom.`);
+  } else {
+    S.bloom -= DEF[t].cost; addB(t, tx, ty);
+    say(t === 'lamp' ? 'Lamp lit. Glow is up, so expect a bigger crowd.' : t === 'harv' ? 'Harvester running. Mutation climbs while it mines.' : 'Turret online. It fires only into light.');
+  }
+  buzz(10); power(); hud();
+}
 function flare() {
-  if (S.over || S.bloom < FLARE_COST || S.flareCd > 0) return;
+  if (S.over || !started || S.bloom < FLARE_COST || S.flareCd > 0) return;
   S.bloom -= FLARE_COST; S.flareCd = 18; S.flash = 1;
   let n = 0;
   for (const h of S.h) if (isLit(h.x, h.y)) { h.stun = 3; h.hp -= 15; n++; }
-  say(`Flare fired. ${n} husk${n === 1 ? '' : 's'} stunned.`);
+  say(`Flare fired. ${n} husk${n === 1 ? '' : 's'} stunned.`); buzz(40); hud();
 }
 function purge() {
-  if (S.over || S.bloom < PURGE_COST || S.mut <= 0) return;
+  if (S.over || !started || S.bloom < PURGE_COST || S.mut <= 0) return;
   S.bloom -= PURGE_COST; S.mut = Math.max(0, S.mut - 15);
-  say('Purge complete. Mutation down 15%.');
+  say('Purge complete. Mutation down 15%.'); hud();
 }
 
+/* ---------- simulation ---------- */
 function spawnHusk() {
   const m = S.mut, roll = Math.random();
   let type = 'walker';
   const pShade = m >= 45 ? 0.14 : 0, pBloat = (m >= 15 ? 0.16 : 0) + (S.wave >= 5 ? 0.05 : 0), pRun = Math.min(0.42, 0.08 + m / 120 + S.wave * 0.02);
   if (roll < pShade) type = 'shade'; else if (roll < pShade + pBloat) type = 'bloater'; else if (roll < pShade + pBloat + pRun) type = 'runner';
-  const d = HUSK[type], side = Math.floor(Math.random() * 4);
+  const d = HUSK[type], edge = Math.random() * (2 * W + 2 * H);
   let x, y;
-  if (side === 0) { x = rand(0, W); y = -12; } else if (side === 1) { x = W + 12; y = rand(0, H); }
-  else if (side === 2) { x = rand(0, W); y = H + 12; } else { x = -12; y = rand(0, H); }
+  if (edge < W) { x = edge; y = -12; } else if (edge < W + H) { x = W + 12; y = edge - W; }
+  else if (edge < 2 * W + H) { x = edge - W - H; y = H + 12; } else { x = -12; y = edge - 2 * W - H; }
   const mul = (1 + m / 80) * (1 + (S.wave - 1) * 0.06);
   S.h.push({ type, x, y, hp: d.hp * mul, max: d.hp * mul, stun: 0, tgt: null, retarget: 0, wob: rand(0, 6.28) });
 }
-
 function boom(x, y) {
   S.fx.push({ k: 'boom', x, y, life: 0.6, t: 0 });
-  for (const b of S.b) if (d2(x, y, b.x, b.y) <= (2.2 * T) ** 2) {
-    b.hp -= 22;
-    if (b.type === 'lamp') b.snuff = 10;
-  }
+  for (const b of S.b) if (d2(x, y, b.x, b.y) <= (2.2 * T) ** 2) { b.hp -= 22; if (b.type === 'lamp') b.snuff = 10; }
+  buzz(60);
 }
-
 function kill(h, loot) {
   if (loot) { S.bloom += HUSK[h.type].loot; S.kills++; }
   if (h.type === 'bloater') boom(h.x, h.y);
   h.dead = true;
 }
-
 function step(dt) {
   S.t += dt;
   S.flareCd = Math.max(0, S.flareCd - dt);
@@ -304,7 +297,6 @@ function step(dt) {
   for (const b of S.b) if (b.snuff > 0) b.snuff -= dt;
   power();
 
-  // waves
   if (S.spawnLeft > 0) {
     S.spawnT -= dt;
     if (S.spawnT <= 0) { spawnHusk(); S.spawnLeft--; S.spawnT = Math.max(0.25, 9 / (6 + S.wave * 2)); }
@@ -313,21 +305,19 @@ function step(dt) {
     S.calm -= dt;
     if (S.calm <= 0) {
       S.spawnLeft = 4 + S.wave * 2 + Math.floor(glow() * 0.8); S.spawnT = 0;
-      say(`Night ${S.wave}: ${S.spawnLeft} husks drawn by your Glow of ${glow()}.`, true);
+      say(`Night ${S.wave}: ${S.spawnLeft} husks drawn by Glow ${glow()}.`, true); buzz([30, 60, 30]);
     }
   }
 
-  // harvesters
   for (const b of S.b) if (b.type === 'harv' && b.powered) {
     const p = poolAt(b.tx, b.ty);
     if (p && p.amt > 0) { const a = Math.min(p.amt, 1.5 * dt); p.amt -= a; S.bloom += a; S.mined += a; S.mut = Math.min(100, S.mut + a * 0.032); }
   }
 
-  // turrets
   for (const b of S.b) if (b.type === 'turret') {
     b.cd -= dt;
     if (!b.powered || b.cd > 0) continue;
-    let best = null, bd = (4.2 * T) ** 2;
+    let best = null, bd = (TURRET_RANGE * T) ** 2;
     for (const h of S.h) { if (h.dead) continue; const dd = d2(b.x, b.y, h.x, h.y); if (dd < bd && isLit(h.x, h.y)) { bd = dd; best = h; } }
     if (best) {
       best.hp -= best.type === 'shade' ? 5 : 10; b.cd = 0.45; b.aim = Math.atan2(best.y - b.y, best.x - b.x);
@@ -336,7 +326,6 @@ function step(dt) {
     }
   }
 
-  // husks
   for (const h of S.h) {
     if (h.dead) continue;
     const d = HUSK[h.type];
@@ -364,7 +353,6 @@ function step(dt) {
   }
   S.h = S.h.filter(h => !h.dead);
 
-  // destroyed buildings
   const lost = S.b.filter(b => b.hp <= 0);
   if (lost.length) {
     for (const b of lost) S.fx.push({ k: 'boom', x: b.x, y: b.y, life: 0.4, t: 0, small: true });
@@ -372,15 +360,15 @@ function step(dt) {
     if (!core()) return gameOver();
     power();
   }
-
   for (const f of S.fx) f.t += dt;
   S.fx = S.fx.filter(f => f.t < f.life);
 }
-
 function gameOver() {
-  S.over = true; paused = true;
+  S.over = true; setPaused(true); buzz([80, 60, 160]);
+  const n = S.wave - 1;
   $('#ovTitle').textContent = 'The Core went dark';
-  $('#ovText').textContent = `You held Site K-7 through ${S.wave - 1} night${S.wave - 1 === 1 ? '' : 's'}, mined ${Math.round(S.mined)} Bloom, and put down ${S.kills} husks. Mutation peaked at ${Math.round(S.mut)}%.`;
+  $('#ovText').textContent = `You held the site through ${n} night${n === 1 ? '' : 's'}, mined ${Math.round(S.mined)} Bloom, and put down ${S.kills} husks. Mutation reached ${Math.round(S.mut)}%.`;
+  $('#rules').hidden = true;
   $('#ovBtn').textContent = 'Run it again';
   $('#overlay').hidden = false;
 }
@@ -397,8 +385,7 @@ function drawBuilding(b) {
     ctx.fillStyle = '#2a313a'; ctx.fillRect(-3, -s, 6, s * 2);
     ctx.fillStyle = on ? '#ffd08a' : '#3a3f45'; ctx.beginPath(); ctx.arc(0, -s, 6, 0, 7); ctx.fill();
   } else if (b.type === 'harv') {
-    ctx.strokeStyle = on ? '#5fe3bd' : '#3c5a52'; ctx.lineWidth = 3;
-    ctx.strokeRect(-s, -s, s * 2, s * 2);
+    ctx.strokeStyle = on ? '#5fe3bd' : '#3c5a52'; ctx.lineWidth = 3; ctx.strokeRect(-s, -s, s * 2, s * 2);
     ctx.rotate(on ? S.t * 2 : 0); ctx.fillStyle = on ? '#5fe3bd' : '#3c5a52';
     ctx.fillRect(-2, -s + 2, 4, s * 2 - 4); ctx.fillRect(-s + 2, -2, s * 2 - 4, 4);
   } else if (b.type === 'turret') {
@@ -408,27 +395,24 @@ function drawBuilding(b) {
   }
   ctx.restore();
 }
-
 function draw() {
-  // ground
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.globalCompositeOperation = 'source-over';
   ctx.fillStyle = '#151a1f'; ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = 'rgba(255,255,255,.035)'; ctx.lineWidth = 1;
   ctx.beginPath();
-  for (let x = 0; x <= W; x += T) { ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, H); }
-  for (let y = 0; y <= H; y += T) { ctx.moveTo(0, y + .5); ctx.lineTo(W, y + .5); }
+  for (let x = 0; x <= W; x += T) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for (let y = 0; y <= H; y += T) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
   ctx.stroke();
 
-  // pools
   for (const p of S.pools) {
     const k = p.amt / p.max, x = p.tx * T + T / 2, y = p.ty * T + T / 2;
     ctx.fillStyle = `rgba(95,227,189,${0.25 + 0.55 * k})`;
     ctx.beginPath(); ctx.ellipse(x, y, T * 0.46, T * 0.36, 0.3, 0, 7); ctx.fill();
   }
 
-  // cables
   const nodes = S.b.filter(b => isNode(b) && b.powered);
-  ctx.strokeStyle = 'rgba(244,165,74,.28)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]);
+  ctx.strokeStyle = 'rgba(244,165,74,.3)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]);
   ctx.beginPath();
   for (const b of S.b) {
     if (!b.powered || b.type === 'core') continue;
@@ -439,20 +423,18 @@ function draw() {
   ctx.stroke(); ctx.setLineDash([]);
 
   for (const b of S.b) drawBuilding(b);
-
-  // husks (full bodies; darkness hides the unlit ones)
   for (const h of S.h) {
     const d = HUSK[h.type];
     ctx.fillStyle = d.col; ctx.beginPath(); ctx.arc(h.x, h.y, d.r, 0, 7); ctx.fill();
     if (h.type === 'bloater') { ctx.strokeStyle = '#c4e39a'; ctx.lineWidth = 2; ctx.stroke(); }
     if (h.stun > 0) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(h.x, h.y, d.r + 4, 0, 7); ctx.stroke(); }
   }
-
   for (const f of S.fx) if (f.k === 'shot') {
     ctx.strokeStyle = 'rgba(255,220,160,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x2, f.y2); ctx.stroke();
   }
 
   // darkness
+  dctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   dctx.globalCompositeOperation = 'source-over';
   dctx.clearRect(0, 0, W, H);
   dctx.fillStyle = 'rgba(2,3,6,.93)'; dctx.fillRect(0, 0, W, H);
@@ -464,13 +446,11 @@ function draw() {
     g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.65, 'rgba(0,0,0,.88)'); g.addColorStop(1, 'rgba(0,0,0,0)');
     dctx.fillStyle = g; dctx.beginPath(); dctx.arc(e.x, e.y, r, 0, 7); dctx.fill();
   }
-  ctx.drawImage(dark, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(dark, 0, 0); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-  // warm sodium wash + bioluminescent pools seen through the dark
   ctx.globalCompositeOperation = 'lighter';
   for (const e of emitters) if (e.type !== 'harv') {
-    const r = DEF[e.type].radius * T;
-    const g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, r);
+    const r = DEF[e.type].radius * T, g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, r);
     g.addColorStop(0, 'rgba(244,165,74,.12)'); g.addColorStop(1, 'rgba(244,165,74,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(e.x, e.y, r, 0, 7); ctx.fill();
   }
@@ -484,42 +464,33 @@ function draw() {
   }
   ctx.globalCompositeOperation = 'source-over';
 
-  // eyes in the dark
   for (const h of S.h) {
     if (isLit(h.x, h.y)) continue;
-    const blink = reduceMotion ? 1 : (Math.sin(S.t * 3 + h.wob * 4) > -0.93 ? 1 : 0);
-    if (!blink) continue;
+    if (!reduceMotion && Math.sin(S.t * 3 + h.wob * 4) < -0.93) continue;
     ctx.fillStyle = h.type === 'shade' ? 'rgba(157,151,232,.85)' : 'rgba(255,99,89,.8)';
     ctx.fillRect(h.x - 4, h.y - 2, 2.5, 2.5); ctx.fillRect(h.x + 1.5, h.y - 2, 2.5, 2.5);
   }
-
   for (const f of S.fx) if (f.k === 'boom') {
     const k = f.t / f.life, r = (f.small ? 1 : 2.2) * T * (0.4 + k * 0.6);
     ctx.strokeStyle = `rgba(196,227,154,${1 - k})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, 7); ctx.stroke();
   }
-
-  // hp bars
   for (const b of S.b) if (b.hp < b.max) {
     const w = b.type === 'core' ? 44 : 26;
     ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(b.x - w / 2, b.y - 26, w, 4);
     ctx.fillStyle = b.hp / b.max > 0.4 ? '#f4a54a' : '#ff6359'; ctx.fillRect(b.x - w / 2, b.y - 26, w * b.hp / b.max, 4);
   }
-  for (const b of S.b) if (b.snuff > 0) {
-    ctx.fillStyle = '#c4e39a'; ctx.font = '600 11px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
-    ctx.fillText(Math.ceil(b.snuff) + 's', b.x, b.y + 26);
-  }
+  ctx.font = '600 11px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
+  for (const b of S.b) if (b.snuff > 0) { ctx.fillStyle = '#c4e39a'; ctx.fillText(Math.ceil(b.snuff) + 's', b.x, b.y + 26); }
 
   if (S.flash > 0) { ctx.fillStyle = `rgba(255,240,215,${S.flash * 0.45})`; ctx.fillRect(0, 0, W, H); }
 
-  // hover ghost
   if (hover && !S.over && started) {
-    const r = canPlace(tool, hover.tx, hover.ty), x = hover.tx * T, y = hover.ty * T;
-    ctx.strokeStyle = r.ok ? (tool === 'remove' ? '#ff6359' : '#f4a54a') : 'rgba(255,99,89,.7)';
+    const t = press && press.long ? 'remove' : tool;
+    const r = canPlace(t, hover.tx, hover.ty), x = hover.tx * T, y = hover.ty * T;
+    ctx.strokeStyle = r.ok ? (t === 'remove' ? '#ff6359' : '#f4a54a') : 'rgba(255,99,89,.7)';
     ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, T - 2, T - 2);
-    if (r.ok && tool !== 'remove') {
-      const rad = tool === 'turret' ? 4.2 : tool === 'lamp' ? DEF.lamp.radius : 0;
-      if (rad) { ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.arc(x + T / 2, y + T / 2, rad * T, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
-    }
+    const rad = !r.ok || t === 'remove' ? 0 : t === 'turret' ? TURRET_RANGE : t === 'lamp' ? DEF.lamp.radius : 0;
+    if (rad) { ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.arc(x + T / 2, y + T / 2, rad * T, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
   }
 }
 
@@ -532,71 +503,97 @@ function hud() {
   const c = core();
   $('#sCore').textContent = c ? Math.ceil(c.hp) : 0;
   $('#coreBar').style.width = (c ? c.hp / c.max * 100 : 0) + '%';
-  if (S.spawnLeft > 0 || (S.calm === CALM && S.h.length)) { $('#sPhaseK').textContent = `Night ${S.spawnLeft > 0 ? S.wave : S.wave - 1}`; $('#sPhase').textContent = `${S.h.length + S.spawnLeft} husks`; }
-  else { $('#sPhaseK').textContent = `Night ${S.wave} in`; $('#sPhase').textContent = Math.ceil(S.calm) + 's' + (S.h.length ? ` · ${S.h.length} left` : ''); }
+  if (S.spawnLeft > 0) { $('#sPhaseK').textContent = `Night ${S.wave}`; $('#sPhase').textContent = `${S.h.length + S.spawnLeft} left`; }
+  else { $('#sPhaseK').textContent = `Night ${S.wave} in`; $('#sPhase').textContent = Math.ceil(S.calm) + 's'; }
   for (const btn of document.querySelectorAll('[data-tool]')) {
     const t = btn.dataset.tool; btn.setAttribute('aria-pressed', String(t === tool));
     btn.disabled = t !== 'remove' && S.bloom < DEF[t].cost;
   }
-  $('#flareBtn').disabled = S.bloom < FLARE_COST || S.flareCd > 0;
-  $('#flareBtn').querySelector('small').innerHTML = S.flareCd > 0 ? `<span class="key">F</span> · recharging ${Math.ceil(S.flareCd)}s` : `<span class="key">F</span> · 40 · stun lit husks`;
+  const fb = $('#flareBtn');
+  fb.disabled = S.bloom < FLARE_COST || S.flareCd > 0;
+  fb.querySelector('small').textContent = S.flareCd > 0 ? `ready in ${Math.ceil(S.flareCd)}s` : '40';
   $('#purgeBtn').disabled = S.bloom < PURGE_COST || S.mut <= 0;
 }
 
-/* ---------- input ---------- */
+/* ---------- input: tap to build, long-press to dismantle ---------- */
+let press = null, hoverClear = 0;
 function tileFrom(e) {
   const r = cv.getBoundingClientRect();
   return { tx: Math.floor((e.clientX - r.left) * W / r.width / T), ty: Math.floor((e.clientY - r.top) * H / r.height / T) };
 }
-cv.addEventListener('pointermove', e => { hover = tileFrom(e); });
-cv.addEventListener('pointerleave', () => { hover = null; });
-cv.addEventListener('pointerdown', e => { if (!started || S.over) return; const t = tileFrom(e); hover = t; act(t.tx, t.ty); });
-cv.addEventListener('contextmenu', e => { e.preventDefault(); if (!started) return; const t = tileFrom(e); const prev = tool; tool = 'remove'; act(t.tx, t.ty); tool = prev; });
+cv.addEventListener('pointermove', e => {
+  const t = tileFrom(e);
+  if (press && press.id === e.pointerId) {
+    if (Math.hypot(e.clientX - press.x, e.clientY - press.y) > 14) { clearTimeout(press.timer); press.moved = true; }
+    hover = t;
+  } else if (e.pointerType === 'mouse') hover = t;
+});
+cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hover = null; });
+cv.addEventListener('pointerdown', e => {
+  if (!started || S.over || e.button === 2) return;
+  cv.setPointerCapture(e.pointerId);
+  const t = tileFrom(e); hover = t; clearTimeout(hoverClear);
+  press = { id: e.pointerId, x: e.clientX, y: e.clientY, long: false, moved: false };
+  if (bAt(t.tx, t.ty) && tool !== 'remove') press.timer = setTimeout(() => { press.long = true; buzz(15); }, 450);
+});
+cv.addEventListener('pointerup', e => {
+  if (!press || press.id !== e.pointerId) return;
+  clearTimeout(press.timer);
+  const t = tileFrom(e), p = press; press = null;
+  act(p.long ? 'remove' : tool, t.tx, t.ty);
+  if (e.pointerType !== 'mouse') hoverClear = setTimeout(() => { hover = null; }, 500);
+});
+cv.addEventListener('pointercancel', () => { if (press) clearTimeout(press.timer); press = null; hover = null; });
+cv.addEventListener('contextmenu', e => { e.preventDefault(); if (!started) return; const t = tileFrom(e); act('remove', t.tx, t.ty); });
 
 function setTool(t) { tool = t; hud(); }
 document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
 $('#flareBtn').addEventListener('click', flare);
 $('#purgeBtn').addEventListener('click', purge);
-function setPaused(p) { paused = p; $('#pauseBtn').textContent = p ? 'Resume' : 'Pause'; }
+function setPaused(p) { paused = p; $('#pauseBtn').textContent = p ? '▶' : 'II'; $('#pauseBtn').setAttribute('aria-label', p ? 'Resume' : 'Pause'); }
 $('#pauseBtn').addEventListener('click', () => { if (started && !S.over) setPaused(!paused); });
-$('#speedBtn').addEventListener('click', () => { speed = speed === 1 ? 2 : 1; $('#speedBtn').textContent = 'Speed ×' + speed; });
-$('#ovBtn').addEventListener('click', () => {
-  if (S.over) { newGame(); }
-  started = true; $('#overlay').hidden = true; setPaused(false); hud();
-  say('Build within cable reach of a powered lamp. Harvesters go on glowing Bloom pools.');
+$('#speedBtn').addEventListener('click', () => { speed = speed === 1 ? 2 : 1; $('#speedBtn').textContent = '×' + speed; });
+$('#helpBtn').addEventListener('click', () => {
+  if (S.over) return;
+  if (started) setPaused(true);
+  $('#ovTitle').textContent = 'How to play'; $('#rules').hidden = false;
+  $('#ovText').textContent = 'Husks hide in the dark. Your turrets only hit what your lamps light up, but every lamp is also a beacon.';
+  $('#ovBtn').textContent = started ? 'Back to the shift' : 'Start the shift';
+  $('#overlay').hidden = false;
 });
+$('#ovBtn').addEventListener('click', () => {
+  if (S.over) newGame();
+  started = true; $('#overlay').hidden = true; setPaused(false); hud();
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden && started && !S.over) setPaused(true); });
 addEventListener('keydown', e => {
-  if (e.target.closest && e.target.closest('input,textarea')) return;
   const k = e.key.toLowerCase();
   if (k === '1') setTool('lamp'); else if (k === '2') setTool('harv'); else if (k === '3') setTool('turret'); else if (k === '4') setTool('remove');
   else if (k === 'f') flare(); else if (k === 'p') purge();
   else if (k === ' ' && started && !S.over) { e.preventDefault(); setPaused(!paused); }
 });
+document.addEventListener('gesturestart', e => e.preventDefault());
 
 /* ---------- loop ---------- */
 let last = performance.now(), hudT = 0;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (!paused && !S.over) {
-    for (let i = 0; i < speed; i++) step(dt);
-  } else if (!started) { S.t += dt; }
+  if (!paused && !S.over) { for (let i = 0; i < speed; i++) step(dt); }
+  else if (!started) S.t += dt;
   draw();
   hudT += dt; if (hudT > 0.1) { hudT = 0; hud(); }
   requestAnimationFrame(frame);
 }
-
 function start(data) {
   if (data && data.S) {
-    S = data.S;
-    // rebuild object references lost in serialization
-    for (const h of S.h) h.tgt = null;
+    S = data.S; for (const h of S.h) h.tgt = null;
     started = !!data.started; tool = data.tool || 'lamp';
-    if (started && !S.over) { $('#overlay').hidden = true; setPaused(!!data.paused); }
+    if (started && !S.over) { $('#overlay').hidden = true; setPaused(true); }
     power();
   } else newGame();
-  hud(); requestAnimationFrame(frame);
+  fit(); hud(); requestAnimationFrame(frame);
 }
-window.claude?.hot?.snapshot?.(() => ({ S: { ...S, h: S.h.map(h => ({ ...h, tgt: null })) }, started, tool, paused }));
+window.claude?.hot?.snapshot?.(() => ({ S: { ...S, h: S.h.map(h => ({ ...h, tgt: null })) }, started, tool }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
 </script>
