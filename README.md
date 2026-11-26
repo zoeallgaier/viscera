@@ -18,7 +18,7 @@ On iPhone, open it in Safari, then Share → Add to Home Screen. It launches ful
 | Key | Action |
 | --- | --- |
 | 1 / 2 / 3 | Lamp (12) / Harvester (25) / Turret (30) |
-| 4 or right-click | Dismantle (refunds half) |
+| 4 or right-click | Dismantle (full refund) |
 | F | Flare (40): stuns and damages every husk in light |
 | Space | Pause |
 

@@ -100,7 +100,7 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
     <button class="tool" data-tool="lamp" aria-pressed="true" type="button"><b>Lamp</b><small>12</small></button>
     <button class="tool" data-tool="harv" aria-pressed="false" type="button"><b>Harvester</b><small>25</small></button>
     <button class="tool" data-tool="turret" aria-pressed="false" type="button"><b>Turret</b><small>30</small></button>
-    <button class="tool" data-tool="remove" aria-pressed="false" type="button"><b>Dismantle</b><small>½ back</small></button>
+    <button class="tool" data-tool="remove" aria-pressed="false" type="button"><b>Dismantle</b><small>full refund</small></button>
     <button class="tool act wide" id="flareBtn" type="button"><b>Flare</b><small>40 · stun lit husks</small></button>
   </div>
 </div>
@@ -244,8 +244,8 @@ function act(t, tx, ty) {
   const r = canPlace(t, tx, ty);
   if (!r.ok) { if (r.msg) say(r.msg, true); buzz(30); return; }
   if (t === 'remove') {
-    S.bloom += Math.floor(DEF[r.b.type].cost / 2);
-    S.b = S.b.filter(b => b !== r.b); say(`${NAME[r.b.type]} dismantled. +${Math.floor(DEF[r.b.type].cost / 2)} Bloom.`);
+    S.bloom += DEF[r.b.type].cost;
+    S.b = S.b.filter(b => b !== r.b); say(`${NAME[r.b.type]} dismantled. +${DEF[r.b.type].cost} Bloom.`);
   } else {
     S.bloom -= DEF[t].cost; addB(t, tx, ty);
     say(t === 'lamp' ? 'Lamp lit. Glow is up, so expect a bigger crowd.' : t === 'harv' ? 'Harvester running.' : 'Turret online. It fires only into light.');
