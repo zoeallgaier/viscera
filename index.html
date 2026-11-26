@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Eidolon: a light-and-darkness base defense game.">
-<meta name="theme-color" content="#07090c">
+<meta name="theme-color" content="#0e0e15">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,66 +14,122 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Eidolon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Michroma stands in for New Science (both descend from Eurostile Extended). Oxygen carries everything else. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Oxygen:wght@300;400;700&display=swap">
 <style>
-/* Layout: a handheld console. Stat strip on top, portrait map filling the middle, a 3×2 thumb pad at the bottom. Single dark look on purpose: the game is about darkness. */
+/* —— Tokens ——
+   Glass recipe from zoeallgaier.com: a 55% tint of the ground, 35px blur, a 1px hairline.
+   The map runs full-bleed under the chrome, so the glass always has the night to blur. */
 :root{
-  --ink:#07090c; --panel:#10141a; --line:#222a33; --muted:#7c8794; --fg:#dfe5ea;
-  --sodium:#f4a54a; --lithium:#5fe3bd; --danger:#ff6359; --violet:#9d97e8;
-  --f-display:"Chakra Petch","Trebuchet MS",system-ui,sans-serif;
-  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --bg:#0e0e15; --text:#e1e1e8; --muted:rgba(255,255,255,.55); --rule:rgba(255,255,255,.14);
+  --user:#ffb52e; --lithium:#2ec8ff; --data:#b8f03e; --danger:#ff6359;
+  --glass:color-mix(in srgb, var(--bg) 55%, transparent);
+  --blur:blur(35px) saturate(1.5);
+  --hair:inset 0 0 0 1px var(--rule);
+  --r-panel:1.25rem; --r-item:.9rem;
+  --ease-chrome:cubic-bezier(.32,.72,0,1);
+  --f-title:"Michroma","Eurostile","Arial Black",sans-serif;
+  --f-body:"Oxygen",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;background:var(--ink);color:var(--fg)}
-body{font-family:var(--f-body);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
-.app{height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:8px;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--text)}
+body{font-family:var(--f-body);font-weight:400;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+
+/* —— Stage —— */
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;z-index:0}
+.app{position:relative;z-index:1;height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:8px;pointer-events:none;
+  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));
   padding-block:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-bottom,0px))}
-.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-h1{font-family:var(--f-display);font-weight:700;font-size:1.05rem;letter-spacing:.08em;margin:0;text-transform:uppercase;white-space:nowrap}
-h1 span{color:var(--sodium)}
-.icons{display:flex;gap:6px}
-.ib{font-family:var(--f-display);font-weight:700;font-size:14px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:44px;height:36px;padding:0 10px;cursor:pointer}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.stat{background:var(--panel);padding:6px 8px;min-width:0}
-.stat .k{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stat .v{font-family:var(--f-display);font-size:1rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar{height:3px;background:var(--line);border-radius:2px;margin-top:4px;overflow:hidden}
-.bar i{display:block;height:100%;width:0;transition:width .2s}
-#baseBar{background:var(--sodium)}
-.v.lithium{color:var(--lithium)} .v.sod{color:var(--sodium)}
-.stage{flex:1 1 auto;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
-canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#000;touch-action:none;cursor:crosshair}
-.toast{position:absolute;left:50%;top:8px;transform:translateX(-50%);max-width:92%;background:rgba(16,20,26,.92);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-family:var(--f-mono);font-size:12px;line-height:1.4;color:var(--fg);text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
-.toast.show{opacity:1}
-.toast.err{border-color:var(--danger);color:#ffb3ad}
-.pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.tool{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:54px;padding:6px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;min-width:0;touch-action:manipulation}
-.tool b{font-family:var(--f-display);font-size:14px;letter-spacing:.03em;white-space:nowrap}
-.tool small{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.tool[aria-pressed="true"]{border-color:var(--sodium);box-shadow:inset 0 0 0 1px var(--sodium);background:#1a1610}
-.tool:disabled{opacity:.4}
-.tool.act b{color:var(--lithium)}.tool:focus-visible,.ib:focus-visible,.btn:focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
-.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(4,6,9,.78);
-  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.card{width:100%;max-width:420px;max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;-webkit-user-select:text;user-select:text}
-.card h2{font-family:var(--f-display);margin:0;font-size:1.35rem;letter-spacing:.05em;text-transform:uppercase;text-wrap:balance}
-.card p{margin:0;line-height:1.5;color:#c3cbd3;font-size:14px}
-.rules{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
-.rules li{font-size:13.5px;line-height:1.45;color:#c3cbd3;padding-left:12px;border-left:2px solid var(--line)}
-.rules li b{color:var(--fg)}
-.rules .s{border-color:var(--sodium)} .rules .g{border-color:var(--lithium)} .rules .d{border-color:var(--danger)}
-.hint{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
-.btn{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;background:var(--sodium);color:#1a0f02;border:0;border-radius:10px;padding:14px 16px;cursor:pointer}
-@media (prefers-reduced-motion: reduce){.toast,.bar i{transition:none}}
+.app > :not(.stage){pointer-events:auto}
+.glass{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--hair)}
+
+/* —— Top bar —— */
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;border-radius:999px;padding:5px 5px 5px 18px}h1{font-family:var(--f-title);font-weight:400;font-size:.95rem;letter-spacing:.14em;margin:0;text-transform:uppercase;white-space:nowrap}
+.icons{display:flex;gap:4px;flex:none}
+.ib{font-family:var(--f-body);font-weight:700;font-size:13px;color:var(--muted);background:transparent;border:0;border-radius:999px;min-width:40px;height:36px;padding:0 10px;cursor:pointer;transition:color .2s,background-color .2s,transform .15s}
+.ib:active{transform:scale(.94)}
+
+/* —— Stats —— */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-radius:var(--r-panel);overflow:hidden;padding-top:10px}
+.stat{padding:8px 12px 9px;min-width:0;text-align:center}
+.stat .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .v{font-size:1.05rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:2px;background:var(--rule);border-radius:2px;margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--user);transition:width .2s}
+.v.lithium{color:var(--lithium)} .v.data{color:var(--data)}
+
+/* —— Map slot: transparent, it only reserves the rectangle the board fits into —— */
+.stage{flex:1 1 auto;min-height:0;position:relative}
+.toast{position:absolute;left:50%;top:6px;transform:translate(-50%,-4px);max-width:92%;width:max-content;border-radius:999px;padding:8px 16px;font-size:12.5px;line-height:1.35;text-align:center;pointer-events:none;opacity:0;filter:blur(4px);transition:opacity .3s var(--ease-chrome),transform .3s var(--ease-chrome),filter .3s var(--ease-chrome)}
+.toast.show{opacity:1;transform:translate(-50%,0);filter:blur(0)}
+.toast.err{color:#ffb3ad;box-shadow:inset 0 0 0 1px rgba(255,99,89,.45)}
+
+/* —— Thumb pad —— */
+/* Five pad tiles. Each piece stands on its own 2:1 glass plinth, the same diamond as a board
+   tile: the plinth is a masked glass layer with a hairline ring (::before, masked to a stroke of
+   the same path), and the piece's sprite is placed so its ground point sits on the plinth centre
+   (JS sets --iw, --ax, --ay from the sprite). One sprite pixel is --s wide. */
+.pad{--dia:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M91 4.5Q100 0 109 4.5L191 45.5Q200 50 191 54.5L109 95.5Q100 100 91 95.5L9 54.5Q0 50 9 45.5Z'/%3E%3C/svg%3E");
+  --ring:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'%3E%3Cpath d='M91 4.5Q100 0 109 4.5L191 45.5Q200 50 191 54.5L109 95.5Q100 100 91 95.5L9 54.5Q0 50 9 45.5Z' fill='none' stroke='%23000' stroke-width='3' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  display:flex;justify-content:center;gap:2px;padding:0;background:none;box-shadow:none}
+.tool{--s:2.15cqw;--gy:96cqw;position:relative;container-type:inline-size;flex:0 1 84px;min-width:0;aspect-ratio:.66;font:inherit;color:var(--muted);background:none;border:0;padding:0 2px 2px;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;text-align:center;cursor:pointer;touch-action:manipulation;
+  transition:color .2s,transform .15s var(--ease-chrome)}
+.tool .tile{position:absolute;left:6cqw;width:88cqw;height:44cqw;top:calc(var(--gy) - 22cqw);
+  -webkit-mask:var(--dia) center/100% 100% no-repeat;mask:var(--dia) center/100% 100% no-repeat;background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);transition:background-color .2s}
+.tool .tile::before{content:"";position:absolute;inset:0;background:var(--rule);-webkit-mask:var(--ring) center/100% 100% no-repeat;mask:var(--ring) center/100% 100% no-repeat;transition:background-color .2s}
+.tool img{position:absolute;image-rendering:pixelated;pointer-events:none;height:auto;
+  width:calc(var(--iw,24) * var(--s));left:calc(50cqw - var(--ax,12) * var(--s));top:calc(var(--gy) - var(--ay,12) * var(--s))}
+.tool b{position:relative;max-width:100%;font-weight:700;font-size:clamp(10.5px,3vw,12.5px);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool small{position:relative;max-width:100%;font-size:clamp(9.5px,2.6vw,11px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool:active{transform:scale(.95)}
+.tool[aria-pressed="true"]{color:var(--text)}
+.tool[aria-pressed="true"] .tile{background:color-mix(in srgb, var(--bg) 40%, color-mix(in srgb, var(--user) 16%, transparent))}
+.tool[aria-pressed="true"] .tile::before{background:color-mix(in srgb, var(--user) 80%, transparent)}
+.tool[aria-pressed="true"] small{color:var(--lithium)}
+.tool:disabled{opacity:.38}
+.tool.act b{color:var(--user)}
+.tool:focus-visible{outline:none}
+.tool[data-tool]{touch-action:none}
+/* drag ghost: the piece rides with its ground point on the drop point (lifted above the finger on touch), at board scale */
+.ghost{position:fixed;left:0;top:0;z-index:15;pointer-events:none;image-rendering:pixelated;
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.6));transition:opacity .12s}
+.ghost.bad{opacity:.45}
+.tool:focus-visible .tile::before{background:var(--text)}
+@media (hover:hover){
+  .ib:hover{background:color-mix(in srgb, var(--text) 5%, transparent);color:var(--text)}
+  .tool:not(:disabled):not([aria-pressed="true"]):hover{color:var(--text)}
+  .tool:not(:disabled):not([aria-pressed="true"]):hover .tile{background:color-mix(in srgb, var(--bg) 40%, color-mix(in srgb, var(--text) 8%, transparent))}
+}
+.ib:focus-visible,.btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+
+/* —— Overlay —— */
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(6,6,10,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  animation:fadeIn .35s ease both}
+.card{width:100%;max-width:420px;max-height:100%;overflow:auto;border-radius:1.5rem;padding:22px;display:flex;flex-direction:column;gap:14px;-webkit-user-select:text;user-select:text;animation:fadeUp .5s var(--ease-chrome) both}
+.card h2{font-family:var(--f-title);font-weight:400;margin:0;font-size:1.15rem;line-height:1.4;letter-spacing:.04em;text-transform:uppercase;text-wrap:balance}
+.card p{margin:0;line-height:1.55;color:var(--muted);font-size:14px}
+.rules{display:flex;flex-direction:column;gap:9px;margin:0;padding:0;list-style:none}
+.rules li{font-size:13.5px;font-weight:300;line-height:1.5;color:color-mix(in srgb, var(--text) 78%, transparent);padding-left:12px;box-shadow:inset 2px 0 0 var(--rule)}
+.rules li b{color:var(--text);font-weight:700}
+.rules .s{box-shadow:inset 2px 0 0 var(--user)} .rules .dt{box-shadow:inset 2px 0 0 var(--data)} .rules .g{box-shadow:inset 2px 0 0 var(--lithium)} .rules .d{box-shadow:inset 2px 0 0 var(--danger)}
+.hint{font-size:12px;color:var(--muted)}
+.btn{font-family:var(--f-body);font-weight:700;font-size:15px;letter-spacing:.02em;background:var(--user);color:#2a1a02;border:0;border-radius:999px;padding:14px 18px;cursor:pointer;transition:transform .15s var(--ease-chrome),filter .2s}
+.btn:active{transform:scale(.97)}
+@media (hover:hover){.btn:hover{filter:brightness(1.08)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);filter:blur(5px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+@media (prefers-reduced-motion: reduce){.toast,.bar i,.tool,.btn,.ib{transition:none}.overlay,.card{animation:none}}
 </style>
 </head>
 <body>
+<canvas id="game" aria-label="Game map. An isometric field of tiles in darkness, with your lit Base in the centre."></canvas>
 <div class="app">
-  <div class="top">
+  <div class="top glass">
     <h1>Eidolon</h1>
     <div class="icons">
       <button class="ib" id="helpBtn" type="button" aria-label="How to play">?</button>
@@ -84,115 +140,788 @@ canvas{display:block;border:1px solid var(--line);border-radius:8px;background:#
 
   <div class="stats" role="status" aria-live="off">
     <div class="stat"><div class="k">Lithium</div><div class="v lithium" id="sLithium">0</div></div>
-    <div class="stat"><div class="k">Glow</div><div class="v sod" id="sGlow">0</div></div>
+    <div class="stat"><div class="k">Data</div><div class="v data" id="sData">0</div></div>
     <div class="stat"><div class="k" id="sPhaseK">Wave 1</div><div class="v" id="sPhase">30s</div></div>
     <div class="stat"><div class="k">Base</div><div class="v" id="sBase">300</div><div class="bar"><i id="baseBar"></i></div></div>
   </div>
 
   <div class="stage" id="stage">
-    <canvas id="game" aria-label="Game map. Darkness with your lit base in the center."></canvas>
-    <div class="toast" id="toast"></div>
+    <div class="toast glass" id="toast"></div>
   </div>
 
   <div class="pad" id="tools">
-    <button class="tool" data-tool="lamp" aria-pressed="true" type="button"><b>Lamp</b><small>1</small></button>
-    <button class="tool" data-tool="refinery" aria-pressed="false" type="button"><b>Refinery</b><small>2</small></button>
-    <button class="tool" data-tool="turret" aria-pressed="false" type="button"><b>Turret</b><small>3</small></button>
-    <button class="tool" data-tool="missile" aria-pressed="false" type="button"><b>Missiles</b><small>5</small></button>
-    <button class="tool" data-tool="remove" aria-pressed="false" type="button"><b>Dismantle</b><small>full refund</small></button>
-    <button class="tool act" id="flareBtn" type="button"><b>Flare</b><small>4 · stun</small></button>
+    <button class="tool" data-tool="lamp" aria-pressed="true" type="button"><span class="tile"></span><img data-icon="lamp" alt=""><b>Server</b><small>1</small></button>
+    <button class="tool" data-tool="refinery" aria-pressed="false" type="button"><span class="tile"></span><img data-icon="refinery" alt=""><b>Refinery</b><small>2</small></button>
+    <button class="tool" data-tool="turret" aria-pressed="false" type="button"><span class="tile"></span><img data-icon="turret" alt=""><b>Turret</b><small>3</small></button>
+    <button class="tool" data-tool="missile" aria-pressed="false" type="button"><span class="tile"></span><img data-icon="missile" alt=""><b>Missiles</b><small>5</small></button>
+    <button class="tool act" id="flareBtn" type="button"><span class="tile"></span><img data-icon="flare" alt=""><b>EMP</b><small>4</small></button>
   </div>
 </div>
+<img class="ghost" id="ghost" alt="" hidden>
 
 <div class="overlay" id="overlay">
-  <div class="card">
+  <div class="card glass">
     <h2 id="ovTitle">The lights are your walls</h2>
-    <p id="ovText">Drones hide in the dark. Your turrets only hit what your lamps light up, but every lamp is also a beacon.</p>
+    <p id="ovText">Drones hide in the dark. Your turrets only hit what your servers light up, but every server is also a beacon.</p>
     <ul class="rules" id="rules">
-      <li class="s"><b>Light is territory.</b> Lamps chain power out from the Base. Build within cable reach of a lit lamp.</li>
-      <li class="s"><b>Light is a beacon.</b> More lamps mean more Glow, and bigger waves.</li>
-      <li class="g"><b>Lithium is your budget.</b> Lamp 1 · Refinery 2 · Turret 3 · Missiles 5. Refineries on glowing pools earn 1 Lithium every 8 seconds, and each wave you survive pays 2. Pools run dry, so push into the dark for more.</li>
+      <li class="s"><b>Light is territory.</b> Servers chain power out from the Base. Build within cable reach of a lit server.</li>
+      <li class="dt"><b>Light is a beacon.</b> More servers mean more Data, and bigger waves.</li>
+      <li class="g"><b>Lithium is your budget.</b> Server 1 · Refinery 2 · Turret 3 · Missiles 5. Refineries on glowing pools earn 1 Lithium every 8 seconds, and each wave you survive pays 2. Pools run dry, so push into the dark for more.</li>
       <li class="s"><b>Turrets vs. missiles.</b> Turrets fire fast at close range. Missile launchers reach farther and hit groups with splash damage, but reload slowly.</li>
-      <li class="d"><b>Waves get worse.</b> Panzers (wave 3+) burst and snuff nearby lamps for 10s, cutting power downstream. Infiltrators (wave 6+) hunt refineries.</li>
+      <li class="d"><b>Waves get worse.</b> Panzers (wave 3+) burst and snuff nearby servers for 10s, cutting power downstream. Infiltrators (wave 6+) hunt refineries.</li>
     </ul>
-    <p class="hint">Tap a tile to build. Long-press a building to dismantle it.</p>
+    <p class="hint">Drag a piece from the pad onto the board, or tap a tile to build. Long-press a building to dismantle it.</p>
     <button class="btn" id="ovBtn" type="button">Start the shift</button>
   </div>
 </div>
 
 <script>
 (() => {
-const T = 32, GW = 15, GH = 25, W = GW * T, H = GH * T;
-const BASE_TX = 7, BASE_TY = 12;
+/* ---------- the board: one isometric grid ----------
+   Every position in the game is a ground coordinate (u, v), measured in tiles. Tile (i, j) is the
+   unit square [i, i+1) × [j, j+1), and every range, speed and radius is in tiles. The screen is a
+   2:1 dimetric projection of the ground (the pixel-art standard): a tile is a 32 × 16 px diamond,
+   +u runs down-right, +v runs down-left, and one unit of height is one pixel straight up.
+   The board is the rectangle of whole tiles that fits BW × BH, so rows stagger 9/8 across. */
+const TW = 32, TH = 16, RX = TW / Math.SQRT2, RY = TH / Math.SQRT2;   // a ground circle of radius 1 → this ellipse
+const BW = 288, BH = 352, W = BW, H = BH;
+const OX = BW / 2, OY = BH / 2 - TH / 2;
+const scr = (u, v, z = 0) => ({ x: OX + (u - v) * TW / 2, y: OY + (u + v) * TH / 2 - z });
+function gnd(x, y) { const a = (x - OX) / (TW / 2), b = (y - OY) / (TH / 2); return { u: (a + b) / 2, v: (b - a) / 2 }; }
+const onBoard = (i, j) => { const c = scr(i + 0.5, j + 0.5); return c.x >= TW / 2 && c.x <= BW - TW / 2 && c.y >= TH / 2 && c.y <= BH - TH / 2; };
+const TILES = [];
+for (let i = -24; i <= 24; i++) for (let j = -24; j <= 24; j++) if (onBoard(i, j)) TILES.push([i, j]);
+
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = s => document.querySelector(s);
 const cv = $('#game'), ctx = cv.getContext('2d'), stage = $('#stage');
-const dark = document.createElement('canvas'), dctx = dark.getContext('2d');
-let DPR = 1;
+const mos = document.createElement('canvas'), mctx = mos.getContext('2d');
+const mos2 = document.createElement('canvas'), m2ctx = mos2.getContext('2d');
+const ground = document.createElement('canvas'), gctx = ground.getContext('2d');
+const gpx = document.createElement('canvas'), gpctx = gpx.getContext('2d');
+let DPR = 1, VS = 1, VX = 0, VY = 0;
 
+// radius = light, link = cable reach (both in tiles, from the building's centre)
 const DEF = {
-  base:   { hp: 300, radius: 4.4, link: 5.0, cost: 0 },
-  lamp:    { hp: 40,  radius: 3.3, link: 4.5, cost: 1 },
-  refinery:    { hp: 50,  radius: 0.9, link: 0,   cost: 2 },
-  turret:  { hp: 70,  radius: 1.3, link: 0,   cost: 3 },
-  missile: { hp: 80,  radius: 1.3, link: 0,   cost: 5 },
+  base:     { hp: 300, radius: 4.6, link: 5.2, cost: 0, size: 3 },
+  lamp:     { hp: 40,  radius: 3.3, link: 4.5, cost: 1, size: 1 },
+  refinery: { hp: 50,  radius: 0.9, link: 0,   cost: 2, size: 1 },
+  turret:   { hp: 70,  radius: 1.3, link: 0,   cost: 3, size: 1 },
+  missile:  { hp: 80,  radius: 1.3, link: 0,   cost: 5, size: 1 },
 };
-const NAME = { lamp: 'Lamp', refinery: 'Refinery', turret: 'Turret', missile: 'Missile launcher' };
+const NAME = { lamp: 'Server', refinery: 'Refinery', turret: 'Turret', missile: 'Missile launcher' };
+// spd in tiles per second; r is the body radius in tiles (contact distance to a footprint)
 const DRONE = {
-  walker:  { hp: 30, spd: 18, dmg: 7,  r: 9,  col: '#9aa38f' },
-  runner:  { hp: 16, spd: 42, dmg: 4,  r: 7,  col: '#cdb47a' },
-  panzer: { hp: 80, spd: 12, dmg: 0,  r: 13, col: '#86b56c' },
-  infiltrator:   { hp: 45, spd: 30, dmg: 10, r: 8,  col: '#9d97e8' },
+  walker:      { hp: 30, spd: 0.62, dmg: 7,  r: 0.3 },
+  runner:      { hp: 16, spd: 1.4,  dmg: 4,  r: 0.22 },
+  panzer:      { hp: 80, spd: 0.42, dmg: 0,  r: 0.42 },
+  infiltrator: { hp: 45, spd: 1.0,  dmg: 10, r: 0.26 },
 };
-const FLARE_COST = 4, CALM = 28, TURRET_RANGE = 4.2, MISSILE_RANGE = 6.2, WAVE_BONUS = 2, REFINE_RATE = 1 / 8;
+const MOSAIC = 4; // fine mosaic block, in sprite pixels; the outer field is twice this (one block = a quarter tile)
+const FLARE_COST = 4, CALM = 28, TURRET_RANGE = 4.2, MISSILE_RANGE = 6.2, SPLASH = 1.6, BURST = 2.2, WAVE_BONUS = 2, REFINE_RATE = 1 / 8;
+const SAVE_V = 2;   // hot-reload snapshots from the hex build are discarded
 
 let S, tool = 'lamp', hover = null, paused = true, speed = 1, started = false, emitters = [];
 
 const rand = (a, b) => a + Math.random() * (b - a);
-const d2 = (ax, ay, bx, by) => { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; };
+const d2 = (au, av, bu, bv) => { const du = au - bu, dv = av - bv; return du * du + dv * dv; };
+const hash = (a, b, c = 0) => { let h = (a * 374761393 + b * 668265263 + c * 2147483647) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
 
-/* ---------- sizing ---------- */
+/* ART:BEGIN */
+/* ---------- the art: one voxel renderer for everything on the board ----------
+   Every board sprite is a small voxel model rendered through the same 2:1 projection as the
+   ground, so a piece stands on its tile exactly. Model units: 16 per tile across the ground and
+   1 per pixel of height, so a 1-tile piece spans u, v in [−8, 8). Each screen pixel casts the
+   view ray (−1, −1, −1) through the voxels and takes the face it hits.
+
+   The look, in rules (see research_notes/Isometric pixel art design system):
+   - Light comes from the upper left: tops are lightest, +v faces (screen lower-left) mid,
+     +u faces (screen lower-right) darkest. Every material is a 5-step hue-shifted ramp.
+   - Top edges that meet a wall get the ramp's top step (a lit ledge); walls darken where they
+     meet the ground or a roof (contact shadow). Round parts shade by normal, not by face.
+   - One dark 1px outline (#07080d) around every standing piece; ground decals get none.
+   - Colour carries meaning: gold = the player's power and light, blue = Lithium, lime = Data,
+     red = hostile. Concrete, steel, glass and moss stay muted, so the meaning colours pop.
+   - Emissive pixels (windows, LEDs, optics, beacons) are kept on a second canvas, img.em, so
+     the game can draw them above the dark. */
+const RAMP = {
+  conc:  ['#25252b', '#3f3e45', '#615e62', '#8c877f', '#bdb5a3'],   // weathered concrete: cool shadows, warm lights
+  slab:  ['#1d1e24', '#2c2d34', '#3f3f46', '#56545a', '#76726f'],   // low plinths and hardstands
+  asph:  ['#0f1016', '#16181f', '#1e2028', '#272a33', '#363a45'],
+  paint: ['#363b46', '#565c68', '#7a808c', '#a2a8b2', '#d0d4da'],
+  steel: ['#11151f', '#1e2431', '#313a4b', '#4d596e', '#8290a7'],   // gunmetal blue
+  wire:  ['#1b1f28', '#2c323e', '#434c5d', '#626e85', '#94a0b6'],
+  glass: ['#0a1117', '#0f1c25', '#172a35', '#223d49', '#4a6f7b'],
+  car:   ['#07080c', '#0d0f15', '#151820', '#202430', '#383e4e'],
+  moss:  ['#151c11', '#1f2a18', '#2d3a21', '#40502b', '#58673a'],
+  leaf:  ['#0e1813', '#16261b', '#203626', '#2f4b32', '#456541'],
+  bark:  ['#18130f', '#271e17', '#382b20', '#4e3e2c', '#69553d'],
+  navy:  ['#10162e', '#1a2448', '#2a3a70', '#44589a', '#7184c0'],
+  white: ['#3c424e', '#69717f', '#a3abb7', '#d3d9e2', '#f3f5f8'],
+  gold:  ['#6a420c', '#b8730f', '#ffb52e', '#ffd77a', '#fff4d6'],   // the player: light, power
+  dim:   ['#231d16', '#30281f', '#3e3428', '#4d4234', '#5e5444'],   // gold, switched off
+  li:    ['#0c2c44', '#1a6c9c', '#2ec8ff', '#8fe2ff', '#e6f8ff'],   // Lithium
+  liOff: ['#0d1820', '#13232c', '#1b3340', '#25414f', '#31525f'],
+  data:  ['#3a5210', '#6f9a1c', '#b8f03e', '#dcff8a', '#f6ffd9'],   // Data
+  dataOff: ['#1a2013', '#222a19', '#2c3521', '#38422a', '#465234'],
+  eye:   ['#3a0d10', '#7a1c1e', '#c8352f', '#ff6359', '#ffb3ad'],   // hostile
+  drone: ['#191c21', '#2b2f37', '#48505b', '#747e8a', '#b1b9c3'],
+  tan:   ['#2a2012', '#4f3d1e', '#8a6f3c', '#cdb47a', '#efe0b4'],
+  mag:   ['#22081e', '#3a1030', '#7a2468', '#c040a0', '#ff7ad0'],
+  magE:  ['#7a2468', '#c040a0', '#ff7ad0', '#ffb3e8', '#fff0fa'],
+  vio:   ['#14122a', '#1b1836', '#3f3a80', '#8781dd', '#c9c5ff'],
+  vioE:  ['#3f3a80', '#8781dd', '#c9c5ff', '#e6e4ff', '#ffffff'],
+  tread: ['#0a0b0f', '#13151b', '#1d2028', '#2a2e37', '#3f4553'],
+};
+const EMISSIVE = new Set(['gold', 'war', 'li', 'data', 'eye', 'magE', 'vioE']);
+const K = '#07080d';
+// switched-off and spent looks: a map from ramp to ramp, applied when a sprite is coloured
+const OFF = { gold: 'dim', li: 'liOff', data: 'dataOff' };
+const SPENT = { war: 'steel' };
+RAMP.war = RAMP.gold;   // missile warheads: gold while loaded, steel once fired
+
+/* A material key is a ramp name, then '~' for a round part (shaded by its surface normal), or
+   '@n' to force ramp step n (paint, glow), then '+' or '-' to shift a step lighter or darker. */
+const MATS = [null], MAT_ID = new Map();
+function matId(key) {
+  let id = MAT_ID.get(key);
+  if (id === undefined) {
+    const m = /^([a-zA-Z]+)(~)?(?:@(\d))?([+-]*)$/.exec(key);
+    const shift = m[4] ? (m[4][0] === '+' ? 1 : -1) * m[4].length : 0;
+    id = MATS.length; MATS.push({ ramp: m[1], round: !!m[2], idx: m[3] === undefined ? -1 : +m[3], shift }); MAT_ID.set(key, id);
+  }
+  return id;
+}
+
+/* —— model helpers (all in model units) —— */
+const TOP = 0, LEFT = 1, RIGHT = 2;
+const inBox = (u, v, z, u0, u1, v0, v1, z0, z1) => u >= u0 && u < u1 && v >= v0 && v < v1 && z >= z0 && z < z1;
+const mod = (a, n) => ((a % n) + n) % n;
+// smooth value noise, so moss and vines grow in clumps rather than as single pixels
+function vnoise(x, y, seed = 0) {
+  const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+  const a = hash(ix, iy, seed), b = hash(ix + 1, iy, seed), c = hash(ix, iy + 1, seed), d = hash(ix + 1, iy + 1, seed);
+  return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+}
+// a round part shaded by its normal under the scene light (upper left), as a forced ramp step
+const LIGHT = (() => { const l = [-0.35, 0.55, 0.76], n = Math.hypot(...l); return l.map(x => x / n); })();
+const shadeN = (ramp, nu, nv, nz, bias = 0) => {
+  const n = Math.hypot(nu, nv, nz) || 1, d = (nu * LIGHT[0] + nv * LIGHT[1] + nz * LIGHT[2]) / n;
+  return `${ramp}@${Math.max(0, Math.min(4, Math.round(1.6 + d * 2.2 + bias)))}`;
+};
+
+/* A brutalist block: concrete with recessed ribbon windows, fins, moss on top and vines down
+   the two faces the camera sees. A recess one voxel deep shows a 1px reveal on the far edge
+   of each opening, so windows read as cut into the mass, not painted on. */
+function block(u, v, z, B) {
+  if (!inBox(u, v, z, B.u0, B.u1, B.v0, B.v1, B.z0, B.z1)) return null;
+  const du = B.u1 - u, dv = B.v1 - v, s = B.seed || 0;
+  const outer = du < 1 || dv < 1, second = du < 2 || dv < 2;
+  const w = du < dv ? v : u;                          // position along the face
+  const face = du < dv ? 1 : 2;
+  const band = B.bands ? B.bands.findIndex(([a, b]) => z >= a && z < b) : -1;
+  if (band >= 0 && second) {
+    const fin = B.fin || 4;
+    if (outer) return mod(Math.floor(w), fin) === 0 ? 'conc' : undefined;
+    return hash(Math.floor(w / fin), band * 7 + face, s) < (B.lit ?? 0.14) ? 'gold' : 'glass';
+  }
+  const topLayer = z >= B.z1 - 1;
+  if (topLayer && !outer && vnoise(u / 3.2, v / 3.2, s + 1) > 0.58) return hash(Math.floor(u), Math.floor(v), s) > 0.7 ? 'moss+' : 'moss';
+  if (outer && B.vines !== false) {
+    // vines hang from the roof edge in clumps; old growth is darker and lower contrast
+    const n = vnoise(w / 3, face * 5, s + 2), len = (n - 0.5) * (B.z1 - B.z0) * 2.2;
+    if (len > 0 && z > B.z1 - len && hash(Math.floor(w), Math.floor(z / 2), s + face) > 0.18) return z > B.z1 - len * 0.5 ? 'leaf' : 'leaf-';
+    if (z < B.z0 + 1 + vnoise(w / 2.4, face, s + 3) * 4.5 && vnoise(w / 2.4, face, s + 3) > 0.45) return 'leaf';
+    // rain streaks under the window bands
+    if (B.bands && hash(Math.floor(w), face, s + 4) > 0.72 && B.bands.some(([a]) => z < a && z >= a - 4)) return 'conc-';
+  }
+  if (topLayer && outer) return 'conc+';   // parapet cap
+  return 'conc';
+}
+// a tree or shrub: a noisy blob shaded as a sphere, in 2×2 leaf clusters
+function tree(u, v, z, cu, cv, r, h, s) {
+  const du = u - cu, dv = v - cv;
+  if (z >= h + 1 || Math.abs(du) > r * 1.2 || Math.abs(dv) > r * 1.2) return null;
+  if (h > 6 && Math.hypot(du, dv) < 1.2 && z < h * 0.45) return 'bark';
+  const cz = h - r * 0.8, rr = Math.hypot(du, dv, (z - cz) * 1.25) / r;
+  const n = vnoise(Math.floor(u / 2), Math.floor(v / 2) + Math.floor(z / 2) * 9, s);
+  if (rr < 0.78 + n * 0.32 && z > 0) return shadeN('leaf', du, dv, (z - cz) * 1.25, hash(Math.floor(u / 2), Math.floor(z / 2), s) > 0.8 ? 1 : 0);
+  return null;
+}
+
+/* —— the renderer ——
+   voxelize samples a model on a grid of cell size h (model units) in the model's own frame.
+   trace casts each screen pixel's view ray through that grid, turned by the piece's heading, so
+   a turned piece keeps flat faces: each face is one model face with one world normal, which
+   picks its ramp step. Tops take step 3; sides take 2 when they face the light, 1 when not. */
+function voxelize(model, R, Z, h = 1, from, boxes) {
+  const N = Math.round(2 * R / h), NZ = Math.round(Z / h);
+  const g = from ? from.g.slice() : new Uint16Array(N * N * NZ), cmin = from ? from.cmin.slice() : new Int16Array(N * N).fill(NZ);
+  const c = q => Math.round(q / h);
+  for (const [u0, u1, v0, v1, z0, z1] of boxes || [[-R, R, -R, R, 0, Z]])
+    for (let iz = c(z0); iz < c(z1); iz++) for (let iv = c(v0 + R); iv < c(v1 + R); iv++) for (let iu = c(u0 + R); iu < c(u1 + R); iu++) {
+      const k = model((iu + 0.5) * h - R, (iv + 0.5) * h - R, (iz + 0.5) * h), i = (iz * N + iv) * N + iu;
+      g[i] = k ? matId(k) : 0;
+      if (k && iz < cmin[iv * N + iu]) cmin[iv * N + iu] = iz;
+    }
+  return { R, Z, h, N, NZ, g, cmin };
+}
+function trace(vx, angle = 0) {
+  const { R, Z, h, N, NZ, g } = vx, ca = Math.cos(angle), sa = Math.sin(angle);
+  const E = Math.ceil(R * (Math.abs(ca) + Math.abs(sa)) - 1e-9);   // half-extent of the turned footprint
+  const w = 4 * E + 4, hh = 2 * E + Z + 4, ax = w / 2, ay = Z + E + 2;
+  const hit = new Int32Array(w * hh).fill(-1), face = new Int8Array(w * hh);   // face: 0 top, ±1 ±u, ±2 ±v (model)
+  // the view ray (−1, −1, −1) in model space
+  const D = [(-ca - sa) / h, (sa - ca) / h, -1 / h], st = D.map(Math.sign), dl = D.map(d => d ? Math.abs(1 / d) : Infinity);
+  const P = [0, 0, 0], cell = [0, 0, 0], tm = [0, 0, 0], lim = [N, N, NZ];
+  for (let py = 0; py < hh; py++) for (let px = 0; px < w; px++) {
+    const X = px + 0.5 - ax, Y = py + 0.5 - ay, U = X / 2 + Y + Z, V = -X / 2 + Y + Z;
+    P[0] = (U * ca + V * sa + R) / h; P[1] = (-U * sa + V * ca + R) / h; P[2] = NZ;
+    for (let a = 0; a < 3; a++) {
+      cell[a] = Math.floor(P[a]); if (a === 2) cell[2] = NZ;
+      tm[a] = st[a] > 0 ? (cell[a] + 1 - P[a]) * dl[a] : st[a] < 0 ? (P[a] - cell[a]) * dl[a] : Infinity;
+      if (a === 2) tm[2] = 0;
+    }
+    for (;;) {
+      const a = tm[0] < tm[1] ? (tm[0] < tm[2] ? 0 : 2) : (tm[1] < tm[2] ? 1 : 2);
+      cell[a] += st[a]; tm[a] += dl[a];
+      if (cell[2] < 0 || (cell[0] < 0 && st[0] < 0) || (cell[0] >= N && st[0] > 0) || (cell[1] < 0 && st[1] < 0) || (cell[1] >= N && st[1] > 0)) break;
+      if (cell[0] < 0 || cell[1] < 0 || cell[0] >= N || cell[1] >= N || cell[2] >= NZ) continue;
+      const k = (cell[2] * N + cell[1]) * N + cell[0];
+      if (g[k]) { hit[py * w + px] = k; face[py * w + px] = a === 2 ? 0 : -st[a] * (a + 1); break; }
+    }
+  }
+  return { vx, w, h: hh, ax, ay, hit, face, ca, sa };
+}
+// colour a trace into a canvas; over remaps ramps (OFF, SPENT). The canvas carries ax, ay (the
+// ground point), top (first opaque row), mask (opaque pixels, for picking) and em (emissives).
+function paint(tr, over, { outline = true, white = false, post } = {}) {
+  const { vx, w, h, hit, face, ca, sa } = tr, { N, NZ, g, cmin } = vx, NN = N * N, hv = vx.h;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'), im = x.createImageData(w, h), d = im.data;
+  const e = document.createElement('canvas'); e.width = w; e.height = h;
+  const ex = e.getContext('2d'), eim = ex.createImageData(w, h), ed = eim.data;
+  const zOf = k => Math.floor(k / NN) * hv;
+  // a side face's world normal → step 1 or 2 (and its light value, for the corner rule)
+  const sideLight = f => { const a = Math.abs(f) - 1, sg = Math.sign(f), mu = a === 0 ? sg : 0, mv = a === 1 ? sg : 0; return (mu * ca - mv * sa) * LIGHT[0] + (mu * sa + mv * ca) * LIGHT[1]; };
+  const sideStep = f => sideLight(f) > 0.05 ? 2 : 1;
+  const isSide = i => i >= 0 && i < w * h && hit[i] >= 0 && face[i] !== 0;
+  const solid = (iu, iv, iz) => iu >= 0 && iv >= 0 && iz >= 0 && iu < N && iv < N && iz < NZ && g[(iz * N + iv) * N + iu] > 0;
+  // a round part's normal, from the occupancy around the hit cell, turned into the world
+  const roundLight = k => {
+    const iu = k % N, iv = Math.floor(k / N) % N, iz = Math.floor(k / NN), r = Math.max(1, Math.round(1.5 / hv));
+    let nu = 0, nv = 0, nz = 0;
+    for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) for (let q = -r; q <= r; q++) if (!solid(iu + a, iv + b, iz + q)) { nu += a; nv += b; nz += q; }
+    const wu = nu * ca - nv * sa, wv = nu * sa + nv * ca, n = Math.hypot(wu, wv, nz) || 1;
+    return (wu * LIGHT[0] + wv * LIGHT[1] + nz * LIGHT[2]) / n;
+  };
+  let anyEm = false;
+  const set = (D, i, hex, a = 255) => { const n = parseInt(hex.slice(1), 16); D[i * 4] = n >> 16; D[i * 4 + 1] = (n >> 8) & 255; D[i * 4 + 2] = n & 255; D[i * 4 + 3] = a; };
+  for (let i = 0; i < w * h; i++) {
+    const k = hit[i]; if (k < 0) continue;
+    const M = MATS[g[k]], ramp = (over && over[M.ramp]) || M.ramp, f = face[i], z = zOf(k);
+    let s;
+    if (M.round) s = Math.round(1.6 + roundLight(k) * 2.2) + M.shift;
+    else if (M.idx >= 0) s = M.idx + (f !== 0 && sideStep(f) === 1 ? -1 : 0);
+    else {
+      s = (f === 0 ? 3 : sideStep(f)) + M.shift;
+      if (f === 0) {
+        const b = i + w, a = i - w;
+        if (isSide(b) && zOf(hit[b]) <= z && zOf(hit[b]) >= z - 2) s += 1;            // lit ledge
+        else if (isSide(a) && zOf(hit[a]) > z + hv) s -= 1;                           // foot of a wall on a roof
+      } else {
+        if (z - cmin[k % NN] * hv < 2 && z > 0.5) s -= 1;                               // wall meets what it stands on
+        const r = i + 1;
+        if (i % w < w - 1 && isSide(r) && sideLight(face[r]) < sideLight(f) - 0.3 && Math.abs(zOf(hit[r]) - z) < 1.5) s += 1;   // the near corner catches light
+      }
+    }
+    s = Math.max(0, Math.min(4, s));
+    const col = white ? '#ffffff' : RAMP[ramp][s];
+    set(d, i, col);
+    if (!white && EMISSIVE.has(ramp)) { set(ed, i, col); anyEm = true; }
+  }
+  if (post) post(d, w, h, tr);
+  if (outline) {
+    const op = i => d[i * 4 + 3] > 0, o = [];
+    for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
+      const i = py * w + px; if (op(i)) continue;
+      if ((px > 0 && op(i - 1)) || (px < w - 1 && op(i + 1)) || (py > 0 && op(i - w)) || (py < h - 1 && op(i + w))) o.push(i);
+    }
+    for (const i of o) set(d, i, K);
+  }
+  x.putImageData(im, 0, 0);
+  if (anyEm) ex.putImageData(eim, 0, 0);
+  c.ax = tr.ax; c.ay = tr.ay; c.em = anyEm ? e : null;
+  c.mask = new Uint8Array(w * h); c.top = h;
+  for (let i = 0; i < w * h; i++) if (d[i * 4 + 3]) { c.mask[i] = 1; if (c.top === h) c.top = Math.floor(i / w); }
+  return c;
+}
+const render = (model, R, Z, over, opts, hv = 1) => paint(trace(voxelize(model, R, Z, hv)), over, opts);
+// draw several sprites into one, aligned on their ground points
+function stack(...imgs) {
+  const l = Math.min(...imgs.map(i => -i.ax)), t = Math.min(...imgs.map(i => -i.ay));
+  const r = Math.max(...imgs.map(i => i.width - i.ax)), b = Math.max(...imgs.map(i => i.height - i.ay));
+  const c = document.createElement('canvas'); c.width = r - l; c.height = b - t;
+  const x = c.getContext('2d');
+  for (const i of imgs) x.drawImage(i, -l - i.ax, -t - i.ay);
+  c.ax = -l; c.ay = -t; c.em = null; c.top = Math.min(...imgs.map(i => i.top - i.ay)) - t;
+  return c;
+}
+
+/* —— the Base: a 1990s federal campus, gone to seed, on the centre 3 × 3 tiles ——
+   A brutalist HQ with recessed ribbon windows and a cantilevered top floor, a tower carrying a
+   radio mast with a gold beacon, a low wing with a sweeping dish, a gatehouse and boom at the
+   gate, a helipad, two black sedans, a flag, a chain-link fence, and the trees moving back in.
+   Back corner is (−24, −24); the camera looks at the +u and +v faces. */
+const BASE_FRAMES = 6, BASE_R = 24, BASE_Z = 76;
+const HQ = [
+  { u0: -17, u1: 1, v0: -17, v1: -1, z0: 1, z1: 6, bands: [[1, 5]], fin: 4, lit: 0.5, seed: 11, vines: false },   // glass lobby, set back under the floors
+  { u0: -18, u1: 2, v0: -18, v1: 0, z0: 6, z1: 24, bands: [[8, 11], [14, 17], [20, 23]], fin: 6, seed: 12 },
+  { u0: -19, u1: 4, v0: -19, v1: 2, z0: 24, z1: 31, bands: [[26, 29]], fin: 3, seed: 13 },                     // cantilevered top floor
+];
+const TOWER = { u0: -23, u1: -16, v0: -23, v1: -16, z0: 1, z1: 42, bands: [[8, 30]], fin: 3, lit: 0.06, seed: 14 };
+const WING = { u0: 5, u1: 20, v0: -20, v1: -8, z0: 1, z1: 12, bands: [[5, 8]], fin: 5, seed: 15 };
+const GATE = { u0: 16, u1: 21, v0: 1, v1: 6, z0: 1, z1: 8, bands: [[3, 6]], fin: 2, lit: 0.8, seed: 16, vines: false };
+const TREES = [[-19, 18, 6, 15, 1], [-21, 7, 4, 8, 2], [9, 20, 5, 13, 3], [21, -4, 3.5, 7, 4], [0, 21, 3.5, 6, 5], [-8, -21, 4, 9, 6], [21, 12, 3, 6, 7]];
+function baseModel(f) {
+  const a = f * Math.PI / 3, n = [Math.cos(a) * 0.62, Math.sin(a) * 0.62, 0.5], nl = Math.hypot(...n), N = n.map(q => q / nl);
+  const C = [12, -15, 16.5], beacon = f % 3 === 0;
+  return (u, v, z) => {
+    const au = Math.abs(u), av = Math.abs(v);
+    if (au >= 24 || av >= 24) return;
+    // the lot: asphalt with painted bays, a lighter road in from the gate, weeds in the cracks
+    if (z < 1) {
+      if (au > 23 || av > 23) return 'slab';
+      const hr = Math.hypot(u + 7, v - 13);
+      if (hr < 8.5) {
+        if (Math.abs(hr - 6.4) < 0.55) return 'paint@3';
+        const hu = u + 7, hv = v - 13;
+        if ((Math.abs(Math.abs(hu) - 2) < 0.6 && Math.abs(hv) < 3) || (Math.abs(hv) < 0.6 && Math.abs(hu) < 2)) return 'paint@3';
+        return 'slab@3';
+      }
+      if (v > 9 && v < 16 && u > 3) return Math.abs(v - 12.5) < 0.5 && mod(Math.floor(u), 4) < 2 ? 'paint@2' : 'asph@3';
+      if (u > 5 && u < 16 && v > -7 && v < 3 && mod(Math.floor(u), 4) === 0) return 'paint@2';
+      if (vnoise(u / 3, v / 3, 21) > 0.66) return hash(Math.floor(u), Math.floor(v), 22) > 0.5 ? 'moss@2' : 'moss@1';
+      return hash(Math.floor(u / 2), Math.floor(v / 2), 23) > 0.85 ? 'asph@2' : 'asph@3';
+    }
+    // chain-link fence: posts, top and bottom rails, a sparse fill; a gap for the gate
+    if ((au > 23 || av > 23) && z < 7 && !(u > 23 && v > 8 && v < 17)) {
+      const w = au > 23 ? v : u;
+      if (mod(Math.floor(w), 6) === 0) return 'wire';
+      if (z >= 6) return 'wire';
+      if (z < 2) return 'wire-';
+      if (vnoise(w / 3, 1, 24) > 0.55 && z < 2 + vnoise(w / 3, 1, 24) * 7) return 'leaf';
+      return hash(Math.floor(w), Math.floor(z), 25) > 0.82 ? 'wire-' : undefined;
+    }
+    // the boom across the gate, in hazard white and dark
+    if (u >= 22 && u < 23 && v > 8 && v < 17 && z >= 4 && z < 5) return mod(Math.floor(v), 3) === 0 ? 'steel' : 'white';
+    if (u >= 22 && u < 23 && v >= 7 && v < 8 && z < 5) return 'steel';
+    // radio mast on the tower: banded white and steel, gold beacon
+    if (u >= -21 && u < -19 && v >= -21 && v < -19 && z >= 42) {
+      if (z < 72) return mod(Math.floor(z / 4), 2) ? 'white' : 'steel+';
+      if (z < 74) return beacon ? 'gold' : 'dim+';
+    }
+    if (z >= 42 && z < 43.5 && Math.abs(u + 20) < 2.5 && Math.abs(v + 20) < 2.5) return 'steel';
+    for (const B of HQ) { const m = block(u, v, z, B); if (m !== null) return m; }
+    // roof plant on the HQ
+    if (inBox(u, v, z, -12, -6, -14, -8, 31, 35)) return z >= 34 ? 'steel+' : 'steel';
+    if (inBox(u, v, z, -4, 0, -15, -12, 31, 33)) return 'steel';
+    { const m = block(u, v, z, TOWER); if (m !== null) return m; }
+    { const m = block(u, v, z, WING); if (m !== null) return m; }
+    // the dish on the wing roof, sweeping
+    if (Math.hypot(u - C[0], v - C[1]) < 1.3 && z >= 12 && z < 15) return 'steel';
+    {
+      const d0 = u - C[0], d1 = v - C[1], d2 = z - C[2], dn = d0 * N[0] + d1 * N[1] + d2 * N[2];
+      const pr = Math.hypot(d0 - dn * N[0], d1 - dn * N[1], d2 - dn * N[2]);
+      if (pr < 4.6 && Math.abs(dn - pr * pr * 0.07) < 0.6) return shadeN('white', -N[0], -N[1], -N[2] + 0.6, -0.4);
+      if (pr < 0.5 && dn > 0.4 && dn < 3) return 'steel';
+    }
+    { const m = block(u, v, z, GATE); if (m !== null) return m; }
+    if (inBox(u, v, z, 15, 22, 0, 7, 8, 9)) return 'slab+';            // gatehouse roof slab
+    // the helipad deck
+    // two black sedans in the bays
+    for (const cv of [-5, -1]) {
+      if (inBox(u, v, z, 7, 14, cv, cv + 3, 1, 3)) return 'car';
+      if (inBox(u, v, z, 8.5, 12, cv + 0.5, cv + 2.5, 3, 4.5)) return u > 11 ? 'glass+' : 'car+';
+    }
+    // flag
+    if (Math.hypot(u - 3, v - 6) < 0.6 && z < 27) return 'white';
+    if (u >= 3.5 && u < 10 && v >= 5.5 && v < 6.5 && z >= 21 && z < 26) {
+      const wave = Math.sin(u * 0.9) * 0.6;
+      if (z - wave < 21.4 || z - wave > 25.6) return;
+      return u < 6 && z > 23 ? 'navy' : mod(Math.floor(z - wave), 2) ? 'white' : 'navy+';
+    }
+    for (const [cu, cv, r, h, s] of TREES) { const m = tree(u, v, z, cu, cv, r, h, s); if (m) return m; }
+  };
+}
+
+/* —— the Server: a rack with Data LEDs, and the sodium lamp that lights the ground —— */
+function lampModel(f, on) {
+  return (u, v, z) => {
+    if (inBox(u, v, z, -7, 7, -7, 7, 0, 2)) return 'slab';
+    if (inBox(u, v, z, -5, 4, -5, 4, 2, 16)) {
+      const du = 4 - u, dv = 4 - v;
+      if ((du < 1 || dv < 1) && z >= 4 && z < 14 && mod(Math.floor(z), 3) === 1) {
+        const w = du < dv ? v : u, slot = Math.floor(w + 5);
+        if (slot % 2 === 1 && slot < 8) return hash(slot, Math.floor(z), f * 3 + 1) > 0.45 ? 'data' : 'dataOff';
+        return 'steel-';
+      }
+      return z >= 15 ? 'steel+' : 'steel';
+    }
+    // mast and arm
+    if (inBox(u, v, z, -7, -5, -7, -5, 2, 40)) return mod(Math.floor(z), 10) === 0 ? 'steel+' : 'steel';
+    if (z >= 38 && z < 40) {
+      const t = (u + 6) / 6.5;
+      if (t > 0 && t < 1 && Math.abs(v - u) < 1.2) return 'steel';
+    }
+    if (inBox(u, v, z, -1, 3, -1, 3, 35, 38)) return z < 36 ? 'gold@4' : 'gold';
+    if (inBox(u, v, z, -1.5, 3.5, -1.5, 3.5, 38, 39)) return 'steel+';
+  };
+}
+
+/* —— the Refinery: a rig that pumps Lithium out of its pool into a glass tank —— */
+const REFINERY_FRAMES = 4;
+function refineryModel(f) {
+  const lvl = 5 + f * 2;   // a bright ring rises through the tank
+  return (u, v, z) => {
+    const r = Math.hypot(u, v);
+    if (Math.abs(u) > 5 && Math.abs(v) > 5 && Math.abs(u) < 7 && Math.abs(v) < 7 && z < 18) return z >= 16 ? 'steel+' : 'steel';   // legs
+    if (inBox(u, v, z, -7, 7, -7, 7, 16, 18) && (Math.abs(u) > 5.5 || Math.abs(v) > 5.5)) return 'steel';            // top frame
+    if (r < 4.2 && z >= 2 && z < 15) {
+      if (r >= 3.2) return Math.abs(z - lvl) < 1 ? 'li@4' : z < 4 || z >= 13 ? shadeN('steel', u, v, 0) : shadeN('li', u, v, 0, -1);
+      if (z >= 14) return 'li';
+    }
+    if (r < 4.6 && z < 2) return shadeN('steel', u, v, 0.4);
+    if (r < 1.2 && z >= 15 && z < 20) return 'steel';
+    if (inBox(u, v, z, -1, 1, -1, 1, 20, 21)) return 'gold';
+  };
+}
+
+/* —— Turret: a low emplacement and a twin-barrel head that turns —— */
+const turretBaseModel = (u, v, z) => {
+  const au = Math.abs(u), av = Math.abs(v);
+  if (au < 7.5 && av < 7.5 && au + av < 11 && z < 4) return z >= 3 && au + av > 9.5 ? 'slab+' : 'slab';
+  if (Math.hypot(u, v) < 4 && z >= 4 && z < 5) return 'steel';
+  if (u >= 6 && u < 7 && v >= -0.5 && v < 0.5 && z >= 2 && z < 3) return 'gold';
+  if (v >= 6 && v < 7 && u >= -0.5 && u < 0.5 && z >= 2 && z < 3) return 'gold';
+};
+const turretHead = (u, v, z) => {
+  if (u > 2 && u < 11 && (Math.abs(v - 1.6) < 1 || Math.abs(v + 1.6) < 1) && z >= 8 && z < 10) return u > 9.5 ? 'steel+' : 'steel';
+  if (Math.abs(u) < 4.5 && Math.abs(v) < 4 && z >= 5 && z < 11) {
+    if (u > 3.5 && Math.abs(v) < 1 && z >= 8 && z < 10) return 'gold';
+    return z >= 10 ? 'drone+' : 'drone';
+  }
+};
+/* —— Missile launcher: a hardstand and a 2 × 2 tube box that turns —— */
+const missileBaseModel = (u, v, z) => {
+  const au = Math.abs(u), av = Math.abs(v);
+  if (au < 7.5 && av < 7.5 && z < 3) {
+    if (z >= 2 && (au > 6.5 || av > 6.5)) return mod(Math.floor(u + v), 4) < 2 ? 'gold@1' : 'slab+';
+    return 'slab';
+  }
+  if (Math.hypot(u, v) < 3 && z >= 3 && z < 5) return 'steel';
+};
+const missileHead = (u, v, z) => {
+  if (Math.abs(u) < 5.5 && Math.abs(v) < 6 && z >= 5 && z < 16) {
+    if (u >= 4.5) {
+      const tv = Math.abs(v) - 3, tz = z - (z < 10.5 ? 7.7 : 13);
+      if (Math.abs(tv) < 1.6 && Math.abs(tz) < 1.6) return Math.abs(tv) < 0.8 && Math.abs(tz) < 0.8 ? 'war' : undefined;
+    }
+    if (z >= 15) return Math.abs(u + 1) < 2 && Math.abs(v) < 2.5 ? 'steel' : 'steel+';
+    if (z >= 10 && z < 10.5) return 'steel-';
+    if (u < -4.5 && Math.abs(v) < 2 && z >= 6 && z < 9) return 'gold';
+    return 'steel';
+  }
+};
+const HEAD_DIRS = 32, headCache = new Map(), HEAD_VOX = {};
+// aim is a ground angle (atan2 of dv, du); the head is rendered turned that way, 32 steps a turn
+function head(kind, aim, over, tag = '') {
+  const i = ((Math.round(aim / (Math.PI * 2) * HEAD_DIRS) % HEAD_DIRS) + HEAD_DIRS) % HEAD_DIRS, key = kind + i + tag;
+  let c = headCache.get(key);
+  if (!c) {
+    const vx = HEAD_VOX[kind] || (HEAD_VOX[kind] = voxelize(kind === 'turret' ? turretHead : missileHead, 12, 18, 0.5));
+    c = paint(trace(vx, i / HEAD_DIRS * Math.PI * 2), over); headCache.set(key, c);
+  }
+  return c;
+}
+
+/* —— pools: a Lithium seep with crystal shards; glints run across it —— */
+const POOL_FRAMES = 8;
+const poolR = (u, v) => { const a = Math.atan2(v, u); return Math.hypot(u, v) / 10 * (1 + Math.sin(a * 3 + 1) * 0.08 + Math.cos(a * 5) * 0.05); };
+const SHARDS = [[-3, -2, 2, 7], [2, -4, 2, 5], [-1, 3, 1.5, 4], [4, 1, 1.5, 3]];
+function poolModel(f) {
+  return (u, v, z) => {
+    for (const [su, sv, s, h] of SHARDS) {
+      const du = u - su, dv = v - sv, k = Math.max(Math.abs(du), Math.abs(dv));
+      if (k < s * (1 - z / (h + 1)) && z < h) return z > h - 2 ? 'li@4' : du > dv ? 'li@1' : 'li@3';
+    }
+    if (z >= 1) return;
+    const rr = poolR(u, v);
+    if (rr >= 1) return;
+    if (rr > 0.86) return 'li@0';
+    if (rr < 0.75 && Math.sin(u * 0.7 + v * 0.45 - f * Math.PI / 4) > 0.9) return 'li@3';
+    return rr > 0.55 ? 'li@1' : 'li@2';
+  };
+}
+function sparkle(f) {
+  return (d, w, h) => {
+    const glint = (i, hex) => { const n = parseInt(hex.slice(1), 16); d[i * 4] = n >> 16; d[i * 4 + 1] = (n >> 8) & 255; d[i * 4 + 2] = n & 255; };
+    for (let s = 0; s < 6; s++) {
+      const st = (f + [0, 3, 6, 1, 4, 7][s]) % POOL_FRAMES; if (st > 2) continue;
+      let px, py, i = -1;
+      for (let n = 0; n < 40; n++) { px = Math.floor(hash(s, n, 31) * w); py = Math.floor(hash(s, n, 32) * h); const j = py * w + px; if (d[j * 4 + 3] && d[j * 4 + 2] > 120) { i = j; break; } }
+      if (i < 0) continue;
+      glint(i, st === 1 ? '#ffffff' : '#c9f1ff');
+      if (st === 1) for (const o of [1, -1, w, -w]) if (d[(i + o) * 4 + 3]) glint(i + o, '#8fe2ff');
+    }
+  };
+}
+
+/* —— drones: four hostile classes, each turned to 8 headings and two frames —— */
+const DRONE_ART = {
+  // a biped with a box head and a red visor slot
+  walker: { R: 8, Z: 20, m: f => (u, v, z) => {
+    const st = f ? 1.4 : -1.4;
+    if (z < 8 && (Math.hypot(u - st, v - 2.2) < 1.3 || Math.hypot(u + st, v + 2.2) < 1.3)) return z < 1 ? 'drone-' : 'drone';
+    if (Math.abs(u) < 2.6 && Math.abs(v) < 4 && z >= 7 && z < 12) return z >= 11 ? 'drone+' : 'drone';
+    if (Math.abs(u) < 1.4 && Math.abs(Math.abs(v) - 5) < 1.1 && z >= 5 && z < 12) return z >= 11 ? 'drone' : 'drone-';
+    if (u > -2.5 && u < 3.2 && Math.abs(v) < 2.6 && z >= 12 && z < 17) {
+      if (u >= 2.2 && Math.abs(v) < 2 && z >= 14 && z < 16) return 'eye@3';
+      return z >= 16 ? 'drone+' : 'drone';
+    }
+  } },
+  // a low, fast, tan spider
+  runner: { R: 8, Z: 9, m: f => (u, v, z) => {
+    const e = Math.hypot(u / 3.6, v / 3, (z - 4) / 2);
+    if (e < 1) return u > 2.6 && Math.abs(v) < 1 && z > 4 ? 'eye@3' : 'tan~';
+    for (let k = 0; k < 6; k++) {
+      const side = k < 3 ? 1 : -1, a = side * (Math.PI / 2 + (k % 3 - 1) * 0.75 + ((k + f) % 2 ? 0.2 : -0.2));
+      const c = Math.cos(a), s = Math.sin(a), t = u * c + v * s, perp = Math.abs(-u * s + v * c);
+      if (t > 2.4 && t < 6.6 && perp < 0.7 && Math.abs(z - (4.5 - (t - 4) ** 2 * 0.4)) < 1) return 'tan-';
+    }
+  } },
+  // an armoured burster on treads, with a glowing core
+  panzer: { R: 9, Z: 14, m: f => (u, v, z) => {
+    if (Math.abs(u) < 7 && Math.abs(Math.abs(v) - 5) < 1.8 && z < 4.5) return mod(Math.floor(u + f * 1.5), 3) === 0 ? 'tread+' : 'tread';
+    if (Math.abs(u) < 6 && Math.abs(v) < 4.6 && z >= 3 && z < 9) {
+      if (u >= 5 && Math.abs(v) < 1.2 && z >= 5 && z < 7) return 'eye@3';
+      return z >= 8 ? 'mag+' : 'mag';
+    }
+    const r = Math.hypot(u + 0.5, v, (z - 9) * 1.2);
+    if (r < 3.2 && z >= 9) return r < 2.2 ? 'magE@2' : 'mag~';
+  } },
+  // a hovering violet stealth wedge
+  infiltrator: { R: 8, Z: 13, m: f => (u, v, z) => {
+    if (u < -5 || u > 7) return;
+    const half = (7 - u) * 0.55;
+    if (Math.abs(v) < half && z >= 6 && z < 8) return u > 3 && Math.abs(v) < 1 && z >= 7 ? 'vioE@3' : 'vio';
+    if (Math.abs(v) < 1.6 && u < 3 && u > -4 && z >= 8 && z < 10) return z >= 9 ? 'vio+' : 'vio';
+    if (f && Math.abs(u + 4) < 0.8 && Math.abs(v) < 1.6 && z >= 5 && z < 6) return 'vioE@2';
+  } },
+};
+const SHADOW_R = { walker: 0.34, runner: 0.32, panzer: 0.5, infiltrator: 0.3 };
+
+/* —— overlays: the target tile, exactly one ground tile (the same partition as the ground) —— */
+function tileMark(edge, fill, dash) {
+  const c = document.createElement('canvas'); c.width = 34; c.height = 18;
+  const x = c.getContext('2d'), ax = 17, ay = 9;
+  const inT = (px, py) => { const X = px + 0.5 - ax, Y = py + 0.5 - ay, u = X / 32 + Y / 16, v = -X / 32 + Y / 16; return Math.abs(u) < 0.5 && Math.abs(v) < 0.5; };
+  for (let py = 0; py < 18; py++) for (let px = 0; px < 34; px++) {
+    if (!inT(px, py)) continue;
+    const e = !inT(px - 1, py) || !inT(px + 1, py) || !inT(px, py - 1) || !inT(px, py + 1);
+    if (e && (!dash || (px >> 1) % 2 === 0)) { x.fillStyle = edge; x.fillRect(px, py, 1, 1); }
+    else if (!e && fill) { x.fillStyle = fill; x.fillRect(px, py, 1, 1); }
+  }
+  c.ax = ax; c.ay = ay; c.top = 0; c.em = null; c.mask = new Uint8Array(34 * 18);
+  return c;
+}
+function shadow(r) {
+  const rx = r * RX, ry = r * RY, w = Math.ceil(rx) * 2 + 2, h = Math.ceil(ry) * 2 + 2, c = document.createElement('canvas');
+  c.width = w; c.height = h; const x = c.getContext('2d');
+  x.fillStyle = 'rgba(0,0,0,.5)';
+  for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) if (((px + 0.5 - w / 2) / rx) ** 2 + ((py + 0.5 - h / 2) / ry) ** 2 < 1) x.fillRect(px, py, 1, 1);
+  c.ax = w / 2; c.ay = h / 2;
+  return c;
+}
+// flat glyphs for the pad (EMP and Dismantle): they float over their pad tile
+function glyph(fn) {
+  const c = document.createElement('canvas'); c.width = 24; c.height = 24; const x = c.getContext('2d');
+  const px = [];
+  for (let y = 0; y < 24; y++) for (let i = 0; i < 24; i++) { const k = fn(i + 0.5 - 12, y + 0.5 - 12); if (k) px.push([i, y, k]); }
+  const has = new Set(px.map(([i, y]) => i + ',' + y));
+  x.fillStyle = K;
+  for (const [i, y] of px) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (!has.has(i + dx + ',' + (y + dy))) x.fillRect(i + dx, y + dy, 1, 1);
+  for (const [i, y, k] of px) { x.fillStyle = k; x.fillRect(i, y, 1, 1); }
+  c.ax = 12; c.ay = 21; c.top = 0; c.em = null;
+  return c;
+}
+const flareArt = (x, y) => {
+  const r = Math.hypot(x, y);
+  if (r < 2.5) return RAMP.gold[4];
+  if (r < 3.8) return RAMP.gold[3];
+  const k = Math.atan2(y, x) / (Math.PI / 4), n = Math.round(k), len = n % 2 === 0 ? 10.5 : 7.5;
+  if (r < len && Math.abs(k - n) * r < 0.85) return r < 6 ? RAMP.gold[3] : RAMP.gold[2];
+};
+const removeArt = (x, y) => {
+  const t = Math.max(0, Math.min(1, ((x + 7) - (y - 7)) / 22)), d = Math.hypot(x - (-7 + 11 * t), y - (7 - 11 * t));
+  const jx = x - 5, jy = y + 5, w = (jx - jy) / Math.SQRT2, p = (jx + jy) / Math.SQRT2;
+  if (Math.hypot(jx, jy) < 4.6 && !(w > 0.3 && Math.abs(p) < 1.7)) return p < 0 ? RAMP.paint[4] : RAMP.paint[3];
+  if (d < 1.8) return x + y < 0 ? RAMP.paint[3] : RAMP.paint[2];
+};
+
+/* —— bake everything once —— */
+const onoff = (model, R, Z, opts) => { const t = trace(voxelize(model, R, Z)); return [paint(t, OFF, opts), paint(t, null, opts)]; };
+const SPR = {
+  base: (() => {
+    const v0 = voxelize(baseModel(0), BASE_R, BASE_Z), moving = [[6, 19, -21, -8, 12, 23], [-21, -19, -21, -19, 72, 74]];
+    return Array.from({ length: BASE_FRAMES }, (_, f) => paint(trace(f ? voxelize(baseModel(f), BASE_R, BASE_Z, 1, v0, moving) : v0)));
+  })(),
+  // [0] dark, [1] and [2] lit, with the Data LEDs blinking
+  lamp: [paint(trace(voxelize(lampModel(0), 8, 41)), OFF), render(lampModel(0), 8, 41), render(lampModel(1), 8, 41)],
+  refinery: Array.from({ length: REFINERY_FRAMES }, (_, f) => onoff(refineryModel(f), 8, 22)),
+  turretBase: onoff(turretBaseModel, 8, 6),
+  missileBase: onoff(missileBaseModel, 8, 6),
+  pool: Array.from({ length: POOL_FRAMES }, (_, f) => render(poolModel(f), 11, 8, null, { outline: false, post: sparkle(f) })),
+  drone: {}, shadow: {},
+  mark: { ok: tileMark('#ffb52e', 'rgba(255,181,46,.14)'), bad: tileMark('#ff6359', 'rgba(255,99,89,.18)'), no: tileMark('rgba(255,99,89,.75)', null, true) },
+  flare: glyph(flareArt), remove: glyph(removeArt),
+};
+for (const [k, A] of Object.entries(DRONE_ART)) {
+  SPR.shadow[k] = shadow(SHADOW_R[k]);
+  const vox = [0, 1].map(f => voxelize(A.m(f), A.R, A.Z, 0.5));
+  SPR.drone[k] = Array.from({ length: 8 }, (_, d) => [0, 1].map(f => {
+    const t = trace(vox[f], d * Math.PI / 4);
+    return { img: paint(t), hit: paint(t, null, { white: true }) };
+  }));
+}
+// how high each building stands above its ground point, for the health bar
+const TOPS = {
+  base: SPR.base[0].ay - SPR.base[0].top, lamp: SPR.lamp[1].ay - SPR.lamp[1].top, refinery: SPR.refinery[0][1].ay - SPR.refinery[0][1].top,
+  turret: 12, missile: 17,
+};
+/* ART:END */
+
+
+// pixel icons for the thumb pad (also the drag ghost and the drop preview)
+const ICON = {
+  lamp: SPR.lamp[1], refinery: SPR.refinery[0][1], flare: SPR.flare, remove: SPR.remove,
+  turret: stack(SPR.turretBase[1], head('turret', Math.PI * 0.5)),
+  missile: stack(SPR.missileBase[1], head('missile', Math.PI * 0.5)),
+};
+// each pad piece stands on its own pad tile: the sprite's ground point sits on the tile centre
+for (const img of document.querySelectorAll('[data-icon]')) {
+  const c = ICON[img.dataset.icon];
+  img.src = c.toDataURL();
+  img.style.setProperty('--iw', c.width); img.style.setProperty('--ax', c.ax); img.style.setProperty('--ay', c.ay);
+}
+
+const snap = Math.round;
+function sprite(img, x, y, a = 1) {
+  if (a !== 1) ctx.globalAlpha = a;
+  ctx.drawImage(img, snap(x) - img.ax, snap(y) - img.ay);
+  if (a !== 1) ctx.globalAlpha = 1;
+}
+const dot = (c, x, y, n = 1) => c.fillRect(snap(x - n / 2), snap(y - n / 2), n, n);
+// a ground circle of r tiles, as a 2:1 pixel ellipse
+function pxEllipse(x, y, r, every = 1) {
+  const rx = r * RX, ry = r * RY, n = Math.max(12, Math.ceil(Math.PI * (rx + ry)));
+  let last = '';
+  for (let i = 0, k = 0; i < n; i++) {
+    const a = i / n * Math.PI * 2, px = snap(x + Math.cos(a) * rx), py = snap(y + Math.sin(a) * ry), key = px + ',' + py;
+    if (key === last) continue; last = key;
+    if (k++ % every === 0) ctx.fillRect(px, py, 1, 1);
+  }
+}
+function pxLine(x1, y1, x2, y2, every = 1) {
+  const n = Math.max(1, Math.ceil(Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1))));
+  for (let i = 0; i <= n; i += every) dot(ctx, x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n);
+}
+
+/* ---------- sizing: full-bleed canvas, board fitted into the stage slot ---------- */
 function fit() {
+  const vw = cv.clientWidth, vh = cv.clientHeight;
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  const bw = Math.round(vw * DPR), bh = Math.round(vh * DPR);
+  for (const c of [cv, ground]) if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
   const r = stage.getBoundingClientRect();
-  const s = Math.min(r.width / W, r.height / H);
-  cv.style.width = Math.floor(W * s) + 'px'; cv.style.height = Math.floor(H * s) + 'px';
-  DPR = Math.min(2, Math.max(1, (window.devicePixelRatio || 1) * s));
-  const bw = Math.round(W * DPR), bh = Math.round(H * DPR);
-  if (cv.width !== bw) { cv.width = bw; cv.height = bh; dark.width = bw; dark.height = bh; }
+  VS = Math.min(r.width / W, r.height / H) || 1;
+  VX = r.left + (r.width - W * VS) / 2; VY = r.top + (r.height - H * VS) / 2;
+  bakeGround();
+}
+const view = c => { c.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * VX, DPR * VY); c.imageSmoothingEnabled = false; };
+/* The night ground, one sprite pixel at a time. Each pixel asks which tile it is in, so tiles
+   meet with no gaps or overlaps (each covers exactly 32 × 16 / 2 px). The upper edges of a tile
+   carry a 1px seam, so the grid reads without drawn lines. Off-board tiles fall away into dark. */
+function bakeGround() {
+  const x0 = Math.floor(-VX / VS) - 1, y0 = Math.floor(-VY / VS) - 1;
+  const gw = Math.ceil(cv.clientWidth / VS) + 3, gh = Math.ceil(cv.clientHeight / VS) + 3;
+  gpx.width = gw; gpx.height = gh;
+  const im = gpctx.createImageData(gw, gh), d = im.data;
+  const tileOf = (x, y) => { const g = gnd(x + 0.5, y + 0.5); return [Math.floor(g.u), Math.floor(g.v), g.u, g.v]; };
+  for (let py = 0; py < gh; py++) for (let px = 0; px < gw; px++) {
+    const x = x0 + px, y = y0 + py, [i, j, u, v] = tileOf(x, y), [ai, aj] = tileOf(x, y - 1);
+    const inside = onBoard(i, j), h = hash(i + 99, j + 99);
+    // distance off the board, so the field fades out instead of stopping at a hard edge
+    const off = inside ? 0 : Math.min(1, Math.max(Math.abs(scr(i + .5, j + .5).x - OX) - (BW / 2 - TW / 2), Math.abs(scr(i + .5, j + .5).y - OY - TH / 2) - (BH / 2 - TH / 2), 0) / 64 + 0.35);
+    let l = inside ? 18 + h * 5 : 13 + h * 3 - off * 4;
+    const grain = hash(x, y, 5);
+    if (grain > 0.92) l += inside ? 3 : 1; else if (grain < 0.06) l -= 2;
+    // pebbles and hairline cracks, snapped to the pixel grid
+    const fu = u - i, fv = v - j;
+    if (h > 0.6 && hash(i, j, Math.floor(fu * 6) * 7 + Math.floor(fv * 6)) > 0.93) l += inside ? 9 : 4;
+    if (h < 0.14 && Math.abs(fu - fv * 0.6 - 0.2) < 0.03 && fv > 0.25 && fv < 0.85) l -= 6;
+    const seam = ai !== i || aj !== j;
+    if (seam) l += inside ? (ai !== i ? 5 : -4) : 1;
+    const k = (py * gw + px) * 4, b = Math.max(6, l);
+    d[k] = b * 0.94; d[k + 1] = b * 0.94; d[k + 2] = b + 7; d[k + 3] = 255;
+  }
+  gpctx.putImageData(im, 0, 0);
+  gctx.setTransform(1, 0, 0, 1, 0, 0);
+  gctx.fillStyle = '#0b0b11'; gctx.fillRect(0, 0, ground.width, ground.height);
+  view(gctx);
+  gctx.drawImage(gpx, x0, y0);
 }
 new ResizeObserver(fit).observe(stage);
+addEventListener('resize', fit);
 
 /* ---------- state ---------- */
 function newGame() {
-  S = { lithium: 6, m: [], wave: 1, calm: 30, spawnLeft: 0, spawnT: 0, t: 0, mined: 0, kills: 0,
+  S = { v: SAVE_V, lithium: 10, m: [], wave: 1, calm: 30, spawnLeft: 0, spawnT: 0, t: 0, mined: 0, kills: 0,
         over: false, flareCd: 0, flash: 0, pools: [], b: [], h: [], fx: [], id: 1 };
+  addB('base', -1, -1);
+  const bc = base();
   const tryPool = (minD, maxD, amt) => {
-    for (let i = 0; i < 300; i++) {
-      const tx = Math.floor(rand(1, GW - 1)), ty = Math.floor(rand(1, GH - 1));
-      const d = Math.hypot(tx - BASE_TX, ty - BASE_TY);
-      if (d < minD || d > maxD) continue;
-      if (S.pools.some(p => Math.hypot(p.tx - tx, p.ty - ty) < 3.2)) continue;
+    for (let n = 0; n < 400; n++) {
+      const [tx, ty] = TILES[Math.floor(Math.random() * TILES.length)];
+      const d = Math.sqrt(d2(tx + 0.5, ty + 0.5, bc.u, bc.v));
+      if (d < minD || d > maxD || bAt(tx, ty)) continue;
+      if (S.pools.some(p => d2(p.tx, p.ty, tx, ty) < 3.2 * 3.2)) continue;
       const p = { tx, ty, amt, max: amt }; S.pools.push(p); return p;
     }
   };
   const first = tryPool(3, 4.2, 20);
   tryPool(5, 7, 25);
   for (let i = 0; i < 6; i++) tryPool(7.5, 30, Math.round(rand(35, 55)));
-  addB('base', BASE_TX, BASE_TY);
   if (first) addB('refinery', first.tx, first.ty);
-  const goUp = first && first.ty > BASE_TY;
-  addB('lamp', BASE_TX, BASE_TY + (goUp ? -4 : 4));
+  // first server: three tiles out from the Base, on the side away from the first pool
+  const goUp = first && first.tx + first.ty > 0;
+  const lt = goUp ? [-3, -3] : [3, 3];
+  addB('lamp', lt[0], lt[1]);
   power();
 }
+// (tx, ty) is the footprint's top tile; u, v is its centre on the ground
 function addB(type, tx, ty) {
-  const d = DEF[type];
-  const b = { id: S.id++, type, tx, ty, x: tx * T + T / 2, y: ty * T + T / 2, hp: d.hp, max: d.hp, cd: 0, snuff: 0, powered: false };
+  const d = DEF[type], n = d.size;
+  const b = { id: S.id++, type, tx, ty, n, u: tx + n / 2, v: ty + n / 2, hp: d.hp, max: d.hp, cd: 0, snuff: 0, powered: false, cells: [] };
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) b.cells.push([tx + i, ty + j]);
   S.b.push(b); return b;
 }
 const poolAt = (tx, ty) => S.pools.find(p => p.tx === tx && p.ty === ty);
-const bAt = (tx, ty) => S.b.find(b => b.tx === tx && b.ty === ty);
+const bAt = (tx, ty) => S.b.find(b => tx >= b.tx && tx < b.tx + b.n && ty >= b.ty && ty < b.ty + b.n);
 const base = () => S.b.find(b => b.type === 'base');
 const isNode = b => (b.type === 'base' || b.type === 'lamp') && !(b.snuff > 0);
+// distance from a ground point to a building's footprint square (0 inside it)
+const toFoot = (u, v, b) => Math.hypot(Math.max(b.tx - u, 0, u - b.tx - b.n), Math.max(b.ty - v, 0, v - b.ty - b.n));
 
 function power() {
   for (const b of S.b) b.powered = false;
@@ -200,22 +929,22 @@ function power() {
   c.powered = true;
   const nodes = S.b.filter(isNode), q = [c];
   while (q.length) {
-    const n = q.shift(), L = DEF[n.type].link * T;
-    for (const m of nodes) if (!m.powered && d2(n.x, n.y, m.x, m.y) <= L * L) { m.powered = true; q.push(m); }
+    const n = q.shift(), L = DEF[n.type].link;
+    for (const m of nodes) if (!m.powered && d2(n.u, n.v, m.u, m.v) <= L * L) { m.powered = true; q.push(m); }
   }
   const live = nodes.filter(n => n.powered);
   for (const b of S.b) if (b.type === 'refinery' || b.type === 'turret' || b.type === 'missile')
-    b.powered = live.some(n => d2(n.x, n.y, b.x, b.y) <= (DEF[n.type].link * T) ** 2);
+    b.powered = live.some(n => d2(n.u, n.v, b.u, b.v) <= DEF[n.type].link ** 2);
   emitters = S.b.filter(b => b.powered && !(b.snuff > 0));
 }
-function isLit(x, y) {
-  for (const e of emitters) { const r = DEF[e.type].radius * T; if (d2(x, y, e.x, e.y) <= r * r) return true; }
+function isLit(u, v) {
+  for (const e of emitters) { const r = DEF[e.type].radius; if (d2(u, v, e.u, e.v) <= r * r) return true; }
   return false;
 }
-const glow = () => emitters.filter(e => e.type !== 'refinery').length;
+const dataLevel = () => emitters.filter(e => e.type !== 'refinery').length;
 
 function canPlace(t, tx, ty) {
-  if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) return { ok: false };
+  if (!onBoard(tx, ty)) return { ok: false };
   if (t === 'remove') {
     const b = bAt(tx, ty);
     if (!b) return { ok: false, msg: 'Nothing to dismantle there.' };
@@ -227,9 +956,9 @@ function canPlace(t, tx, ty) {
   if (t === 'refinery' && !(pool && pool.amt > 0)) return { ok: false, msg: 'Refineries go on a glowing Lithium pool.' };
   if (t !== 'refinery' && pool) return { ok: false, msg: 'Keep pools clear for refineries.' };
   if (S.lithium < DEF[t].cost) return { ok: false, msg: `Not enough Lithium. ${NAME[t]} costs ${DEF[t].cost}.` };
-  const x = tx * T + T / 2, y = ty * T + T / 2;
-  const reach = S.b.some(n => isNode(n) && n.powered && d2(n.x, n.y, x, y) <= (DEF[n.type].link * T) ** 2);
-  if (!reach) return { ok: false, msg: 'Out of cable reach. Build closer to a lit lamp.' };
+  const u = tx + 0.5, v = ty + 0.5;
+  const reach = S.b.find(n => isNode(n) && n.powered && d2(n.u, n.v, u, v) <= DEF[n.type].link ** 2);
+  if (!reach) return { ok: false, msg: 'Out of cable reach. Build closer to a lit server.' };
   return { ok: true };
 }
 
@@ -249,41 +978,46 @@ function act(t, tx, ty) {
     S.b = S.b.filter(b => b !== r.b); say(`${NAME[r.b.type]} dismantled. +${DEF[r.b.type].cost} Lithium.`);
   } else {
     S.lithium -= DEF[t].cost; addB(t, tx, ty);
-    say(t === 'lamp' ? 'Lamp lit. Glow is up, so expect a bigger crowd.' : t === 'refinery' ? 'Refinery running.' : t === 'missile' ? 'Missile launcher online. Long range, splash damage, slow reload.' : 'Turret online. It fires only into light.');
+    say(t === 'lamp' ? 'Server lit. Data is up, so expect a bigger crowd.' : t === 'refinery' ? 'Refinery running.' : t === 'missile' ? 'Missile launcher online. Long range, splash damage, slow reload.' : 'Turret online. It fires only into light.');
   }
   buzz(10); power(); hud();
 }
+function hurt(h, n) { h.hp -= n; h.hit = 0.09; }
 function flare() {
   if (S.over || !started || S.lithium < FLARE_COST || S.flareCd > 0) return;
   S.lithium -= FLARE_COST; S.flareCd = 18; S.flash = 1;
   let n = 0;
-  for (const h of S.h) if (isLit(h.x, h.y)) { h.stun = 3; h.hp -= 15; n++; }
-  say(`Flare fired. ${n} drone${n === 1 ? '' : 's'} stunned.`); buzz(40); hud();
+  for (const h of S.h) { h.stun = 3; hurt(h, 15); n++; }
+  say(`EMP fired. ${n} drone${n === 1 ? '' : 's'} stunned.`); buzz(40); hud();
 }
 
-/* ---------- simulation ---------- */
+/* ---------- simulation (all in tiles) ---------- */
 function spawnDrone() {
   const w = S.wave, roll = Math.random();
   let type = 'walker';
   const pInfil = w >= 6 ? 0.14 : 0, pPanzer = w >= 3 ? Math.min(0.22, 0.12 + (w - 3) * 0.02) : 0, pRun = Math.min(0.42, 0.08 + w * 0.04);
   if (roll < pInfil) type = 'infiltrator'; else if (roll < pInfil + pPanzer) type = 'panzer'; else if (roll < pInfil + pPanzer + pRun) type = 'runner';
-  const d = DRONE[type], edge = Math.random() * (2 * W + 2 * H);
+  // a point just outside the board rectangle, taken back onto the ground
+  const d = DRONE[type], edge = Math.random() * (2 * W + 2 * H), o = 18;
   let x, y;
-  if (edge < W) { x = edge; y = -12; } else if (edge < W + H) { x = W + 12; y = edge - W; }
-  else if (edge < 2 * W + H) { x = edge - W - H; y = H + 12; } else { x = -12; y = edge - 2 * W - H; }
-  const mul = 1 + (w - 1) * 0.12;
-  S.h.push({ type, x, y, hp: d.hp * mul, max: d.hp * mul, stun: 0, tgt: null, retarget: 0, wob: rand(0, 6.28) });
+  if (edge < W) { x = edge; y = -o; } else if (edge < W + H) { x = W + o; y = edge - W; }
+  else if (edge < 2 * W + H) { x = edge - W - H; y = H + o; } else { x = -o; y = edge - 2 * W - H; }
+  const g = gnd(x, y), mul = 1 + (w - 1) * 0.12;
+  S.h.push({ type, u: g.u, v: g.v, hp: d.hp * mul, max: d.hp * mul, stun: 0, hit: 0, tgt: null, retarget: 0, wob: rand(0, 6.28), dir: 0 });
 }
-function boom(x, y) {
-  S.fx.push({ k: 'boom', x, y, life: 0.6, t: 0 });
-  for (const b of S.b) if (d2(x, y, b.x, b.y) <= (2.2 * T) ** 2) { b.hp -= 22; if (b.type === 'lamp') b.snuff = 10; }
+function boom(u, v) {
+  S.fx.push({ k: 'boom', u, v, life: 0.6, t: 0 });
+  for (const b of S.b) if (toFoot(u, v, b) <= BURST) { b.hp -= 22; if (b.type === 'lamp') b.snuff = 10; }
   buzz(60);
 }
 function kill(h, counted) {
   if (counted) S.kills++;
-  if (h.type === 'panzer') boom(h.x, h.y);
+  if (h.type === 'panzer') boom(h.u, h.v);
+  else S.fx.push({ k: 'pop', u: h.u, v: h.v, life: 0.35, t: 0 });
   h.dead = true;
 }
+// a ground point at a height, on screen
+const muzzle = (b, len, z) => scr(b.u + Math.cos(b.aim) * len, b.v + Math.sin(b.aim) * len, z);
 function step(dt) {
   S.t += dt;
   S.flareCd = Math.max(0, S.flareCd - dt);
@@ -298,8 +1032,8 @@ function step(dt) {
   } else {
     S.calm -= dt;
     if (S.calm <= 0) {
-      S.spawnLeft = 4 + S.wave * 2 + Math.floor(glow() * 0.8); S.spawnT = 0;
-      say(`Wave ${S.wave}: ${S.spawnLeft} drones drawn by Glow ${glow()}.`, true); buzz([30, 60, 30]);
+      S.spawnLeft = 4 + S.wave * 2 + Math.floor(dataLevel() * 0.8); S.spawnT = 0;
+      say(`Wave ${S.wave}: ${S.spawnLeft} drones drawn by Data ${dataLevel()}.`, true); buzz([30, 60, 30]);
     }
   }
 
@@ -311,11 +1045,12 @@ function step(dt) {
   for (const b of S.b) if (b.type === 'turret') {
     b.cd -= dt;
     if (!b.powered || b.cd > 0) continue;
-    let best = null, bd = (TURRET_RANGE * T) ** 2;
-    for (const h of S.h) { if (h.dead) continue; const dd = d2(b.x, b.y, h.x, h.y); if (dd < bd && isLit(h.x, h.y)) { bd = dd; best = h; } }
+    let best = null, bd = TURRET_RANGE ** 2;
+    for (const h of S.h) { if (h.dead) continue; const dd = d2(b.u, b.v, h.u, h.v); if (dd < bd && isLit(h.u, h.v)) { bd = dd; best = h; } }
     if (best) {
-      best.hp -= best.type === 'infiltrator' ? 5 : 10; b.cd = 0.45; b.aim = Math.atan2(best.y - b.y, best.x - b.x);
-      S.fx.push({ k: 'shot', x: b.x, y: b.y, x2: best.x, y2: best.y, life: 0.08, t: 0 });
+      hurt(best, best.type === 'infiltrator' ? 5 : 10); b.cd = 0.45; b.aim = Math.atan2(best.v - b.v, best.u - b.u);
+      const m = muzzle(b, 0.55, 9), t = scr(best.u, best.v, 6);
+      S.fx.push({ k: 'shot', x: m.x, y: m.y, x2: t.x, y2: t.y, life: 0.08, t: 0 });
       if (best.hp <= 0) kill(best, true);
     }
   }
@@ -326,34 +1061,37 @@ function step(dt) {
     if (!b.powered || b.cd > 0) continue;
     let best = null, bestN = -1;
     for (const h of S.h) {
-      if (h.dead || d2(b.x, b.y, h.x, h.y) > (MISSILE_RANGE * T) ** 2 || !isLit(h.x, h.y)) continue;
-      let n = 0; for (const o of S.h) if (d2(h.x, h.y, o.x, o.y) < (1.6 * T) ** 2) n++;
+      if (h.dead || d2(b.u, b.v, h.u, h.v) > MISSILE_RANGE ** 2 || !isLit(h.u, h.v)) continue;
+      let n = 0; for (const o of S.h) if (d2(h.u, h.v, o.u, o.v) < SPLASH ** 2) n++;
       if (n > bestN) { bestN = n; best = h; }
     }
     if (best) {
-      b.cd = 2.2; b.aim = Math.atan2(best.y - b.y, best.x - b.x);
-      S.m.push({ x: b.x, y: b.y, tx: best.x, ty: best.y, tgt: best, a: b.aim });
+      b.cd = 2.2; b.aim = Math.atan2(best.v - b.v, best.u - b.u);
+      S.m.push({ u: b.u, v: b.v, z: 12, tu: best.u, tv: best.v, tgt: best, a: b.aim, d0: Math.sqrt(d2(b.u, b.v, best.u, best.v)) });
     }
   }
   for (const m of S.m) {
-    if (m.tgt && !m.tgt.dead) { m.tx = m.tgt.x; m.ty = m.tgt.y; }
-    const dx = m.tx - m.x, dy = m.ty - m.y, dist = Math.hypot(dx, dy), v = 230 * dt;
-    m.a = Math.atan2(dy, dx);
+    if (m.tgt && !m.tgt.dead) { m.tu = m.tgt.u; m.tv = m.tgt.v; }
+    const du = m.tu - m.u, dv = m.tv - m.v, dist = Math.hypot(du, dv), v = 7.4 * dt;
+    m.a = Math.atan2(dv, du);
+    // a lob: climbs out of the tube, then falls onto the target
+    m.z = 4 + Math.min(22, dist * 5) * Math.min(1, (m.d0 - dist + 0.6) / 0.9);
     if (dist <= v) {
       m.done = true;
-      S.fx.push({ k: 'blast', x: m.tx, y: m.ty, life: 0.45, t: 0 });
-      for (const h of S.h) if (!h.dead && d2(m.tx, m.ty, h.x, h.y) <= (1.6 * T) ** 2) {
-        h.hp -= h.type === 'infiltrator' ? 15 : 30;
+      S.fx.push({ k: 'blast', u: m.tu, v: m.tv, life: 0.45, t: 0 });
+      for (const h of S.h) if (!h.dead && d2(m.tu, m.tv, h.u, h.v) <= SPLASH ** 2) {
+        hurt(h, h.type === 'infiltrator' ? 15 : 30);
         if (h.hp <= 0) kill(h, true);
       }
       buzz(20);
-    } else { m.x += dx / dist * v; m.y += dy / dist * v; }
+    } else { m.u += du / dist * v; m.v += dv / dist * v; }
   }
   S.m = S.m.filter(m => !m.done);
 
   for (const h of S.h) {
     if (h.dead) continue;
     const d = DRONE[h.type];
+    if (h.hit > 0) h.hit -= dt;
     if (h.hp <= 0) { kill(h, true); continue; }
     if (h.stun > 0) { h.stun -= dt; continue; }
     h.retarget -= dt;
@@ -362,25 +1100,27 @@ function step(dt) {
       let pool = S.b;
       if (h.type === 'infiltrator') { const hv = S.b.filter(b => b.type === 'refinery'); if (hv.length) pool = hv; }
       let best = null, bd = Infinity;
-      for (const b of pool) { const dd = d2(h.x, h.y, b.x, b.y); if (dd < bd) { bd = dd; best = b; } }
+      for (const b of pool) { const dd = toFoot(h.u, h.v, b); if (dd < bd) { bd = dd; best = b; } }
       h.tgt = best;
     }
     const tg = h.tgt; if (!tg) continue;
-    const dx = tg.x - h.x, dy = tg.y - h.y, dist = Math.hypot(dx, dy);
-    if (dist < d.r + 13) {
+    if (toFoot(h.u, h.v, tg) < d.r) {
       if (h.type === 'panzer') { kill(h, false); continue; }
       tg.hp -= d.dmg * dt;
     } else {
       h.wob += dt * 3;
-      const ang = Math.atan2(dy, dx) + Math.sin(h.wob) * 0.35;
-      h.x += Math.cos(ang) * d.spd * dt; h.y += Math.sin(ang) * d.spd * dt;
+      // head for the nearest point of the footprint, weaving a little
+      const pu = Math.max(tg.tx, Math.min(tg.tx + tg.n, h.u)), pv = Math.max(tg.ty, Math.min(tg.ty + tg.n, h.v));
+      const ang = Math.atan2(pv - h.v, pu - h.u) + Math.sin(h.wob) * 0.35;
+      h.u += Math.cos(ang) * d.spd * dt; h.v += Math.sin(ang) * d.spd * dt;
+      h.dir = ang;
     }
   }
   S.h = S.h.filter(h => !h.dead);
 
   const lost = S.b.filter(b => b.hp <= 0);
   if (lost.length) {
-    for (const b of lost) S.fx.push({ k: 'boom', x: b.x, y: b.y, life: 0.4, t: 0, small: true });
+    for (const b of lost) S.fx.push({ k: 'boom', u: b.u, v: b.v, life: 0.4, t: 0, small: true });
     S.b = S.b.filter(b => b.hp > 0);
     if (!base()) return gameOver();
     power();
@@ -398,152 +1138,196 @@ function gameOver() {
   $('#overlay').hidden = false;
 }
 
-/* ---------- drawing ---------- */
-function drawBuilding(b) {
-  const s = T * 0.36, on = b.powered && !(b.snuff > 0);
-  ctx.save(); ctx.translate(b.x, b.y);
-  if (b.type === 'base') {
-    ctx.fillStyle = '#1d232b'; ctx.strokeStyle = '#f4a54a'; ctx.lineWidth = 3;
-    ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.lineTo(Math.cos(a) * 22, Math.sin(a) * 22); } ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#ffd08a'; ctx.beginPath(); ctx.arc(0, 0, 7 + Math.sin(S.t * 2) * (reduceMotion ? 0 : 1.2), 0, 7); ctx.fill();
-  } else if (b.type === 'lamp') {
-    ctx.fillStyle = '#2a313a'; ctx.fillRect(-3, -s, 6, s * 2);
-    ctx.fillStyle = on ? '#ffd08a' : '#3a3f45'; ctx.beginPath(); ctx.arc(0, -s, 6, 0, 7); ctx.fill();
-  } else if (b.type === 'refinery') {
-    ctx.strokeStyle = on ? '#5fe3bd' : '#3c5a52'; ctx.lineWidth = 3; ctx.strokeRect(-s, -s, s * 2, s * 2);
-    ctx.rotate(on ? S.t * 2 : 0); ctx.fillStyle = on ? '#5fe3bd' : '#3c5a52';
-    ctx.fillRect(-2, -s + 2, 4, s * 2 - 4); ctx.fillRect(-s + 2, -2, s * 2 - 4, 4);
-  } else if (b.type === 'turret') {
-    ctx.fillStyle = '#232a33'; ctx.beginPath(); ctx.arc(0, 0, s, 0, 7); ctx.fill();
-    ctx.strokeStyle = on ? '#f4a54a' : '#4d4234'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.rotate(b.aim || -Math.PI / 2); ctx.fillStyle = on ? '#e6ecf0' : '#555'; ctx.fillRect(0, -3, s + 6, 6);
-  } else if (b.type === 'missile') {
-    ctx.fillStyle = '#232a33'; ctx.fillRect(-s - 1, -s - 1, s * 2 + 2, s * 2 + 2);
-    ctx.strokeStyle = on ? '#ff8a4c' : '#4d3a30'; ctx.lineWidth = 2; ctx.strokeRect(-s - 1, -s - 1, s * 2 + 2, s * 2 + 2);
-    ctx.rotate(b.aim || -Math.PI / 2);
-    const ready = on && b.cd <= 0;
-    ctx.fillStyle = on ? '#cfd6dc' : '#555';
-    ctx.fillRect(-4, -7, s + 8, 5); ctx.fillRect(-4, 2, s + 8, 5);
-    ctx.fillStyle = ready ? '#ff8a4c' : '#5a4034';
-    ctx.fillRect(s + 2, -7, 3, 5); ctx.fillRect(s + 2, 2, 3, 5);
+
+/* ---------- drawing ----------
+   Order: ground → pools → cables → one painter's pass over buildings and drones by ground depth
+   (u + v, which is screen y of the ground point) → tracers → the dark → light spill → emissive
+   pixels → missiles, blasts, bars, overlays. Emissive pixels (windows, LEDs, optics, beacons) are
+   collected during the painter's pass on their own layer, and each sprite erases the emissives
+   behind it, so lights in the dark never show through a building in front. */
+const anim = (rate, n, off = 0) => reduceMotion ? 0 : ((Math.floor(S.t * rate + off) % n) + n) % n;
+const emis = document.createElement('canvas'), ectx = emis.getContext('2d');
+function put(img, x, y, a = 1, glow = true) {
+  sprite(img, x, y, a);
+  const dx = snap(x) - img.ax, dy = snap(y) - img.ay;
+  ectx.globalCompositeOperation = 'destination-out'; ectx.drawImage(img, dx, dy);
+  if (glow && img.em) { ectx.globalCompositeOperation = 'source-over'; ectx.drawImage(img.em, dx, dy); }
+}
+// the sprites a building is drawn with this frame, bottom first
+function looks(b) {
+  const on = b.powered && !(b.snuff > 0), L = on ? 1 : 0, phi = b.aim ?? Math.PI * 0.5;
+  if (b.type === 'base') return [SPR.base[anim(3, BASE_FRAMES)]];
+  if (b.type === 'lamp') return [SPR.lamp[on ? 1 + anim(2, 2, b.id * 0.37) : 0]];
+  if (b.type === 'refinery') return [SPR.refinery[on ? anim(8, REFINERY_FRAMES) : 0][L]];
+  if (b.type === 'turret') return [SPR.turretBase[L], on ? head('turret', phi) : head('turret', phi, OFF, 'off')];
+  return [SPR.missileBase[L], !on ? head('missile', phi, { ...OFF, ...SPENT }, 'off') : b.cd > 0 ? head('missile', phi, SPENT, 'spent') : head('missile', phi)];
+}
+function drawBuilding(b) { const { x, y } = scr(b.u, b.v); for (const img of looks(b)) put(img, x, y); }
+function droneFrame(h) {
+  const f = h.stun > 0 ? 0 : anim(6, 2, h.wob);
+  return { f, lift: f && (h.type === 'infiltrator' || h.type === 'walker') ? 1 : 0 };
+}
+const DIRS = 8, dirOf = a => ((Math.round(a / (Math.PI * 2) * DIRS) % DIRS) + DIRS) % DIRS;
+function drawDrone(h) {
+  const { x, y } = scr(h.u, h.v), fr = droneFrame(h), s = SPR.drone[h.type][dirOf(h.dir)][fr.f];
+  sprite(SPR.shadow[h.type], x, y, 1);
+  // optics blink now and then in the dark; in the light they simply stay lit
+  const blink = !reduceMotion && Math.sin(S.t * 3 + h.wob * 4) < -0.93 && !isLit(h.u, h.v);
+  put(h.hit > 0 ? s.hit : s.img, x, y - fr.lift, h.type === 'infiltrator' ? 0.88 : 1, !blink);
+  if (h.stun > 0) {
+    ctx.fillStyle = '#fff3dc';
+    for (let i = 0; i < 3; i++) { const a = S.t * 5 + i * 2.09; dot(ctx, x + Math.cos(a) * 8, y - s.img.ay + s.img.top - 3 + Math.sin(a) * 2); }
   }
-  ctx.restore();
 }
 function draw() {
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = '#151a1f'; ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(255,255,255,.035)'; ctx.lineWidth = 1;
-  ctx.beginPath();
-  for (let x = 0; x <= W; x += T) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
-  for (let y = 0; y <= H; y += T) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
-  ctx.stroke();
+  ctx.drawImage(ground, 0, 0);
+  if (emis.width !== cv.width || emis.height !== cv.height) { emis.width = cv.width; emis.height = cv.height; }
+  ectx.setTransform(1, 0, 0, 1, 0, 0); ectx.clearRect(0, 0, emis.width, emis.height);
+  view(ctx); view(ectx);
 
   for (const p of S.pools) {
-    const k = p.amt / p.max, x = p.tx * T + T / 2, y = p.ty * T + T / 2;
-    ctx.fillStyle = `rgba(95,227,189,${0.25 + 0.55 * k})`;
-    ctx.beginPath(); ctx.ellipse(x, y, T * 0.46, T * 0.36, 0.3, 0, 7); ctx.fill();
+    const { x, y } = scr(p.tx + 0.5, p.ty + 0.5);
+    sprite(SPR.pool[anim(6, POOL_FRAMES, p.tx * 3 + p.ty)], x, y, p.amt > 0 ? 0.35 + 0.65 * p.amt / p.max : 0.18);
   }
 
+  // power cables: dotted pixel runs along the ground to the nearest live node
   const nodes = S.b.filter(b => isNode(b) && b.powered);
-  ctx.strokeStyle = 'rgba(244,165,74,.3)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]);
-  ctx.beginPath();
+  ctx.fillStyle = 'rgba(255,181,46,.45)';
   for (const b of S.b) {
     if (!b.powered || b.type === 'base') continue;
     let best = null, bd = Infinity;
-    for (const n of nodes) { if (n === b) continue; const dd = d2(n.x, n.y, b.x, b.y); if (dd < bd && dd <= (DEF[n.type].link * T) ** 2) { bd = dd; best = n; } }
-    if (best) { ctx.moveTo(b.x, b.y); ctx.lineTo(best.x, best.y); }
+    for (const n of nodes) { if (n === b) continue; const dd = d2(n.u, n.v, b.u, b.v); if (dd < bd && dd <= DEF[n.type].link ** 2) { bd = dd; best = n; } }
+    if (best) cable(b, best);
   }
-  ctx.stroke(); ctx.setLineDash([]);
+  // missile shadows sit on the ground, under everything that stands
+  ctx.fillStyle = 'rgba(0,0,0,.45)';
+  for (const m of S.m) { const g = scr(m.u, m.v); dot(ctx, g.x, g.y, 2); }
 
-  for (const b of S.b) drawBuilding(b);
-  for (const h of S.h) {
-    const d = DRONE[h.type];
-    ctx.fillStyle = d.col; ctx.beginPath(); ctx.arc(h.x, h.y, d.r, 0, 7); ctx.fill();
-    if (h.type === 'panzer') { ctx.strokeStyle = '#c4e39a'; ctx.lineWidth = 2; ctx.stroke(); }
-    if (h.stun > 0) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(h.x, h.y, d.r + 4, 0, 7); ctx.stroke(); }
-  }
-  for (const f of S.fx) if (f.k === 'shot') {
-    ctx.strokeStyle = 'rgba(255,220,160,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x2, f.y2); ctx.stroke();
-  }
+  const things = [...S.b, ...S.h].sort((a, b) => (a.u + a.v) - (b.u + b.v));
+  for (const o of things) o.cells ? drawBuilding(o) : drawDrone(o);
+  for (const f of S.fx) if (f.k === 'shot') { ctx.fillStyle = 'rgba(255,230,180,.95)'; pxLine(f.x, f.y, f.x2, f.y2); }
 
-  // darkness
-  dctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  dctx.globalCompositeOperation = 'source-over';
-  dctx.clearRect(0, 0, W, H);
-  dctx.fillStyle = 'rgba(2,3,6,.93)'; dctx.fillRect(0, 0, W, H);
-  dctx.globalCompositeOperation = 'destination-out';
-  for (const e of emitters) {
-    const fl = reduceMotion ? 1 : 1 + Math.sin(S.t * 7 + e.id) * 0.012;
-    const r = DEF[e.type].radius * T * fl;
-    const g = dctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, r);
-    g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.65, 'rgba(0,0,0,.88)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-    dctx.fillStyle = g; dctx.beginPath(); dctx.arc(e.x, e.y, r, 0, 7); dctx.fill();
-  }
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(dark, 0, 0); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // the unlit field: a mosaic, not a shade. Outside the light the scene is box-averaged into
+  // blocks on the board's own pixel grid (8 px, a quarter tile), a finer ring (4 px) circles each
+  // light, and inside it comes sharp. Light pools are ground circles, so they cut 2:1 ellipses.
+  const bs = MOSAIC * VS * DPR, step2 = 2 * bs;
+  const ox = (DPR * VX) % step2 - step2, oy = (DPR * VY) % step2 - step2;
+  const mw = Math.ceil((cv.width - ox) / step2) * 2, mh = Math.ceil((cv.height - oy) / step2) * 2;
+  if (mos.width !== mw || mos.height !== mh) { mos.width = mw; mos.height = mh; mos2.width = mw / 2; mos2.height = mh / 2; }
+  mctx.setTransform(1 / bs, 0, 0, 1 / bs, -ox / bs, -oy / bs);
+  mctx.globalCompositeOperation = 'copy'; mctx.imageSmoothingEnabled = true; mctx.imageSmoothingQuality = 'high';
+  mctx.drawImage(cv, 0, 0);
+  // halving with smoothing on is an exact 2x2 box average, so the coarse grid nests in the fine one
+  m2ctx.setTransform(1, 0, 0, 1, 0, 0);
+  m2ctx.globalCompositeOperation = 'copy'; m2ctx.imageSmoothingEnabled = true;
+  m2ctx.drawImage(mos, 0, 0, mos2.width, mos2.height);
+  const veil = (c, k, shade, reach) => {
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.globalCompositeOperation = 'source-atop';
+    c.fillStyle = `rgba(2,2,6,${shade})`; c.fillRect(0, 0, c.canvas.width, c.canvas.height);
+    const s = DPR * VS / (bs * k);
+    c.setTransform(s, 0, 0, s, (DPR * VX - ox) / (bs * k), (DPR * VY - oy) / (bs * k));
+    c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; c.beginPath();
+    for (const e of emitters) {
+      const fl = reduceMotion ? 1 : 1 + Math.sin(S.t * 7 + e.id) * 0.012, r = DEF[e.type].radius * fl * reach, { x, y } = scr(e.u, e.v);
+      c.moveTo(x + r * RX, y); c.ellipse(x, y, r * RX, r * RY, 0, 0, Math.PI * 2);
+    }
+    c.fill();
+    // a lit building is never veiled, even where it rises out of its own pool of light
+    for (const e of emitters) { const { x, y } = scr(e.u, e.v); for (const img of looks(e)) c.drawImage(img, snap(x) - img.ax, snap(y) - img.ay); }
+  };
+  veil(mctx, 1, 0.14, 0.78);
+  veil(m2ctx, 2, 0.3, 1);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(mos, ox, oy, mw * bs, mh * bs);
+  ctx.drawImage(mos2, ox, oy, mw * bs, mh * bs);
+  view(ctx);
 
+  // light spill on the ground: sodium from the Base and servers, lithium from the pools
   ctx.globalCompositeOperation = 'lighter';
-  for (const e of emitters) if (e.type !== 'refinery') {
-    const r = DEF[e.type].radius * T, g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, r);
-    g.addColorStop(0, 'rgba(244,165,74,.12)'); g.addColorStop(1, 'rgba(244,165,74,0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(e.x, e.y, r, 0, 7); ctx.fill();
-  }
-  for (const p of S.pools) {
-    if (p.amt <= 0) continue;
-    const x = p.tx * T + T / 2, y = p.ty * T + T / 2, k = p.amt / p.max;
-    const pulse = reduceMotion ? 1 : 0.85 + Math.sin(S.t * 1.7 + p.tx) * 0.15;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, T * 1.1);
-    g.addColorStop(0, `rgba(95,227,189,${0.35 * k * pulse})`); g.addColorStop(1, 'rgba(95,227,189,0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, T * 1.1, 0, 7); ctx.fill();
-  }
+  const spill = (u, v, r, rgb, a) => {
+    const { x, y } = scr(u, v);
+    ctx.save(); ctx.translate(x, y); ctx.scale(1, RY / RX);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, r * RX);
+    g.addColorStop(0, `rgba(${rgb},${a})`); g.addColorStop(1, `rgba(${rgb},0)`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r * RX, 0, 7); ctx.fill(); ctx.restore();
+  };
+  for (const e of emitters) if (e.type !== 'refinery') spill(e.u, e.v, DEF[e.type].radius, '255,181,46', 0.13);
+  for (const p of S.pools) if (p.amt > 0) spill(p.tx + 0.5, p.ty + 0.5, 1.1, '46,200,255', 0.32 * p.amt / p.max * (reduceMotion ? 1 : 0.85 + Math.sin(S.t * 1.7 + p.tx) * 0.15));
   ctx.globalCompositeOperation = 'source-over';
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(emis, 0, 0); view(ctx);
 
-  for (const h of S.h) {
-    if (isLit(h.x, h.y)) continue;
-    if (!reduceMotion && Math.sin(S.t * 3 + h.wob * 4) < -0.93) continue;
-    ctx.fillStyle = h.type === 'infiltrator' ? 'rgba(157,151,232,.85)' : 'rgba(255,99,89,.8)';
-    ctx.fillRect(h.x - 4, h.y - 2, 2.5, 2.5); ctx.fillRect(h.x + 1.5, h.y - 2, 2.5, 2.5);
-  }
-  // missiles glow, so draw them above the darkness
+  // missiles glow, so they fly above the dark: a 2px warhead and a fading pixel trail
+  const TRAIL = ['#fff3dc', '#ffd08a', 'rgba(255,181,46,.7)', 'rgba(184,107,37,.45)', 'rgba(110,63,23,.3)'];
   for (const m of S.m) {
-    ctx.save(); ctx.translate(m.x, m.y); ctx.rotate(m.a);
-    ctx.fillStyle = 'rgba(255,138,76,.35)'; ctx.fillRect(-14, -1.5, 12, 3);
-    ctx.fillStyle = '#ffd7b8'; ctx.fillRect(-3, -2, 8, 4);
-    ctx.restore();
+    const p = scr(m.u, m.v, m.z), q = scr(m.u - Math.cos(m.a) * 0.2, m.v - Math.sin(m.a) * 0.2, m.z - 1.2), dx = p.x - q.x, dy = p.y - q.y, l = Math.hypot(dx, dy) || 1;
+    TRAIL.forEach((c, i) => { ctx.fillStyle = c; dot(ctx, p.x - dx / l * i * 1.5, p.y - dy / l * i * 1.5, i === 0 ? 2 : 1); });
   }
-  for (const f of S.fx) if (f.k === 'blast') {
-    const k = f.t / f.life, r = 1.6 * T * (0.3 + k * 0.7);
-    ctx.fillStyle = `rgba(255,138,76,${0.35 * (1 - k)})`; ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, 7); ctx.fill();
-    ctx.strokeStyle = `rgba(255,190,140,${1 - k})`; ctx.lineWidth = 2; ctx.stroke();
+  for (const f of S.fx) {
+    if (f.k === 'shot') continue;
+    const k = f.t / f.life, { x, y } = scr(f.u, f.v);
+    if (f.k === 'blast') {
+      const r = SPLASH * (0.3 + k * 0.7);
+      ctx.fillStyle = `rgba(255,138,76,${0.22 * (1 - k)})`; ctx.beginPath(); ctx.ellipse(x, y, r * RX, r * RY, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = `rgba(255,200,150,${1 - k})`; pxEllipse(x, y, r);
+      ctx.fillStyle = `rgba(255,243,220,${1 - k})`; pxEllipse(x, y, r * 0.55, 2);
+    } else if (f.k === 'boom') {
+      const r = (f.small ? 1 : BURST) * (0.4 + k * 0.6);
+      ctx.fillStyle = `rgba(255,99,89,${1 - k})`; pxEllipse(x, y, r); pxEllipse(x, y, r - 0.08);
+      ctx.fillStyle = `rgba(255,208,196,${(1 - k) * 0.8})`; pxEllipse(x, y, r * 0.6, 3);
+    } else if (f.k === 'pop') {
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4 + 0.4, d = 0.12 + k * 0.45, p = scr(f.u + Math.cos(a) * d, f.v + Math.sin(a) * d, 7 + k * 4);
+        ctx.fillStyle = i % 2 ? `rgba(255,208,138,${1 - k})` : `rgba(255,243,220,${1 - k})`;
+        dot(ctx, p.x, p.y);
+      }
+    }
   }
-  for (const f of S.fx) if (f.k === 'boom') {
-    const k = f.t / f.life, r = (f.small ? 1 : 2.2) * T * (0.4 + k * 0.6);
-    ctx.strokeStyle = `rgba(196,227,154,${1 - k})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, 7); ctx.stroke();
-  }
+  // health: segmented pixel bars, just above each sprite's top
   for (const b of S.b) if (b.hp < b.max) {
-    const w = b.type === 'base' ? 44 : 26;
-    ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(b.x - w / 2, b.y - 26, w, 4);
-    ctx.fillStyle = b.hp / b.max > 0.4 ? '#f4a54a' : '#ff6359'; ctx.fillRect(b.x - w / 2, b.y - 26, w * b.hp / b.max, 4);
+    const segs = b.type === 'base' ? 16 : 7, w = segs * 2 - 1, { x: bx, y: by } = scr(b.u, b.v);
+    const x = snap(bx - w / 2), y = snap(by - TOPS[b.type] - 4), on = Math.ceil(segs * b.hp / b.max);
+    ctx.fillStyle = 'rgba(7,8,13,.8)'; ctx.fillRect(x - 1, y - 1, w + 2, 3);
+    ctx.fillStyle = b.hp / b.max > 0.4 ? '#ffb52e' : '#ff6359';
+    for (let i = 0; i < on; i++) ctx.fillRect(x + i * 2, y, 1, 1);
   }
-  ctx.font = '600 11px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
-  for (const b of S.b) if (b.snuff > 0) { ctx.fillStyle = '#c4e39a'; ctx.fillText(Math.ceil(b.snuff) + 's', b.x, b.y + 26); }
+  ctx.font = '700 7px Oxygen, system-ui, sans-serif'; ctx.textAlign = 'center';
+  for (const b of S.b) if (b.snuff > 0) { const { x, y } = scr(b.u, b.v); ctx.fillStyle = '#ff8a6b'; ctx.fillText(Math.ceil(b.snuff) + 's', x, y + 13); }
 
-  if (S.flash > 0) { ctx.fillStyle = `rgba(255,240,215,${S.flash * 0.45})`; ctx.fillRect(0, 0, W, H); }
+  if (S.flash > 0) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = `rgba(255,240,215,${S.flash * 0.45})`; ctx.fillRect(0, 0, cv.width, cv.height); view(ctx); }
 
-  if (hover && !S.over && started) {
-    const t = press && press.long ? 'remove' : tool;
-    const r = canPlace(t, hover.tx, hover.ty), x = hover.tx * T, y = hover.ty * T;
-    ctx.strokeStyle = r.ok ? (t === 'remove' ? '#ff6359' : '#f4a54a') : 'rgba(255,99,89,.7)';
-    ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, T - 2, T - 2);
-    const rad = !r.ok || t === 'remove' ? 0 : t === 'turret' ? TURRET_RANGE : t === 'missile' ? MISSILE_RANGE : t === 'lamp' ? DEF.lamp.radius : 0;
-    if (rad) { ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.arc(x + T / 2, y + T / 2, rad * T, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+  // the target tile: a pixel diamond, amber when it can go there and red when it can't, with the
+  // piece's range as a dotted ground ellipse and the cable it would draw power through
+  if (hover && !S.over && started && onBoard(hover.tx, hover.ty)) {
+    const t = press && press.long ? 'remove' : tool, r = canPlace(t, hover.tx, hover.ty);
+    const tb = t === 'remove' && r.b, { x, y } = tb ? scr(tb.u, tb.v) : scr(hover.tx + 0.5, hover.ty + 0.5);
+    sprite(r.ok ? (t === 'remove' ? SPR.mark.bad : SPR.mark.ok) : SPR.mark.no, x, y);
+    if (r.ok && t !== 'remove') {
+      if (drag && drag.on) sprite(ICON[t], x, y, 0.55);
+      const rad = t === 'turret' ? TURRET_RANGE : t === 'missile' ? MISSILE_RANGE : t === 'lamp' ? DEF.lamp.radius : 0;
+      ctx.fillStyle = 'rgba(255,181,46,.8)';
+      if (rad) pxEllipse(x, y, rad, 3);
+      const n = S.b.filter(n => isNode(n) && n.powered).sort((a, b) => d2(a.u, a.v, hover.tx + .5, hover.ty + .5) - d2(b.u, b.v, hover.tx + .5, hover.ty + .5))[0];
+      if (n) { ctx.fillStyle = 'rgba(255,181,46,.6)'; cable({ u: hover.tx + 0.5, v: hover.ty + 0.5, n: 1 }, n); }
+    }
   }
+}
+// a dotted run between two footprints, trimmed to their edges
+function cable(a, b) {
+  const du = b.u - a.u, dv = b.v - a.v, len = Math.hypot(du, dv);
+  if (len < 0.01) return;
+  const ta = (a.n === 3 ? 1.55 : 0.32) / len, tb = (b.n === 3 ? 1.55 : 0.32) / len;
+  if (ta + tb >= 1) return;
+  const p = scr(a.u + du * ta, a.v + dv * ta, 1), q = scr(b.u - du * tb, b.v - dv * tb, 1);
+  pxLine(p.x, p.y, q.x, q.y, 3);
 }
 
 /* ---------- HUD ---------- */
 function hud() {
   $('#sLithium').textContent = Math.floor(S.lithium);
-  $('#sGlow').textContent = glow();
+  $('#sData').textContent = dataLevel();
   const c = base();
   $('#sBase').textContent = c ? Math.ceil(c.hp) : 0;
   $('#baseBar').style.width = (c ? c.hp / c.max * 100 : 0) + '%';
@@ -551,19 +1335,29 @@ function hud() {
   else { $('#sPhaseK').textContent = `Wave ${S.wave} in`; $('#sPhase').textContent = Math.ceil(S.calm) + 's'; }
   for (const btn of document.querySelectorAll('[data-tool]')) {
     const t = btn.dataset.tool; btn.setAttribute('aria-pressed', String(t === tool));
-    btn.disabled = t !== 'remove' && S.lithium < DEF[t].cost;
+    btn.disabled = S.lithium < DEF[t].cost;
   }
   const fb = $('#flareBtn');
   fb.disabled = S.lithium < FLARE_COST || S.flareCd > 0;
-  fb.querySelector('small').textContent = S.flareCd > 0 ? `ready in ${Math.ceil(S.flareCd)}s` : '4 · stun';
+  fb.querySelector('small').textContent = S.flareCd > 0 ? `${Math.ceil(S.flareCd)}s` : '4';
 }
 
 /* ---------- input: tap to build, long-press to dismantle ---------- */
-let press = null, hoverClear = 0;
-function tileFrom(e) {
-  const r = cv.getBoundingClientRect();
-  return { tx: Math.floor((e.clientX - r.left) * W / r.width / T), ty: Math.floor((e.clientY - r.top) * H / r.height / T) };
+let press = null, hoverClear = 0, drag = null;
+const boardPx = (cx, cy) => { const r = cv.getBoundingClientRect(); return { x: (cx - r.left - VX) / VS, y: (cy - r.top - VY) / VS }; };
+function tileAt(cx, cy) { const p = boardPx(cx, cy), g = gnd(p.x, p.y); return { tx: Math.floor(g.u), ty: Math.floor(g.v) }; }
+// a press on a building's sprite picks that building, even where the sprite rises over the tiles behind it
+function pickB(cx, cy) {
+  const p = boardPx(cx, cy);
+  const order = S.b.slice().sort((a, b) => (b.u + b.v) - (a.u + a.v));
+  for (const b of order) {
+    const img = b.type === 'base' ? SPR.base[0] : b.type === 'lamp' ? SPR.lamp[1] : b.type === 'refinery' ? SPR.refinery[0][1] : b.type === 'turret' ? SPR.turretBase[1] : SPR.missileBase[1];
+    const { x, y } = scr(b.u, b.v), ix = Math.floor(p.x - (snap(x) - img.ax)), iy = Math.floor(p.y - (snap(y) - img.ay));
+    if (ix >= 0 && iy >= 0 && ix < img.width && iy < img.height && (img.mask[iy * img.width + ix] || b.type !== 'base' && iy > img.ay - 18)) return b;
+  }
+  const t = tileAt(cx, cy); return bAt(t.tx, t.ty);
 }
+const tileFrom = e => tileAt(e.clientX, e.clientY);
 cv.addEventListener('pointermove', e => {
   const t = tileFrom(e);
   if (press && press.id === e.pointerId) {
@@ -576,21 +1370,66 @@ cv.addEventListener('pointerdown', e => {
   if (!started || S.over || e.button === 2) return;
   cv.setPointerCapture(e.pointerId);
   const t = tileFrom(e); hover = t; clearTimeout(hoverClear);
-  press = { id: e.pointerId, x: e.clientX, y: e.clientY, long: false, moved: false };
-  if (bAt(t.tx, t.ty) && tool !== 'remove') press.timer = setTimeout(() => { press.long = true; buzz(15); }, 450);
+  press = { id: e.pointerId, x: e.clientX, y: e.clientY, long: false, moved: false, b: pickB(e.clientX, e.clientY) };
+  if (press.b) press.timer = setTimeout(() => { press.long = true; hover = { tx: press.b.tx, ty: press.b.ty }; buzz(15); }, 450);
 });
 cv.addEventListener('pointerup', e => {
   if (!press || press.id !== e.pointerId) return;
   clearTimeout(press.timer);
   const t = tileFrom(e), p = press; press = null;
-  act(p.long ? 'remove' : tool, t.tx, t.ty);
+  if (p.long) act('remove', p.b.tx, p.b.ty); else act(tool, t.tx, t.ty);
   if (e.pointerType !== 'mouse') hoverClear = setTimeout(() => { hover = null; }, 500);
 });
 cv.addEventListener('pointercancel', () => { if (press) clearTimeout(press.timer); press = null; hover = null; });
-cv.addEventListener('contextmenu', e => { e.preventDefault(); if (!started) return; const t = tileFrom(e); act('remove', t.tx, t.ty); });
+cv.addEventListener('contextmenu', e => { e.preventDefault(); if (!started) return; const b = pickB(e.clientX, e.clientY); if (b) act('remove', b.tx, b.ty); else say('Nothing to dismantle there.', true); });
 
 function setTool(t) { tool = t; hud(); }
 document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+
+/* ---------- input: drag a piece from the pad onto the board ----------
+   Press a pad tile and move past a small threshold to pick the piece up. On touch the drop
+   point sits above the fingertip so the target tile stays visible. Release on a tile to build;
+   release off the board to cancel. A plain tap still just selects the tool. */
+const ghost = $('#ghost'), LIFT = 44;
+function dragPoint(e) { return { x: e.clientX, y: e.clientY - (drag.touch ? LIFT : 0) }; }
+function endDrag() {
+  if (!drag) return;
+  ghost.hidden = true; drag = null;
+  hover = null;
+}
+document.querySelectorAll('[data-tool]').forEach(btn => {
+  btn.addEventListener('pointerdown', e => {
+    if (!started || S.over || btn.disabled || e.button !== 0) return;
+    btn.setPointerCapture(e.pointerId);
+    drag = { id: e.pointerId, t: btn.dataset.tool, x: e.clientX, y: e.clientY, on: false, touch: e.pointerType !== 'mouse' };
+  });
+  btn.addEventListener('pointermove', e => {
+    if (!drag || drag.id !== e.pointerId) return;
+    const c = ICON[drag.t];
+    if (!drag.on) {
+      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8) return;
+      drag.on = true; setTool(drag.t); buzz(8);
+      ghost.src = c.toDataURL();
+      ghost.style.width = c.width * VS + 'px'; ghost.style.height = c.height * VS + 'px';
+      ghost.hidden = false;
+    }
+    // the ghost rides with its ground point on the drop point, at board scale
+    const p = dragPoint(e), t = tileAt(p.x, p.y);
+    hover = onBoard(t.tx, t.ty) ? t : null;
+    ghost.style.left = p.x - c.ax * VS + 'px'; ghost.style.top = p.y - c.ay * VS + 'px';
+    ghost.classList.toggle('bad', !hover || !canPlace(drag.t, t.tx, t.ty).ok);
+  });
+  btn.addEventListener('pointerup', e => {
+    if (!drag || drag.id !== e.pointerId) return;
+    if (drag.on) {
+      const p = dragPoint(e), t = tileAt(p.x, p.y), k = drag.t;
+      endDrag();
+      if (onBoard(t.tx, t.ty)) act(k, t.tx, t.ty);
+    } else drag = null;
+  });
+  btn.addEventListener('pointercancel', endDrag);
+  btn.addEventListener('lostpointercapture', e => { if (drag && drag.id === e.pointerId) endDrag(); });
+});
 $('#flareBtn').addEventListener('click', flare);
 function setPaused(p) { paused = p; $('#pauseBtn').textContent = p ? '▶' : 'II'; $('#pauseBtn').setAttribute('aria-label', p ? 'Resume' : 'Pause'); }
 $('#pauseBtn').addEventListener('click', () => { if (started && !S.over) setPaused(!paused); });
@@ -599,7 +1438,7 @@ $('#helpBtn').addEventListener('click', () => {
   if (S.over) return;
   if (started) setPaused(true);
   $('#ovTitle').textContent = 'How to play'; $('#rules').hidden = false;
-  $('#ovText').textContent = 'Drones hide in the dark. Your turrets only hit what your lamps light up, but every lamp is also a beacon.';
+  $('#ovText').textContent = 'Drones hide in the dark. Your turrets only hit what your servers light up, but every server is also a beacon.';
   $('#ovBtn').textContent = started ? 'Back to the shift' : 'Start the shift';
   $('#overlay').hidden = false;
 });
@@ -610,7 +1449,7 @@ $('#ovBtn').addEventListener('click', () => {
 document.addEventListener('visibilitychange', () => { if (document.hidden && started && !S.over) setPaused(true); });
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
-  if (k === '1') setTool('lamp'); else if (k === '2') setTool('refinery'); else if (k === '3') setTool('turret'); else if (k === '4') setTool('missile'); else if (k === '5') setTool('remove');
+  if (k === '1') setTool('lamp'); else if (k === '2') setTool('refinery'); else if (k === '3') setTool('turret'); else if (k === '4') setTool('missile');
   else if (k === 'f') flare();
   else if (k === ' ' && started && !S.over) { e.preventDefault(); setPaused(!paused); }
 });
@@ -619,7 +1458,7 @@ document.addEventListener('gesturestart', e => e.preventDefault());
 /* ---------- loop ---------- */
 let last = performance.now(), hudT = 0;
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;
   if (!paused && !S.over) { for (let i = 0; i < speed; i++) step(dt); }
   else if (!started) S.t += dt;
   draw();
@@ -627,13 +1466,14 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 function start(data) {
-  if (data && data.S) {
-    S = data.S; S.m = S.m || []; for (const h of S.h) h.tgt = null; for (const m of S.m) m.tgt = null;
+  if (data && data.S && data.S.v === SAVE_V) {
+    S = data.S; S.m = S.m || []; for (const h of S.h) { h.tgt = null; h.hit = h.hit || 0; } for (const m of S.m) m.tgt = null;
     started = !!data.started; tool = data.tool || 'lamp';
     if (started && !S.over) { $('#overlay').hidden = true; setPaused(true); }
     power();
   } else newGame();
   fit(); hud(); requestAnimationFrame(frame);
+  if (document.fonts) document.fonts.ready.then(fit);
 }
 window.claude?.hot?.snapshot?.(() => ({ S: { ...S, h: S.h.map(h => ({ ...h, tgt: null })), m: S.m.map(m => ({ ...m, tgt: null })) }, started, tool }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
