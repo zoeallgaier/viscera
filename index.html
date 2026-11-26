@@ -235,7 +235,7 @@ h1{font-family:var(--f-title);font-weight:400;font-size:clamp(.62rem,calc(7.1cqw
 .sock img,.sock svg{display:block;image-rendering:pixelated;shape-rendering:crispEdges}
 .nm{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0;
   font:400 12px/20px var(--f-title);letter-spacing:.08em;text-transform:uppercase;color:var(--text)}
-.ent.dt .nm{color:var(--data)}
+/* names are all full ink: colour belongs to the section ticks, the prices and the sprites */
 .ent p{margin-top:4px}
 /* the text column stretches to its row, and the readouts sit at its foot, so two entries side by side
    read their numbers off one line */
@@ -488,9 +488,9 @@ const DRONE = {
   runner:      { hp: 16, spd: 1.4,  dmg: 4,  r: 0.22 },
   panzer:      { hp: 80, spd: 0.42, dmg: 0,  r: 0.42 },
   infiltrator: { hp: 45, spd: 1.0,  dmg: 10, r: 0.26 },
-  // the boss: dmg is per second, to everything under it. hp is what it has on its first wave (10).
+  // the boss: dmg is per second, to everything under it. hp grows from wave 1 like the rest (≈1080 on wave 10).
   // A pass over the Base is 6 tiles of contact (3 of Base + 3 of body length): 6 / 0.36 × 12 = 200 damage
-  megapanzer:  { hp: 500, spd: 0.36, dmg: 12, r: 1 },
+  megapanzer:  { hp: 520, spd: 0.36, dmg: 12, r: 1 },
 };
 // The Megapanzer: wave 10, then every 5. It doesn't hunt. It takes a random two-row lane and rolls
 // the length of it along one grid axis, crushing whatever its body covers: 2 tiles across, 3 long.
@@ -1720,7 +1720,6 @@ const SFX = {
   emp:     { file: 'EMP',          gain: 0.75, gap: 0.3 },
   wave:    { file: 'wave',         gain: 0.6,  gap: 0.5 },
   blip:    { file: 'ui-blip',      gain: 0.5,  gap: 0.03 },
-  confirm: { file: 'ui-confirm',   gain: 0.5,  gap: 0.05 },
 };
 const SFX_DIR = 'sfx/', SFX_VOICES = 14;
 let soundOn = true;
@@ -1800,7 +1799,7 @@ function act(t, tx, ty) {
     if (!reduceMotion) S.gone.push({ imgs: looks(b), x, y, top: TOPS[b.type], t0: NOW });
     emit(6, b.u, b.v, TOPS[b.type] * 0.6, { pal: PAL.yours, light: 1, sp: 0.5, vz: 40, vz0: 14, g: -20, life: 0.6, l0: 0.35 });
     pip(b.u, b.v, TOPS[b.type], c);
-    S.b = S.b.filter(o => o !== b); say(`Scrapped. +${c} Lithium.`); sfx('confirm', { rate: 0.8 });
+    S.b = S.b.filter(o => o !== b); say(`Scrapped. +${c} Lithium.`); sfx('blip', { rate: 0.8 });
   } else {
     S.lithium -= DEF[t].cost;
     const b = addB(t, tx, ty);
@@ -1888,7 +1887,7 @@ function held(pay) {
     } });
   }
   // the line locks: the Base answers once more and pays out
-  S.tm.push({ t: sweep, fn: () => { if (S.b.includes(c)) c.ping = PING_T; pip(c.u, c.v, 30, pay); buzz('held'); sfx('confirm', { rate: 1.12 }); } });
+  S.tm.push({ t: sweep, fn: () => { if (S.b.includes(c)) c.ping = PING_T; pip(c.u, c.v, 30, pay); buzz('held'); sfx('blip', { rate: 1.12 }); } });
 }
 const EYES_OFF = { eye: 'shade' };
 
@@ -2039,8 +2038,8 @@ function megaInbound() {
 function spawnMega() {
   const L = S.lane; S.megaDue = false;
   if (!L || S.over) return;
-  // it grows 12% a wave like the rest, counted from its own first wave, so it's 500 on wave 10
-  const d = DRONE.megapanzer, mul = 1 + (S.wave - MEGA_FROM) * 0.12, du = L.ax ? 0 : L.dir, dv = L.ax ? L.dir : 0;
+  // it grows 12% a wave from wave 1, like the rest
+  const d = DRONE.megapanzer, mul = 1 + (S.wave - 1) * 0.12, du = L.ax ? 0 : L.dir, dv = L.ax ? L.dir : 0;
   const h = { id: S.id++, type: 'megapanzer', u: L.ax ? L.r + MEGA_HALF : L.start, v: L.ax ? L.start : L.r + MEGA_HALF, du, dv, dir: Math.atan2(dv, du),
     hp: d.hp * mul, max: d.hp * mul, stun: 0, hit: 0, wob: 0, atk: 0, lane: L };
   L.boss = h; S.h.push(h);
@@ -2933,7 +2932,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !guideEl.hidden) cl
 }
 $('#ovBtn').addEventListener('click', () => {
   if (S.over) newGame();
-  sfx('confirm');
+  sfx('blip');
   started = true; menu(false); setPaused(false); hud();
 });
 const suspend = () => { if (started && !S.over) setPaused(true); };
