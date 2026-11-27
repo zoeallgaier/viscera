@@ -170,7 +170,7 @@ h1{font-family:var(--f-title);font-weight:400;font-size:9px;letter-spacing:.24em
 .inspect .btn.lock .lk{display:block}
 
 /* —— Thumb pad ——
-   Five pad tiles, in price order. Each piece stands on its own plinth: a 2:1 concrete slab with the board's
+   Up to six pad tiles, in price order (the Auger and the Warden join late in a run). Each piece stands on its own plinth: a 2:1 concrete slab with the board's
    shading, a lit top, a mid left face, a dark right face, an outline and a lit ledge. JS draws
    the plinth from the art ramps (--pl, --pl-on, --pl-hover, --pl-focus) and places the
    sprite so its ground point sits on the slab's centre (--iw, --ax, --ay). One sprite pixel is --s wide. */
@@ -181,7 +181,7 @@ h1{font-family:var(--f-title);font-weight:400;font-size:9px;letter-spacing:.24em
 .tool .tile{position:absolute;left:6cqw;width:88cqw;height:49.3cqw;top:calc(var(--gy) - 22cqw);background:var(--pl) center/100% 100% no-repeat}
 .tool img,.tool .pr{position:absolute;image-rendering:pixelated;pointer-events:none;height:auto;
   width:calc(var(--iw,24) * var(--s));left:calc(50cqw - var(--ax,12) * var(--s));top:calc(var(--gy) - (var(--ay,12) + var(--lift)) * var(--s))}
-/* five tiles share 351px at 375 wide: the labels step down a little so "Missiles" still fits */
+/* six tiles share 351px at 375 wide: the labels step down a little so "Refinery" and "Missiles" still fit */
 .tool b{position:relative;max-width:100%;font-weight:700;font-size:clamp(10px,2.75vw,12.5px);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tool small{position:relative;max-width:100%;font-size:clamp(9px,2.4vw,11px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tool:active{transform:scale(.95)}
@@ -345,7 +345,6 @@ h1{font-family:var(--f-title);font-weight:400;font-size:9px;letter-spacing:.24em
 
 /* readouts, read off like the console: label over value, no boxes; fixed tracks so columns line up */
 .read{display:grid;grid-template-columns:repeat(auto-fill,72px);gap:12px;margin:auto 0 0;padding-top:16px}
-.read .w{grid-column:span 2}  /* a long label takes two tracks, never half of one */
 .read > div{min-width:0}
 .read dt{font:400 9px/12px var(--f-title);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .read dd{margin:4px 0 0;font:400 12px/16px var(--f-title);font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
@@ -402,7 +401,8 @@ h1{font-family:var(--f-title);font-weight:400;font-size:9px;letter-spacing:.24em
     <div class="icons">
       <button class="ib" id="soundBtn" type="button" aria-label="Mute"><svg viewBox="0 0 14 12" width="14" height="12" aria-hidden="true" shape-rendering="crispEdges" fill="currentColor"><path d="M1 4h3v4H1zM4 3h1v6H4zM5 2h1v8H5zM6 1h1v10H6z"/><path class="on" d="M9 4h1v4H9zM11 2h1v8h-1z"/><path class="off" d="M9 4h1v1H9zM10 5h1v2h-1zM11 7h1v1h-1zM11 4h1v1h-1zM9 7h1v1H9zM12 3h1v1h-1zM12 8h1v1h-1zM8 3h1v1H8zM8 8h1v1H8z"/></svg></button>
       <button class="ib" id="speedBtn" type="button" aria-label="Game speed">×1</button>
-      <button class="ib" id="pauseBtn" type="button" aria-label="Pause and how to play">II</button>
+      <button class="ib" id="pauseBtn" type="button" aria-label="Pause">II</button>
+      <button class="ib" id="helpBtn" type="button" aria-label="How to play">?</button>
     </div>
   </div>
   <div class="reads" role="status" aria-live="off">
@@ -434,6 +434,7 @@ h1{font-family:var(--f-title);font-weight:400;font-size:9px;letter-spacing:.24em
     <button class="tool" data-tool="turret" aria-pressed="false" type="button"><span class="tile"></span><img data-icon="turret" alt=""><b>Turret</b><small>3 Li</small></button>
     <button class="tool" data-tool="missile" aria-pressed="false" type="button"><span class="tile"></span><img data-icon="missile" alt=""><b>Missiles</b><small>4 Li</small></button>
     <button class="tool" data-tool="auger" aria-pressed="false" type="button" hidden><span class="tile"></span><img data-icon="auger" alt=""><b>Auger</b><small>5 Li</small></button>
+    <button class="tool" data-tool="mech" aria-pressed="false" type="button" hidden><span class="tile"></span><img data-icon="mech" alt=""><b>Warden</b><small>12 Li</small></button>
   </div>
 </div>
 <img class="ghost" id="ghost" alt="" hidden>
@@ -480,7 +481,7 @@ h1{font-family:var(--f-title);font-weight:400;font-size:9px;letter-spacing:.24em
 </div>
 
 <!-- the field guide: a page of its own over the game, with the numbers filled in from the
-     game's own constants. Opened from the ? card, or at #guide -->
+     game's own constants. Opened from the ? card, the end card, or at #guide -->
 <div class="page" id="fieldGuide" hidden>
   <header class="page-bar">
     <div class="page-top">
@@ -493,12 +494,12 @@ h1{font-family:var(--f-title);font-weight:400;font-size:9px;letter-spacing:.24em
       <section class="plate">
         <h3 class="sec yours">How it works</h3>
         <article class="ent yours"><span class="sock"><img data-guide="base" alt=""></span><div><h4 class="nm">The Base</h4>
-          <p>Lights the ground around it and powers everything wired to it. Lose it and the run is over. Your score is the number of waves you hold.</p>
-          <dl class="read"><div><dt>HP</dt><dd data-n="base.hp"></dd></div><div><dt>Light</dt><dd data-n="base.light"></dd></div><div><dt>Reach</dt><dd data-n="base.reach"></dd></div></dl></div></article>
+          <p>Lights and powers your grid. Lose it and the run ends.</p>
+          <dl class="read"><div><dt>HP</dt><dd data-n="base.hp"></dd></div></dl></div></article>
         <ul class="facts">
-          <li>Power runs by cable from the Base, server to server. You can only build where a cable reaches.</li>
-          <li>A building only works while it’s <em>wired in</em>. If a server goes out, everything past it loses power too.</li>
-          <li>Turrets and missiles only hit bots <em>in the light</em>.</li>
+          <li>Cable runs from the Base, server to server. Build where it reaches.</li>
+          <li>Lose a server and everything past it <em>loses power</em>.</li>
+          <li>Weapons only hit bots <em>in the light</em>.</li>
         </ul>
       </section>
 
@@ -506,33 +507,39 @@ h1{font-family:var(--f-title);font-weight:400;font-size:9px;letter-spacing:.24em
         <h3 class="sec yours">Your kit</h3>
         <div class="list">
           <article class="ent yours"><span class="sock"><img data-guide="lamp" alt=""></span><div><h4 class="nm">Server<span class="cost"><span data-n="lamp.cost"></span><small>Li</small></span></h4>
-            <p>Extends the light and the cable. Chain them into the void to reach new pools.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="lamp.hp"></dd></div><div><dt>Light</dt><dd data-n="lamp.light"></dd></div><div><dt>Reach</dt><dd data-n="lamp.reach"></dd></div></dl></div></article>
+            <p>Extends light and cable into the void.</p>
+            <dl class="read"><div><dt>Light</dt><dd data-n="lamp.light"></dd></div></dl></div></article>
           <article class="ent li"><span class="sock"><img data-guide="refinery" alt=""></span><div><h4 class="nm">Refinery<span class="cost"><span data-n="refinery.cost"></span><small>Li</small></span></h4>
-            <p>Goes on a glowing pool and pumps Lithium. Scrap it once the pool runs dry.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="refinery.hp"></dd></div><div><dt>1 Li every</dt><dd><span data-n="refine.every"></span><small>s</small></dd></div></dl></div></article>
+            <p>Pumps Lithium from a pool. Scrap it when the pool runs dry.</p>
+            <dl class="read"><div><dt>1 Li every</dt><dd><span data-n="refine.every"></span><small>s</small></dd></div></dl></div></article>
           <article class="ent yours"><span class="sock"><img data-guide="turret" alt=""></span><div><h4 class="nm">Turret<span class="cost"><span data-n="turret.cost"></span><small>Li</small></span></h4>
-            <p>Rapid fire at the nearest bot. Put it at the edge of the light.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="turret.hp"></dd></div><div><dt>Range</dt><dd data-n="turret.range"></dd></div><div><dt>Damage</dt><dd data-n="turret.dmg"></dd></div><div><dt>Reload</dt><dd><span data-n="turret.every"></span><small>s</small></dd></div></dl></div></article>
+            <p>Rapid fire at the nearest bot. Best at the edge of the light.</p>
+            <dl class="read"><div><dt>Range</dt><dd data-n="turret.range"></dd></div><div><dt>Damage</dt><dd data-n="turret.dmg"></dd></div></dl></div></article>
           <article class="ent yours"><span class="sock"><img data-guide="missile" alt=""></span><div><h4 class="nm">Missiles<span class="cost"><span data-n="missile.cost"></span><small>Li</small></span></h4>
-            <p>Lets go a pair of darts that home in on the biggest crowd. Outranges a turret, so set it a step behind.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="missile.hp"></dd></div><div><dt>Range</dt><dd data-n="missile.range"></dd></div><div><dt>Damage</dt><dd><span data-n="missile.dmg"></span><small>×2</small></dd></div><div><dt>Reload</dt><dd><span data-n="missile.every"></span><small>s</small></dd></div><div><dt>Blast</dt><dd data-n="missile.splash"></dd></div></dl></div></article>
+            <p>Two homing darts at the biggest crowd. Outranges a turret.</p>
+            <dl class="read"><div><dt>Range</dt><dd data-n="missile.range"></dd></div><div><dt>Damage</dt><dd><span data-n="missile.dmg"></span><small>×2</small></dd></div></dl></div></article>
           <article class="ent li"><span class="sock"><img data-guide="auger" alt=""></span><div><h4 class="nm">Auger<span class="cost"><span data-n="auger.cost"></span><small>Li</small></span></h4>
-            <p>A drill rig for a <em>deep well</em>, one of the dark, sunken patches that crack open out in the void on wave <i data-n="auger.from"></i>. A pool runs dry; a deep well never does. Only <i data-n="wells"></i> come up. It’s loud: +1 Data.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="auger.hp"></dd></div><div><dt>1 Li every</dt><dd><span data-n="auger.every"></span><small>s</small></dd></div><div class="w"><dt>From wave</dt><dd data-n="auger.from"></dd></div></dl></div></article>
+            <p>Drills a <em>deep well</em>, which never runs dry. Only <i data-n="wells"></i> surface.</p>
+            <dl class="read"><div><dt>1 Li every</dt><dd><span data-n="auger.every"></span><small>s</small></dd></div></dl></div></article>
+          <article class="ent yours"><span class="sock"><img data-guide="mech" alt=""></span><div><h4 class="nm">Warden<span class="cost"><span data-n="mech.cost"></span><small>Li</small></span></h4>
+            <p>Patrols its dock with cannon and missiles, and <em>steps clear</em> of bots.</p>
+            <dl class="read"><div><dt>Range</dt><dd data-n="mech.range"></dd></div><div><dt>Burst</dt><dd><span data-n="mech.dmg"></span><small>×<span data-n="mech.burst"></span></small></dd></div></dl></div></article>
         </div>
       </section>
 
       <section class="plate">
         <h3 class="sec yours">Upgrades</h3>
-        <p class="lede">From wave <i data-n="up.from"></i>, tap a weapon to open its card, then <em>Upgrade</em>. Dropping a piece on its twin upgrades it too. An upgrade adds firepower but <em>no Data</em>, so the waves don’t grow. Scrapping one refunds both prices.</p>
+        <p class="lede">Tap a weapon, then <em>Upgrade</em>. More firepower, <em>no Data</em>.</p>
         <div class="list">
           <article class="ent yours"><span class="sock"><img data-guide="rail" alt=""></span><div><h4 class="nm">Railgun<span class="cost">+<span data-n="rail.cost"></span><small>Li</small></span></h4>
-            <p>Upgrades a Turret. One slow slug punches through <em>every bot in its line</em>, lit or not.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="rail.hp"></dd></div><div><dt>Range</dt><dd data-n="rail.range"></dd></div><div><dt>Damage</dt><dd data-n="rail.dmg"></dd></div><div><dt>Reload</dt><dd><span data-n="rail.every"></span><small>s</small></dd></div></dl></div></article>
+            <p>Turret upgrade. Pierces <em>every bot in line</em>, lit or not.</p>
+            <dl class="read"><div><dt>Range</dt><dd data-n="rail.range"></dd></div><div><dt>Damage</dt><dd data-n="rail.dmg"></dd></div></dl></div></article>
           <article class="ent yours"><span class="sock"><img data-guide="ion" alt=""></span><div><h4 class="nm">Ion Launcher<span class="cost">+<span data-n="ion.cost"></span><small>Li</small></span></h4>
-            <p>Upgrades Missiles. Lets go a <em>swarm</em> of ion darts that loop the loop, then dive on the biggest crowds and burst wide.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="ion.hp"></dd></div><div><dt>Range</dt><dd data-n="ion.range"></dd></div><div><dt>Damage</dt><dd><span data-n="ion.dmg"></span><small>×<span data-n="ion.swarm"></span></small></dd></div><div><dt>Reload</dt><dd><span data-n="ion.every"></span><small>s</small></dd></div><div><dt>Blast</dt><dd data-n="ion.splash"></dd></div></dl></div></article>
+            <p>Missiles upgrade. A <em>swarm</em> of darts that dives on crowds.</p>
+            <dl class="read"><div><dt>Range</dt><dd data-n="ion.range"></dd></div><div><dt>Damage</dt><dd><span data-n="ion.dmg"></span><small>×<span data-n="ion.swarm"></span></small></dd></div></dl></div></article>
+          <article class="ent yours"><span class="sock"><img data-guide="arbiter" alt=""></span><div><h4 class="nm">Arbiter<span class="cost">+<span data-n="arb.cost"></span><small>Li</small></span></h4>
+            <p>Warden upgrade. An <em>EMP mortar</em> that stuns crowds anywhere in your light.</p>
+            <dl class="read"><div><dt>Stun</dt><dd><span data-n="arb.stun"></span><small>s</small></dd></div></dl></div></article>
         </div>
       </section>
 
@@ -540,40 +547,42 @@ h1{font-family:var(--f-title);font-weight:400;font-size:9px;letter-spacing:.24em
         <h3 class="sec econ">Economy</h3>
         <div class="list">
           <article class="ent li"><span class="sock"><img data-guide="pool" alt=""></span><div><h4 class="nm">Lithium</h4>
-            <p>Pays for everything. You start with <i data-n="start.li"></i> and a refinery on the first pool. Every wave you clear pays out.</p>
-            <dl class="read"><div><dt>Pool 1</dt><dd><span data-n="pool.first"></span><small>Li</small></dd></div><div><dt>Pool 2</dt><dd><span data-n="pool.second"></span><small>Li</small></dd></div><div><dt>Farther</dt><dd><span data-n="pool.far"></span><small>Li</small></dd></div><div><dt>Per wave</dt><dd><span data-n="wave.pay"></span><small>Li</small></dd></div></dl></div></article>
+            <p>Pays for everything. Farther pools hold more, and every cleared wave pays.</p></div></article>
           <article class="ent dt"><span class="sock"><img data-guide="data" alt=""></span><div><h4 class="nm">Data</h4>
-            <p>Every building but a refinery makes 1. Each point makes your weapons hit harder and the waves bigger.</p>
+            <p>Every building but a refinery adds 1: harder hits, bigger waves.</p>
             <dl class="read"><div><dt>Damage</dt><dd>+<span data-n="data.dmg"></span><small>%</small></dd></div><div><dt>Wave size</dt><dd>+<span data-n="data.bots"></span><small>bots</small></dd></div></dl></div></article>
         </div>
       </section>
 
       <section class="plate">
         <h3 class="sec theirs">The bots</h3>
-        <p class="lede">They walk in from the edge of the map toward your nearest building, and get <i data-n="hp.grow"></i>% tougher every wave.</p>
+        <p class="lede">They march on your nearest building, tougher every wave.</p>
         <div class="list">
           <article class="ent bot"><span class="sock"><img data-guide="walker" alt=""></span><div><h4 class="nm">Drone</h4>
             <p>The bulk of every wave.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="walker.hp"></dd></div><div><dt>Speed</dt><dd data-n="walker.spd"></dd></div><div><dt>Damage</dt><dd><span data-n="walker.dmg"></span><small>/s</small></dd></div></dl></div></article>
+            <dl class="read"><div><dt>HP</dt><dd data-n="walker.hp"></dd></div><div><dt>Speed</dt><dd data-n="walker.spd"></dd></div></dl></div></article>
           <article class="ent bot"><span class="sock"><img data-guide="runner" alt=""></span><div><h4 class="nm">Runner</h4>
-            <p>Fast and fragile. More of them as the waves go on.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="runner.hp"></dd></div><div><dt>Speed</dt><dd data-n="runner.spd"></dd></div><div><dt>Damage</dt><dd><span data-n="runner.dmg"></span><small>/s</small></dd></div></dl></div></article>
+            <p>Fast and fragile.</p>
+            <dl class="read"><div><dt>HP</dt><dd data-n="runner.hp"></dd></div><div><dt>Speed</dt><dd data-n="runner.spd"></dd></div></dl></div></article>
           <article class="ent bot"><span class="sock"><img data-guide="panzer" alt=""></span><div><h4 class="nm">Panzer</h4>
-            <p>Slow and heavy. It <em>explodes</em> on contact or when destroyed, hitting every building nearby. Stop it with missiles before it gets close.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="panzer.hp"></dd></div><div><dt>Speed</dt><dd data-n="panzer.spd"></dd></div><div><dt>Blast</dt><dd data-n="panzer.blast"></dd></div><div><dt>Outage</dt><dd><span data-n="snuff"></span><small>s</small></dd></div><div class="w"><dt>From wave</dt><dd data-n="panzer.from"></dd></div></dl></div></article>
+            <p><em>Explodes</em> on contact or death. Kill it early with missiles.</p>
+            <dl class="read"><div><dt>HP</dt><dd data-n="panzer.hp"></dd></div><div><dt>Speed</dt><dd data-n="panzer.spd"></dd></div></dl></div></article>
           <article class="ent bot"><span class="sock"><img data-guide="infiltrator" alt=""></span><div><h4 class="nm">Infiltrator</h4>
-            <p>Goes for your <em>refineries</em> first. Takes half damage from missiles, so turrets work best.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="infiltrator.hp"></dd></div><div><dt>Speed</dt><dd data-n="infiltrator.spd"></dd></div><div><dt>Damage</dt><dd><span data-n="infiltrator.dmg"></span><small>/s</small></dd></div><div class="w"><dt>From wave</dt><dd data-n="infil.from"></dd></div></dl></div></article>
+            <p>Hunts <em>refineries</em>. Shrugs off missiles, so use turrets.</p>
+            <dl class="read"><div><dt>HP</dt><dd data-n="infiltrator.hp"></dd></div><div><dt>Speed</dt><dd data-n="infiltrator.spd"></dd></div></dl></div></article>
+          <article class="ent bot"><span class="sock"><img data-guide="sniper" alt=""></span><div><h4 class="nm">Sniper</h4>
+            <p>Picks off <em>servers</em> from the void, just out of your light. Push your light out over it.</p>
+            <dl class="read"><div><dt>HP</dt><dd data-n="sniper.hp"></dd></div><div><dt>Speed</dt><dd data-n="sniper.spd"></dd></div><div><dt>Range</dt><dd data-n="sniper.range"></dd></div></dl></div></article>
           <article class="ent bot boss"><span class="sock"><img data-guide="megapanzer" data-group="boss" data-box="48" alt=""></span><div><h4 class="nm">Megapanzer</h4>
-            <p>A boss, two rows wide. Picks a lane at random and cuts <em>across the board</em>, crushing everything it covers. Bursts when destroyed.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="megapanzer.hp"></dd></div><div><dt>Speed</dt><dd data-n="megapanzer.spd"></dd></div><div><dt>Crush</dt><dd><span data-n="megapanzer.dmg"></span><small>/s</small></dd></div><div><dt>Blast</dt><dd data-n="mega.blast"></dd></div><div><dt>Lane</dt><dd><span data-n="mega.rows"></span><small>rows</small></dd></div><div><dt>Bounty</dt><dd><span data-n="mega.bounty"></span><small>Li</small></dd></div><div class="w"><dt>Waves</dt><dd><span data-n="mega.from"></span><small data-n="mega.next"></small></dd></div></dl></div></article>
+            <p>Boss. Crushes a lane <em>across the board</em>. Later, in pairs.</p>
+            <dl class="read"><div><dt>HP</dt><dd data-n="megapanzer.hp"></dd></div><div><dt>Speed</dt><dd data-n="megapanzer.spd"></dd></div></dl></div></article>
           <article class="ent bot boss"><span class="sock"><img data-guide="borer" data-group="boss" data-box="48" alt=""></span><div><h4 class="nm">Borer</h4>
-            <p>A boss: a mechanical earthworm. It bites three times, and each bite <em>swallows a chunk</em> of your ground with everything on it and leaves a hole you can’t build on. The ground it’s under flashes red first, so <em>scrap what’s there</em> for a full refund. You can only hit it <em>while it’s up</em>. Each hole cracks open a Lithium seam.</p>
-            <dl class="read"><div><dt>HP</dt><dd data-n="borer.hp"></dd></div><div><dt>Bites</dt><dd data-n="borer.bites"></dd></div><div><dt>Bite</dt><dd data-n="borer.bite"></dd></div><div><dt>Up</dt><dd><span data-n="borer.up"></span><small>s</small></dd></div><div><dt>Warning</dt><dd><span data-n="borer.warn"></span><small>s</small></dd></div><div><dt>Seam</dt><dd><span data-n="borer.seam"></span><small>Li</small></dd></div><div><dt>Bounty</dt><dd><span data-n="borer.bounty"></span><small>Li</small></dd></div><div class="w"><dt>Waves</dt><dd><span data-n="borer.from"></span><small>then every <span data-n="borer.every"></span></small></dd></div></dl></div></article>
+            <p>Boss. <em>Swallows</em> ground that flashes red, so scrap it first. Hit it while it’s up.</p>
+            <dl class="read"><div><dt>HP</dt><dd data-n="borer.hp"></dd></div></dl></div></article>
         </div>
       </section>
 
-      <p class="units">Range, light, reach and blast are in tiles. Speed is in tiles per second. Damage is per hit unless it says per second.</p>
+      <p class="units">Range and light are in tiles, speed in tiles per second.</p>
   </main>
 </div>
 
@@ -597,9 +606,13 @@ for (let i = -24; i <= 24; i++) for (let j = -24; j <= 24; j++) if (onBoard(i, j
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = s => document.querySelector(s);
-const cv = $('#game'), ctx = cv.getContext('2d'), stage = $('#stage');
-const ground = document.createElement('canvas'), gctx = ground.getContext('2d');
+// The world is drawn one board pixel to a canvas pixel (ctx), then scaled up onto the screen (sctx) once a
+// frame. Every sprite and mark is snapped to the board's grid anyway, so the screen looks the same, but the
+// frame touches a tenth of the pixels: the cost of a covered board no longer grows with the phone's resolution
+const cv = $('#game'), sctx = cv.getContext('2d'), stage = $('#stage');
+const world = document.createElement('canvas'), ctx = world.getContext('2d');
 const gpx = document.createElement('canvas'), gpctx = gpx.getContext('2d');
+let GPX0 = 0, GPY0 = 0;   // where the baked ground sits, in board pixels
 let DPR = 1, VS = 1, VX = 0, VY = 0;
 
 // radius = light, link = cable reach (both in tiles, from the building's centre)
@@ -610,8 +623,10 @@ const DEF = {
   turret:   { hp: 70,  radius: 1.8, link: 0,   cost: 3, size: 1 },
   missile:  { hp: 80,  radius: 1.8, link: 0,   cost: 4, size: 1 },
   auger:    { hp: 60,  radius: 1.5, link: 0,   cost: 5, size: 2 },
+  // the Warden: its light rides with it, round its body, not its dock
+  mech:     { hp: 150, radius: 2.0, link: 0,   cost: 12, size: 1 },
 };
-const NAME = { lamp: 'Server', refinery: 'Refinery', turret: 'Turret', missile: 'Missiles', auger: 'Auger' };
+const NAME = { lamp: 'Server', refinery: 'Refinery', turret: 'Turret', missile: 'Missiles', auger: 'Auger', mech: 'Warden' };
 
 /* Upgrades (code: refits): a weapon upgrades once, in place. Tap it and its card offers the upgrade;
    or drop a piece on its twin. An upgrade keeps the piece's one point of Data, so it adds firepower
@@ -619,6 +634,8 @@ const NAME = { lamp: 'Server', refinery: 'Refinery', turret: 'Turret', missile: 
 const UP = {
   turret:  { name: 'Railgun',         key: 'rail',   cost: 8, hp: 100, tip: 'Turrets can upgrade now. Tap one.' },
   missile: { name: 'Ion Launcher', key: 'ion', cost: 10, hp: 110, tip: 'Missiles can upgrade now. Tap one.' },
+  // the Warden's opens later than the rest, on a wave of its own (from)
+  mech:    { name: 'Arbiter', key: 'arbiter', cost: 20, hp: 220, from: 37, tip: 'Wardens can upgrade now. Tap one.' },
 };
 // the railgun's slug runs out to full range and hits every bot within its body of the line
 const RAIL = { range: 5.6, dmg: 60, every: 1.5, width: 0.18 };
@@ -627,45 +644,92 @@ const RAIL = { range: 5.6, dmg: 60, every: 1.5, width: 0.18 };
 // Missiles let go a pair of darts a beat apart, each hitting for half of what one missile used to
 const MISSILE = { dmg: 15, beat: 0.12 };
 const ION = { range: 7, dmg: 22, every: 3, splash: 2.1, swarm: 5, beat: 0.09, out: 0.2, loop: 0.6 };
-// upgrades open once wave 9 is held. Before that a card still shows its upgrade, locked, so you know what's coming
-const UP_FROM = 10, upOpen = () => S.wave >= UP_FROM;
+// upgrades open once wave 11 is held, three waves before the first Megapanzer (wave 15). Before that a card still shows its upgrade, locked, so you know what's coming
+// (an upgrade with a `from` of its own opens on that wave instead)
+const UP_FROM = 12, upFrom = t => UP[t]?.from ?? UP_FROM, upOpen = t => S.wave >= upFrom(t);
+// why an upgrade isn't open yet, in the words the card and the toasts use
+const upLocked = t => UP[t]?.from ? `The ${UP[t].name} opens on wave ${UP[t].from}.` : `Upgrades open on wave ${UP_FROM}.`;
 
 /* The Auger drills a deep well: a dark patch in the slab, two to a map, out past the first pools. A
-   deep well never runs dry. There are none at first: once wave 24 is held the ground cracks open and the
+   deep well never runs dry. There are none at first: once wave 12 is held the ground cracks open and the
    wells surface (surfaceWells), and the Auger opens with them. Like the rest of your kit it makes Data. */
-const WELLS = 2, WELL_LOOKS = 3, AUGER_FROM = 25, AUGER_RATE = 1 / 10;
+const WELLS = 2, WELL_LOOKS = 3, AUGER_FROM = 13, AUGER_RATE = 1 / 10;
 // open once the wells have surfaced (augerOpens), not the moment the wave number turns
 const augerOpen = () => !!S.augerOn;
+
+/* The Warden (code: mech): a walker on a dock. You build the dock; the Warden patrols a ring of `patrol`
+   tiles round it, and its weapons reach `range` (the cannon) and `mRange` (the pod) from wherever it
+   stands. It's a turret and a launcher in one: a burst of `burst` rounds every `every` s at the nearest
+   bot in the light, and a pair of missiles every `mEvery` s at the biggest crowd. It carries its own
+   light, and it isn't a sitting target: bots chase its body, not its dock, and it steps clear of them.
+   Where to stand, it decides by scoring spots in its ring (mechThink): away from bots that close in,
+   well away from a Panzer's blast, out of a Megapanzer's lane and off ground the Borer has marked, at a
+   standoff from what it's shooting. When something's on top of it, it dashes on its jets for up to
+   `boost` s, which recharge. Its dock is what's wired in: unpowered, it walks home and kneels.
+   It opens once wave 27 is held, a few waves before the first Borer. */
+const MECH = { patrol: 1.75, range: 3.8, dmg: 10, burst: 3, beat: 0.075, every: 0.8, mRange: 4.6, mDmg: 16, mSplash: 1.5, mEvery: 3.4,
+  walk: 0.85, dash: 1.6, boost: 1.1, stride: 0.7, r: 0.3, standoff: 2.6, think: 0.3 };
+const MECH_FROM = 28, mechOpen = () => !!S.mechOn;
+/* The Arbiter (code: a Warden with b.up): the Warden upgraded, from wave 37. It keeps the cannon and patrols
+   the same, but the pod is an EMP mortar. Every `every` s it lobs a round at the biggest crowd anywhere
+   in your light, however far from its dock, never at a crowd that's already stunned. The round lands in
+   `flight` s or so, bursts across `radius` tiles for `dmg` and stuns every bot it catches for `stun` s:
+   they stop dead, can't hit anything, and their optics gutter. A Megapanzer only slows (to `slow` of its pace)
+   and a Borer only takes the damage. */
+const ARB = { every: 4.2, dmg: 24, radius: 1.6, stun: 2.6, slow: 0.35, flight: 0.9, perTile: 0.05, arc: 46 };
 // the Refinery is on the pad while any pool still holds Lithium; once they've all run dry it goes, and a Borer's seam brings it back
 const refineryOpen = () => S.pools.some(p => p.amt > 0);
 
 // spd in tiles per second; r is the body radius in tiles (contact distance to a footprint)
 const DRONE = {
-  walker:      { hp: 30, spd: 0.62, dmg: 7,  r: 0.3 },
-  runner:      { hp: 16, spd: 1.4,  dmg: 4,  r: 0.22 },
-  panzer:      { hp: 80, spd: 0.42, dmg: 0,  r: 0.42 },
-  infiltrator: { hp: 45, spd: 1.0,  dmg: 10, r: 0.26 },
-  // the boss: dmg is per second, to everything under it. hp grows from wave 1 like the rest (≈1080 on wave 10).
-  // A pass over the Base is 6 tiles of contact (3 of Base + 3 of body length): 6 / 0.36 × 12 = 200 damage
-  megapanzer:  { hp: 520, spd: 0.36, dmg: 12, r: 1 },
-  // wave 20's boss: it never walks, it tunnels. It only takes damage while it's up
-  borer:       { hp: 700, spd: 0, dmg: 0, r: 1 },
+  // (waves are fewer and harder: WAVE_SIZE of the old counts, each bot half again as tough and hitting 1.6× as hard.
+  // Was: Drone 30 hp / 7 dmg, Runner 16 / 4, Panzer 80 hp, Infiltrator 45 / 10)
+  walker:      { hp: 45, spd: 0.62, dmg: 11, r: 0.3 },
+  runner:      { hp: 24, spd: 1.4,  dmg: 6,  r: 0.22 },
+  panzer:      { hp: 120, spd: 0.42, dmg: 0, r: 0.42 },
+  infiltrator: { hp: 68, spd: 1.0,  dmg: 16, r: 0.26 },
+  // the Sniper's dmg is per round, not per second: it never touches what it hits (see SNIPE)
+  sniper:      { hp: 45, spd: 0.7,  dmg: 13, r: 0.24 },
+  // the boss: dmg is per second, to everything under it. hp grows from wave 1 like the rest (≈2410 on wave 15).
+  // A pass over the Base is 6 tiles of contact (3 of Base + 3 of body length): 6 / 0.36 × 15 = 250 damage
+  megapanzer:  { hp: 900, spd: 0.36, dmg: 15, r: 1 },
+  // wave 30's boss: it never walks, it tunnels. It only takes damage while it's up (≈6720 on wave 30)
+  borer:       { hp: 1500, spd: 0, dmg: 0, r: 1 },
 };
-// The Borer: wave 20, then every 10 (the Megapanzer sits those waves out). A mechanical earthworm.
+/* The Sniper (wave 15 on): the Infiltrator's spotter. It hunts servers (anything you've built, once there are
+   none), but it never walks in. It picks a perch out in the void, `edge` tiles clear of your light and within
+   `range` of the target, settles there, and shoots: a red laser paints the target for `aim` s, then the round
+   lands, one every `every` s. Your guns only fire into your light, so to reach it you push light out over its
+   perch (a Railgun's slug runs on into the void too). Lit, it gives up the perch and slinks off to a fresh one;
+   with no dark left in range of anything it walks into range and shoots from the light. It looks again every
+   `look` s. It walks (it's half Drone), so it steps round the Borer's holes on its way. */
+const SNIPE = { from: 15, range: 4.6, every: 3.2, aim: 0.9, edge: 0.5, look: 1.2, settle: 1.4 };
+// A boss wave is the boss alone: no bots ride in with it, so it carries the whole wave's weight in its own health.
+// From BOSS_PAIR on, a boss wave sends two (the Megapanzer's first pair is wave 35, the Borer's 40), each at
+// BOSS_PAIR_HP of a lone one's health, so a pair is half again the health, split across two fronts.
+// The second of a pair comes in a beat behind the first: Megapanzers MEGA_PAIR_GAP apart on opposite lanes,
+// Borers BORER_PAIR_GAP apart, about half a bite's cycle, so one is usually up while the other's below.
+const BOSS_PAIR = 35, BOSS_PAIR_HP = 0.75, MEGA_PAIR_GAP = 4, BORER_PAIR_GAP = 6;
+const bossCount = w => w >= BOSS_PAIR ? 2 : 1;
+// a boss's health on wave w: 12% a wave from wave 1, like the rest, and a pair's share when it comes in two
+const bossHp = (type, w) => DRONE[type].hp * (1 + (w - 1) * 0.12) * (bossCount(w) > 1 ? BOSS_PAIR_HP : 1);
+// The Borer: wave 30, then every 10 (the Megapanzer sits those waves out). A mechanical earthworm.
 // It tunnels in from the edge under a trail of heaving ground, lurks under a chunk of the board while
 // the chunk flashes red (scrap what's there for a full refund), then surfaces and swallows it whole:
 // everything on it goes, and the tiles are left a hole you can't build on. It stays up, rearing over
 // the hole, for BORER_UP seconds, spits a brood of Runners, dives,
 // and goes for the next chunk. Three bites. Kill it for the bounty; if it lives through all three it
-// goes deep and the next one comes back carrying its wounds. Each hole cracks open a Lithium seam beside it.
-const BORER_FROM = 20, BORER_EVERY = 10, BORER_BITES = 3, BORER_BITE = 1.4, BORER_WARN = 4, BORER_LURK = 1.5,
+// goes deep and the next one comes back carrying its wounds (S.scars, one per Borer that got away).
+// Each hole cracks open a Lithium seam beside it.
+const BORER_FROM = 30, BORER_EVERY = 10, BORER_BITES = 3, BORER_BITE = 1.4, BORER_WARN = 4, BORER_LURK = 1.5,
   BORER_UP = 7, BORER_RISE = 0.45, BORER_DIVE = 0.55, BORER_CLEAR = 4.3, BORER_SEEN = 1.2, BORER_BOUNTY = 8,
   BORER_SEAM = 30, BORER_BROOD = [2, 3, 4], BORER_SCALE = 1.3, BORER_SINK = Math.round(64 * BORER_SCALE),
   BORER_FRAMES = 6, BORER_FPS = 6, BORER_TELL = 0.9;   // its loop: six frames, played in a second. It shudders for BORER_TELL before it dives
 const borerWave = w => w >= BORER_FROM && (w - BORER_FROM) % BORER_EVERY === 0;
-// The Megapanzer: wave 10, then every 5, except the Borer's waves. It doesn't hunt. It takes a random two-row lane and rolls
-// the length of it along one grid axis, crushing whatever its body covers: 2 tiles across, 3 long.
-const MEGA_FROM = 10, MEGA_EVERY = 5, MEGA_ROWS = 2, MEGA_HALF = MEGA_ROWS / 2, MEGA_LONG = 1.5,
+// The Megapanzer: wave 15, then every 10 (25, 35…), so it never meets the Borer's waves (30, 40…). It doesn't hunt.
+// It takes a random two-row lane and rolls the length of it along one grid axis, crushing whatever its body covers:
+// 2 tiles across, 3 long.
+const MEGA_FROM = 15, MEGA_EVERY = 10, MEGA_ROWS = 2, MEGA_HALF = MEGA_ROWS / 2, MEGA_LONG = 1.5,
   MEGA_WARN = 3, MEGA_BLAST = 30, MEGA_BURST = 2.6, MEGA_BOUNTY = 3;
 const megaWave = w => w >= MEGA_FROM && (w - MEGA_FROM) % MEGA_EVERY === 0 && !borerWave(w);
 // Themed waves: now and then a wave leans hard on one kind of bot instead of the usual mix.
@@ -677,14 +741,17 @@ const THEMES = {
   push:   { name: 'Panzer push',      from: 5, mix: { panzer: 0.55, runner: 0.1 },      n: 0.6, gap: 1.5 },
   raid:   { name: 'Infiltrator raid', from: 8, mix: { infiltrator: 0.6, runner: 0.15 }, n: 0.7, gap: 1.1 },
 };
-// The cadence: a boss every 5 waves from 10. Each stretch between bosses gets one themed wave, never next to
-// a boss or another theme: a mixed wave to rebuild after the boss, the theme on the 2nd or 3rd wave of the
-// stretch (alternating), then mixed waves building to the next boss. Before the first boss: waves 5 and 7.
+// The cadence: Megapanzers on 15 and 25, then a boss every 5 waves from 25 (Borers on the tens, Megapanzers on the
+// fives), alone until the pairs start (BOSS_PAIR). Wave 20 is an ordinary wave. The waves run in STRETCHes of 5 from
+// THEME_FROM (10), each starting on a boss wave where there is one. Each stretch gets one themed wave, never next to
+// a boss or another theme: a mixed wave to open it (a rebuild after the boss), the theme on its 2nd or 3rd wave
+// (alternating), then mixed waves building to the next. Before wave 10: themes on 5 and 7, then 12.
+const THEME_FROM = 10, STRETCH = 5;
 const bossWave = w => megaWave(w) || borerWave(w);
 function themeWave(w) {
   if (bossWave(w)) return false;
-  if (w < MEGA_FROM) return w === 5 || w === 7;
-  const block = Math.floor((w - MEGA_FROM) / MEGA_EVERY), k = (w - MEGA_FROM) % MEGA_EVERY;
+  if (w < THEME_FROM) return w === 5 || w === 7;
+  const block = Math.floor((w - THEME_FROM) / STRETCH), k = (w - THEME_FROM) % STRETCH;
   return k === 2 + (block % 2);
 }
 function nextTheme(w) {
@@ -697,11 +764,14 @@ function nextTheme(w) {
   if (i < 0) return null;
   return S.lastTheme = S.themeBag.splice(i, 1)[0];
 }
-// how many bots a wave sends (before any theme scales it): 3 on wave 1, easing up to the full 4 + 2w by wave 5
-const EARLY = [0, 3, 3, 2, 1];
-const waveCount = w => 4 + w * 2 - (EARLY[w] || 0) + Math.floor(dataLevel() * 0.8);
+// how many bots a wave sends (before any theme scales it): 3 on wave 1, easing up to WAVE_SIZE of 4 + 2w by wave 5,
+// and DATA_BOTS more for each point of Data. Fewer bots than there were, each tougher and harder-hitting (see DRONE),
+// spawned further apart (SPAWN_GAP), so a wave takes as long and the board isn't buried in bots
+const EARLY = [0, 3, 3, 2, 1], WAVE_SIZE = 0.6, DATA_BOTS = 0.4, SPAWN_GAP = 1 / WAVE_SIZE;
+const waveCount = w => Math.max(3, Math.round((4 + w * 2 - (EARLY[w] || 0)) * WAVE_SIZE)) + Math.floor(dataLevel() * DATA_BOTS);
 const CELL = 0.25; // the unlit field's fine diamond, in tiles (8 × 4 px); the far field is twice this (16 × 8)
 const CALM = 28, TURRET_RANGE = 4.2, MISSILE_RANGE = 5.2, SPLASH = 1.6, BURST = 2.2, REFINE_RATE = 1 / 8;
+const PANZER_BLAST = 35;   // to everything in BURST (was 22)
 
 // clearing a wave pays 2 Li, +1 for every 3 waves held, capped at 6 (wave 12 on)
 const waveBonus = w => Math.min(6, 2 + Math.floor(w / 3));
@@ -1354,16 +1424,262 @@ const ionHead = (u, v, z) => {
   if (Math.hypot(du, v) < 7 && Math.abs(du) < 3.2 && z >= 5 && z < 7) return z >= 6.5 ? 'steel+' : 'steel-';
 };
 
+/* —— the Warden: a walker that patrols a small ring round its dock ——
+   Two parts, like a turret: legs that walk (16 headings, a six-frame stride plus standing and kneeling)
+   and an upper body on a waist that turns on its own to aim (32 headings, like the turret heads). It
+   faces +u in its own frame. It has no head: a hunched hull between two high shoulders, the visor a
+   chevron slit cut across its prow, on reverse-jointed legs with clawed feet. Graphite plate, and your
+   purple in its visor, flank bands, knee lights, reactor core, jets and the warheads in its pod. The near
+   arm (−v) carries the burst cannon, the far shoulder (+v) the pod. Every part is at least a unit across,
+   and slopes are broad steps, not single-unit stairs, so nothing turns to speckle at one pixel a unit. */
+const MECH_HIP = 13, MECH_LV = 2.7, MECH_THIGH = 6.6, MECH_SHIN = 6.6, MECH_STEP = 2.8, MECH_LEG_DIRS = 16;
+// each pose: the hip's height and each foot's [reach along u, lift]; 0–5 the stride, 6 standing, 7 kneeling.
+// A stride carries the stance foot back 4 × MECH_STEP units (MECH.stride tiles, near enough), so the legs
+// keep pace with the ground and never skate
+const MECH_POSE = [...Array(6)].map((_, f) => {
+  const a = f / 6 * Math.PI * 2, foot = b => [MECH_STEP * Math.cos(b), Math.max(0, -Math.sin(b)) * 2.2];
+  return { hip: MECH_HIP + Math.round((1 - Math.cos(2 * a)) / 2), feet: [foot(a), foot(a + Math.PI)] };
+});
+MECH_POSE.push({ hip: MECH_HIP + 1, feet: [[0.6, 0], [-0.6, 0]] }, { hip: MECH_HIP - 4, feet: [[2.2, 0], [-1.6, 0]] });
+// how far the upper body rides up (the stride's bob, standing tall) or down (kneeling) in each pose, in pixels
+const MECH_STAND = 6, MECH_KNEEL = 7, MECH_LIFT = MECH_POSE.map(p => p.hip - MECH_HIP);
+// distance from (u, z) to the segment a–b, in the u–z plane
+const segD = (u, z, au, az, bu, bz) => {
+  const du = bu - au, dz = bz - az, k = Math.max(0, Math.min(1, ((u - au) * du + (z - az) * dz) / (du * du + dz * dz || 1)));
+  return Math.hypot(u - au - du * k, z - az - dz * k);
+};
+// (up: the Arbiter's, a spur behind each knee and a lit strip down each thigh)
+function mechLegModel(f, up = false) {
+  const P = MECH_POSE[f];
+  // two-bone legs, reverse-jointed: the knee found from hip and ankle, always bending back, so it stalks
+  const legs = P.feet.map(([fu, lift], i) => {
+    const hz = P.hip - 0.5, az = 2.4 + lift, du = fu, dz = az - hz, l = Math.hypot(du, dz), d = Math.min(l, MECH_THIGH + MECH_SHIN - 0.05);
+    const eu = du / l, ez = dz / l, a = (MECH_THIGH ** 2 - MECH_SHIN ** 2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, MECH_THIGH ** 2 - a * a));
+    return { side: i ? -1 : 1, hz, fu, az, lift, ku: eu * a + ez * h, kz: hz + ez * a - eu * h };
+  });
+  return (u, v, z) => {
+    for (const L of legs) {
+      const sv = v - L.side * MECH_LV, lv = Math.abs(sv), fz = z - L.lift, fu = u - L.fu;
+      if (lv > 1.8) continue;
+      // the foot: a flat plate split into three claws out front, a heel spur raked back behind
+      if (fz >= 0 && fz < 1) {
+        if (fu >= -1.5 && fu < 3.6 && lv < 1.5) return fu >= 1.5 && lv >= 0.5 && lv < 1 ? undefined : fu >= 2.6 ? 'steel-' : 'steel';
+        if (fu >= -2.8 && fu < -1.5 && lv < 0.6) return 'steel-';
+      }
+      if (fz >= 1 && fz < 2 && fu >= -1.2 && fu < 1.2 && lv < 1.2) return 'steel+';                         // the ankle
+      // the knee: a round joint thrust out behind, one purple light on its flank
+      const kd = Math.hypot(u - L.ku + 0.4, z - L.kz);
+      if (kd < 1.6 && lv < 1.6) return lv >= 1.1 && kd < 0.6 ? 'gold' : 'steel~';
+      if (up && segD(u, z, L.ku - 1, L.kz, L.ku - 3.4, L.kz + 1.6) < 0.7 && lv < 0.6) return 'steel+';   // the spur
+      // the shin: a plain strut a step darker than the thigh, so the bend reads
+      if (segD(u, z, L.ku, L.kz, L.fu, L.az) < 1 && lv < 1) return 'steel-';
+      // the thigh: a heavy plate, wider than the shin
+      if (segD(u, z, 0, L.hz, L.ku, L.kz) < 1.6 && lv < 1.6) return up && lv >= 1.1 && segD(u, z, 0, L.hz, L.ku, L.kz) < 0.5 ? 'gold@1' : 'steel';
+    }
+    // the hip actuators, a drum outboard of each leg
+    for (const s of [-1, 1]) if (Math.abs(v - s * (MECH_LV + 1.5)) < 0.5 && Math.hypot(u, z - P.hip + 0.5) < 1.4) return 'steel~+';
+    // the pelvis: a low armoured block, a purple band across its front
+    if (inBox(u, v, z, -2.2, 2.2, -3.6, 3.6, P.hip - 1, P.hip + 1)) return z >= P.hip + 0.5 ? 'steel+' : u >= 1.7 && Math.abs(v) < 2 ? 'gold@1' : 'steel-';
+  };
+}
+// the upper body, modelled at its height on a walker mid-stride (waist at MZ), and drawn raised or lowered with the pose.
+// Where its parts are, in its own frame, for the effects: the muzzle, the pod's face, the visor, the jets
+// No head: the hull is the body, hunched between shoulders that stand higher than it, and the visor is a
+// sensor slit cut across its prow
+const MZ = MECH_HIP + 1, MECH_MUZZLE = [11.6, -5.4, MZ + 2.6], MECH_POD = [3.2, 5.4, MZ + 10.2], MECH_VISOR = [4.9, 0, MZ + 5], MECH_JET = [-4.6, 1.5, MZ + 0.5];
+// the hull's prow, how far forward it runs at height y: a jaw under it, the visor's brow jutting furthest, then
+// one broad step back to the carapace (a stair of single units would read as a slope, and break up into speckle)
+const mechFront = y => y < 3 ? 3.5 : y < 6.5 ? 5 : 2.5;
+const mechTorso = (u, v, z) => {
+  const av = Math.abs(v), y = z - MZ;
+  // the burst cannon slung under the near shoulder (−v): a long housing, a barrel banded with cooling rings,
+  // a heavy muzzle brake with a dark bore. Rings and brake are a step darker than the housing, so the gun
+  // still reads when it points straight at you
+  {
+    const gr = Math.hypot(v + 5.4, y - 2.6);
+    if (u >= 10.4 && u < 12 && gr < 1.4) return gr < 0.6 ? 'soot' : u >= 11.4 ? 'steel~' : 'steel~+';
+    if (u >= 5.5 && u < 10.4 && gr < 1) return mod(u - 5.5, 1.6) < 0.8 ? 'steel~-' : 'glass~+';
+    if (inBox(u, v, y, -2, 5.5, -7, -3.8, 0.8, 4.4)) {
+      if (y >= 4) return 'steel+';
+      if (v < -6.5 && y >= 2 && y < 3) return u >= 3.5 ? 'gold' : u < 2.5 ? 'gold@1' : 'steel-';   // a purple running light down its flank
+      return u >= 5 ? 'steel-' : 'steel';
+    }
+  }
+  // the off arm (+v): a short armoured forearm, a dark grip
+  if (inBox(u, v, y, -1, 3.5, 3.8, 6.4, 1, 3.8)) return y >= 3.3 ? 'steel+' : u >= 3 ? 'steel-' : 'steel';
+  // the missile pod, built into the far shoulder: a long low box, four warheads in its face, lit while loaded
+  if (inBox(u, v, y, -3.5, 3, 3.4, 7.4, 8.5, 12)) {
+    if (u >= 2 && av >= 3.9 && av < 6.9 && y >= 9 && y < 11.5) {
+      if (mod(v - 3.9, 1.5) < 1 && mod(y - 9, 1.5) < 1) return u >= 2.5 ? 'war' : undefined;
+      return u >= 2.5 ? 'steel-' : 'steel';
+    }
+    if (y >= 11.5) return u >= 2.5 ? 'steel' : 'steel+';
+    if (u < -3 && mod(y, 1) < 0.5) return 'steel-';
+    return av >= 7 ? 'steel-' : 'steel';
+  }
+  // the shoulders: two high armoured masses, flat-topped, stepped back at the front, the near one carrying a purple strip
+  if (av >= 3.2 && av < 7.2 && y >= 5 && y < 10) {
+    const fr = y < 8 ? 2.6 : 1.6;
+    if (u >= -3 && u < fr) {
+      if (y >= 9.5) return 'steel+';
+      if (av >= 6.7 && y < 6) return 'steel-';
+      if (v < 0 && av >= 6.7 && y >= 7.5 && y < 8.5) return u >= 0 ? 'gold' : 'gold@1';
+      if (u >= fr - 0.5 && y < 7) return 'steel-';
+      return 'steel';
+    }
+  }
+  // the upper arms, hung under the shoulders
+  if (av >= 4 && av < 6.4 && Math.abs(u) < 1.3 && y >= 3.5 && y < 5.5) return 'wire';
+  // the hull: a hunched wedge, the carapace sloping down to the prow, a dark ridge seam down its spine.
+  // Across the prow a sensor slit, a shallow chevron of purple in a dark recess: the visor
+  const top = 8.5, front = mechFront(y), hw = y < 3 ? 2.6 : 3.4;
+  if (u >= -3.5 && u < front && av < hw && y >= 1.5 && y < top) {
+    if (u >= front - 0.6) {
+      const sy = 4.5 + Math.floor(av / 1.2) * 0.5;
+      if (y >= sy && y < sy + 1 && av < 2.6) return 'gold@4';
+      if (y >= sy - 0.5 && y < sy + 1.5 && av < 3) return 'soot';
+      if (y < 3 && mod(v, 1.4) < 0.7) return 'steel-';                                       // the jaw's grille
+    }
+    if (y >= top - 0.5) return av < 0.5 ? 'steel' : 'steel+';
+    if (av >= hw - 0.5 && y >= 3 && y < 3.5) return 'gold@1';                                  // a dim purple band down each flank
+    if (av >= hw - 0.5 && u >= -0.5 && u < 0) return 'steel-';
+    return 'steel';
+  }
+  if (u >= -3 && u < 1.5 && av < 0.6 && y >= top && y < top + 1) return 'steel+';              // the dorsal ridge
+  if (Math.hypot(u, v) < 2.4 && y >= 0 && y < 1.5) return 'steel-';                          // the waist
+  // the back: a reactor pack, its rear face in vertical heat fins with a purple core glowing between them,
+  // and two jets under it
+  if (inBox(u, v, y, -6, -3.5, -2.8, 2.8, 2, 8)) {
+    if (u < -5.5) return mod(v + 2.8, 1.4) < 0.7 ? 'steel' : y >= 4 && y < 6 && av < 2 ? 'gold@1' : 'soot';
+    return y >= 7.5 ? 'steel+' : 'steel';
+  }
+  for (const s of [-1, 1]) if (Math.hypot(v - s * 1.5, u + 4.6) < 1 && y >= 0.5 && y < 2) return y < 1 ? 'gold' : 'wire';
+};
+// the dock: a low chamfered hardstand (it's drawn under everything that stands, so it stays low). A tread-plate
+// rim round a recessed cradle; in the cradle a lock clamp at each foot and four purple lock lights; a charging
+// pylon at each side corner, its cap lit while it's wired in
+const dockModel = (u, v, z) => {
+  const au = Math.abs(u), av = Math.abs(v), r = Math.hypot(u, v), c = au + av;
+  if (au >= 7 || av >= 7 || c >= 12.5) return;
+  if (z < 1) return c >= 11.5 ? 'slab-' : 'slab';
+  // the pylons, out on the side corners: a steel post, a lit cap
+  if (Math.abs(u - v) > 8 && Math.abs(u + v) < 2) return z < 4 ? (z >= 3.5 ? 'steel+' : z >= 2 && z < 2.5 ? 'steel-' : 'steel') : z < 5 && Math.abs(u + v) < 1.2 ? 'gold' : undefined;
+  if (z >= 2) return;
+  // the rim: a raised lip round its edge, a dim purple chevron at each end, front and back
+  if (c >= 9 || au >= 5.6 || av >= 5.6) {
+    if (c >= 11.5 || au >= 6.5 || av >= 6.5) return 'slab+';
+    if (Math.abs(u - v) < 2.4 && mod(Math.floor(Math.abs(u + v)), 2)) return 'gold@1';
+    return 'slab';
+  }
+  // the cradle: a steel collar with a purple lock light at each quarter, round a dark well, a lock plate in the middle
+  if (r >= 3.2) return au < 1 || av < 1 ? 'gold@2' : r >= 4.6 ? 'slab-' : 'steel-';
+  if (r < 1.6) return 'steel';
+};
+
+/* —— the Arbiter: the Warden upgraded ——
+   The same walker made heavier and meaner. Its pod is gone: on the far shoulder (+v) sits an EMP mortar,
+   a fat tube raked up at 40° out of a revolving drum, four lit charges in the drum's outer face and one
+   sitting in the muzzle, all dark once a round's away. A raked armour fin rises off the near shoulder over
+   the cannon, a row of heat spines runs down its back, its jaw grille glows, and purple runs down its
+   flanks and round the cannon's barrel. Its legs carry a spur behind each knee and a lit strip down each
+   thigh. Its dock is the Warden's with a charged coil round the cradle and taller lit pylons. */
+const ARB_E = Math.PI / 6, ARB_C = Math.cos(ARB_E), ARB_S = Math.sin(ARB_E), ARB_PU = -0.5, ARB_PY = 11.2, ARB_V = 5.4, ARB_LEN = 8;
+// where its round leaves: the mouth of the tube, in the upper body's frame
+const ARB_MOUTH = [ARB_PU + ARB_C * ARB_LEN, ARB_V, MZ + ARB_PY + ARB_S * ARB_LEN];
+const arbTorso = (u, v, z) => {
+  const av = Math.abs(v), y = z - MZ;
+  // the mortar tube: a runs out along it, b up off its axis
+  {
+    const du = u - ARB_PU, dy = y - ARB_PY, a = du * ARB_C + dy * ARB_S, b = -du * ARB_S + dy * ARB_C, r = Math.hypot(b, v - ARB_V);
+    if (a >= 1 && a < ARB_LEN && r < 1.6) {
+      if (a >= ARB_LEN - 1.4) return r < 0.9 ? (a < ARB_LEN - 0.8 ? 'war' : 'soot') : 'steel-';    // the muzzle brake, a charge sat in the bore
+      if (Math.abs(a - 4.4) < 0.5) return 'gold@1';                                                // a lit band round the tube
+      return b >= 0.8 ? 'steel+' : 'steel';
+    }
+  }
+  // the drum: a squat cylinder across the shoulder, four lit charges round its outer face
+  {
+    const r = Math.hypot(u - ARB_PU + 0.5, y - ARB_PY);
+    if (v >= 3.6 && v < 7.2 && r < 2.5) {
+      if (v >= 6.7) {
+        for (const k of [0, 1, 2, 3]) { const t = Math.PI / 4 + k * Math.PI / 2; if (Math.hypot(u - ARB_PU + 0.5 - Math.cos(t) * 1.4, y - ARB_PY - Math.sin(t) * 1.4) < 0.7) return 'war'; }
+        return 'steel-';
+      }
+      return y >= ARB_PY + 1.5 ? 'steel+' : 'steel';
+    }
+  }
+  // the cradle the drum turns on, low on the shoulder top
+  if (inBox(u, v, y, -3.2, 2.2, 3.6, 7.2, 10, 10.5)) return 'steel-';
+  // the raked fin off the near shoulder: three broad steps up and back, its leading edge lit
+  if (v < 0 && av >= 4.6 && av < 6.2) {
+    const back = y < 11.5 ? 1.4 : y < 13 ? -0.6 : y < 14.5 ? -2.4 : -9;
+    if (y >= 10 && u >= -3.6 && u < back) return u >= back - 0.6 ? 'gold@1' : av >= 5.6 ? 'steel-' : 'steel+';
+  }
+  // the heat spines down its back, three blades over the reactor
+  if (av < 0.6 && y >= 8 && y < 10.5) for (const s of [-3.6, -4.8, -6]) if (u >= s - 0.5 && u < s + 0.5 && y < 10.5 - (s + 3.6) * -0.6) return y >= 9.5 ? 'steel+' : 'steel';
+  // the pod's box is the mortar's now: leave it open
+  if (inBox(u, v, y, -3.5, 3, 3.4, 7.4, 8.5, 12)) return;
+  const m = mechTorso(u, v, z);
+  if (!m) return;
+  // the jaw's grille lit from inside, a purple band down the outside of each shoulder, a lit coil on the barrel
+  if (m === 'steel-' && y >= 1.5 && y < 3 && u >= 2.9 && u < 3.5) return 'gold@2';
+  if (m === 'steel' && av >= 6.7 && y >= 6 && y < 7) return 'gold@1';
+  if (m === 'glass~+' && Math.abs(u - 8) < 0.8) return 'gold~@1';
+  return m;
+};
+const arbDockModel = (u, v, z) => {
+  const au = Math.abs(u), av = Math.abs(v), r = Math.hypot(u, v);
+  // the pylons stand a step taller, a lit coil round each
+  if (Math.abs(u - v) > 8 && Math.abs(u + v) < 2 && z >= 2 && z < 6) return z >= 5 ? (Math.abs(u + v) < 1.2 ? 'gold' : undefined) : z >= 4 ? 'steel+' : z >= 3 && z < 3.5 ? 'gold@2' : 'steel';
+  const m = dockModel(u, v, z);
+  // the cradle's collar charged: its lock lights bright, a dashed coil lit between them
+  if (m === 'gold@2') return 'gold';
+  if (m === 'slab-' && z >= 1 && r >= 4.6 && mod(Math.atan2(v, u) * 6 / Math.PI, 1) < 0.5) return 'gold@1';
+  if (m === 'gold@1' && z >= 1 && (au >= 5.6 || av >= 5.6 || au + av >= 9)) return 'gold@2';
+  return m;
+};
+
 const HEAD_DIRS = 32, headCache = new Map(), HEAD_VOX = {};
 // each head's [model, R, Z], voxelized at half size so a turning head keeps its detail
-const HEADS = { turret: [turretHead, 13, 18], missile: [missileHead, 12, 20], missileOut: [missileOutHead, 12, 20], rail: [railHead, 13, 18], ion: [ionHead, 12, 20] };
+const HEADS = { turret: [turretHead, 13, 18], missile: [missileHead, 12, 20], missileOut: [missileOutHead, 12, 20], rail: [railHead, 13, 18], ion: [ionHead, 12, 20], mech: [mechTorso, 11, 30], arbiter: [arbTorso, 12, 34] };
 const headVox = kind => HEAD_VOX[kind] || (HEAD_VOX[kind] = voxelize(HEADS[kind][0], HEADS[kind][1], HEADS[kind][2], 0.5));
 // aim is a ground angle (atan2 of dv, du); the head is rendered turned that way, 32 steps a turn
 function head(kind, aim, over, tag = '', s = 0) {
   const i = ((Math.round(aim / (Math.PI * 2) * HEAD_DIRS) % HEAD_DIRS) + HEAD_DIRS) % HEAD_DIRS, key = kind + i + tag;
   let c = headCache.get(key);
-  if (!c) { c = paint(trace(headVox(kind), i / HEAD_DIRS * Math.PI * 2), over); headCache.set(key, c); }
+  if (!c) {
+    const bake = () => headCache.get(key) || (headCache.set(key, paint(trace(headVox(kind), i / HEAD_DIRS * Math.PI * 2), over)), headCache.get(key));
+    // not baked yet: in play the nearest heading that is stands in for a frame or two while this one bakes
+    // in the background (a head turning onto it mid-fight never stalls a frame). With none to stand in, it bakes now
+    for (let d = 1; d <= HEAD_DIRS / 2 && !c; d++) c = headCache.get(kind + (i + d) % HEAD_DIRS + tag) || headCache.get(kind + (i - d + HEAD_DIRS) % HEAD_DIRS + tag);
+    if (c && started) need('head|' + key, bake); else c = bake();
+  }
   return s ? dmg(c, s, wreckJob('head' + kind, headVox(kind), s, over, i + tag, i / HEAD_DIRS * Math.PI * 2)) : c;
+}
+// the Warden's legs in pose f, walking toward ground angle a (16 headings), voxelized the first time they're asked for
+// (up: the Arbiter's)
+const MECH_LEG_VOX = [], legCache = new Map();
+const legVox = (f, up) => { const k = f + (up ? 8 : 0); return MECH_LEG_VOX[k] || (MECH_LEG_VOX[k] = voxelize(mechLegModel(f, up), 8, 16, 0.5)); };
+function mechLegs(f, a, on, s = 0, up = false) {
+  const i = ((Math.round(a / (Math.PI * 2) * MECH_LEG_DIRS) % MECH_LEG_DIRS) + MECH_LEG_DIRS) % MECH_LEG_DIRS, ang = i / MECH_LEG_DIRS * Math.PI * 2;
+  const at = j => (f + (up ? 8 : 0)) * 64 + j * 2 + (on ? 1 : 0), key = at(i);
+  let c = legCache.get(key);
+  if (!c) {
+    // as for a head: the nearest heading already baked stands in while this one bakes in the background
+    const bake = () => legCache.get(key) || (legCache.set(key, paint(trace(legVox(f, up), ang), on ? null : OFF)), legCache.get(key));
+    for (let d = 1; d <= MECH_LEG_DIRS / 2 && !c; d++) c = legCache.get(at((i + d) % MECH_LEG_DIRS)) || legCache.get(at((i - d + MECH_LEG_DIRS) % MECH_LEG_DIRS));
+    if (c && started) need('legs|' + key, bake); else c = bake();
+  }
+  return s ? dmg(c, s, wreckJob('headmlegs', legVox(f, up), s, on ? null : OFF, key, ang)) : c;
+}
+// a sprite stood k pixels higher (or lower, k < 0) on its ground point: the Warden's upper body riding its pose.
+// The same pixels and lights, made once per sprite and height
+function raised(img, k) {
+  if (!k) return img;
+  const key = 'up' + k; if (img[key]) return img[key];
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; c.getContext('2d').drawImage(img, 0, 0);
+  c.ax = img.ax; c.ay = img.ay + k; c.top = img.top; c.em = img.em; c.mask = img.mask;
+  return (img[key] = c);
 }
 
 /* —— pools: a Lithium seep with crystal shards; glints run across it —— */
@@ -1499,6 +1815,31 @@ const DRONE_ART = {
     if (f && Math.abs(u + 4) < 0.8 && Math.abs(v) < 1.6 && z >= 5 && z < 6) return 'eye@2';
   } },
 
+  // the Drone and the Infiltrator's child: the Drone's frame, two stepping legs, a box body and a box head, grown
+  // only to a crouch and cast in the Infiltrator's near black, wearing the Infiltrator's swept wedge as a mantle
+  // over its shoulders. Its visor is the Infiltrator's red slit, and the Infiltrator's thruster is a vent on its
+  // back that catches on the beat. A long rifle runs out of its chest, with a muzzle brake at the tip
+  sniper: { R: 8, Z: 12, m: f => (u, v, z) => {
+    if (u < -5 || u >= 8) return;
+    const av = Math.abs(v), st = f ? 1.1 : -1.1;
+    // the legs: the Drone's, shorter, set wide for the crouch
+    if (z < 5 && (Math.hypot(u - st, v - 1.8) < 1 || Math.hypot(u + st, v + 1.8) < 1)) return z < 1 ? 'shade-' : 'shade';
+    // the rifle: a barrel two units square out of the chest, the brake a step wider at the tip
+    if (u >= 2 && z >= 5 && z < 7 && av < 1) return u >= 6 ? 'shade+' : 'shade';
+    if (u >= 6 && u < 7.5 && z >= 4 && z < 8 && av < 1.5 && !(z >= 5 && z < 7 && av < 1)) return 'shade-';
+    // the body: the Drone's box, cut down
+    if (Math.abs(u) < 2 && av < 2.4 && z >= 4 && z < 7) return 'shade-';
+    // the mantle: the Infiltrator's wedge, its point forward, swept back wide over the shoulders
+    if (u >= -5 && u < 3 && z >= 7 && z < 8 && av < (3 - u) * 0.7) return u < -4 || av >= (3 - u) * 0.7 - 1 ? 'shade' : 'shade+';
+    // the head: the Drone's box, with the Infiltrator's slit burning across its front
+    if (u >= -1.5 && u < 2.5 && av < 1.8 && z >= 8 && z < 11) {
+      if (u >= 1.5 && av < 1.4 && z >= 9 && z < 10) return 'eye@3';
+      return z >= 10 ? 'shade+' : 'shade';
+    }
+    // the thruster, a vent on its back, lit on one beat of the two
+    if (f && u >= -3 && u < -2 && av < 1.2 && z >= 5 && z < 6.5) return 'eye@2';
+  } },
+
   // the boss: a two-row siege crawler, 2 tiles across and 3 long, modelled at building resolution (h = 1).
   // One tread under each row it crushes and one red optic over each tread, a toothed crusher drum
   // across the whole front, a slate command block between two armoured ridges, and the panzer's core
@@ -1556,7 +1897,7 @@ const DRONE_ART = {
     }
   } },
 
-  // wave 20's boss, the Borer: a mechanical earthworm rearing out of its hole, at building resolution, in a
+  // wave 30's boss, the Borer: a mechanical earthworm rearing out of its hole, at building resolution, in a
   // loop of BORER_FRAMES frames. Brushed silver ring segments, each with a raised lip behind a dark joint; a
   // slate saddle band whose joints burn red; four rows of bristle hooks with bright tips; an optic down each
   // flank on every other segment. A head shaped like a flared bell: four hooked silver petals on the
@@ -1565,7 +1906,7 @@ const DRONE_ART = {
   // splay open and curl shut, and the gullet flares as they open; a light runs round the crown; the inner
   // two rings of teeth grind against each other; a swallow runs down the body, a bulge in the rings with
   // its joints and optics lighting red as it passes; and the bristles ripple up against it.
-  // It faces +u; its ground point is where the body leaves the ground. Baked lazily: it isn't needed until wave 20
+  // It faces +u; its ground point is where the body leaves the ground. Baked lazily: it isn't needed until wave 30
   // drawn at BORER_SCALE: the model is sampled shrunk, so every feature grows with it and stays ≥ 1 unit.
   // R and Z stay whole numbers: trace sizes its pixel buffers from them
   borer: { R: Math.round(24 * BORER_SCALE), Z: Math.round(58 * BORER_SCALE), h: 1, lazy: true, frames: BORER_FRAMES, dirs: [0, 1, 2], m: f => {
@@ -1672,7 +2013,7 @@ function spineAt(SP, u, z) {
   }
   return best;
 }
-const SHADOW_R = { walker: 0.34, runner: 0.32, panzer: 0.5, infiltrator: 0.3, megapanzer: 1.45, borer: 1.05 * BORER_SCALE };
+const SHADOW_R = { walker: 0.34, runner: 0.32, panzer: 0.5, infiltrator: 0.3, sniper: 0.3, megapanzer: 1.45, borer: 1.05 * BORER_SCALE };
 
 /* —— overlays: the target tile, exactly one ground tile (the same partition as the ground) —— */
 function tileMark(edge, fill, dash) {
@@ -1715,6 +2056,8 @@ const VOX = {
   ionBase: voxelize(ionBaseModel, 8, 8),
   auger: Array.from({ length: AUGER_FRAMES }, (_, f) => voxelize(augerModel(f), AUGER_R, AUGER_Z)),
   augerIcon: voxelize(augerIconModel(augerModel(0)), 8, AUGER_Z / 2),
+  dock: voxelize(dockModel, 8, 5),
+  arbDock: voxelize(arbDockModel, 8, 6),
 };
 const SPR = {
   base: VOX.base.map(v => paint(trace(v))),
@@ -1727,6 +2070,8 @@ const SPR = {
   railBase: onoff(VOX.railBase),
   ionBase: onoff(VOX.ionBase),
   auger: VOX.auger.map(onoff),
+  dock: onoff(VOX.dock),
+  arbDock: onoff(VOX.arbDock),
   pool: Array.from({ length: POOL_FRAMES }, (_, f) => render(poolModel(f), 11, 8, null, { outline: false, post: sparkle(f) })),
   // drawn at 4/3 scale: the patch spans 4 × 4 tiles round the Auger's 2 × 2 bore
   well: Array.from({ length: WELL_LOOKS }, (_, k) => Array.from({ length: WELL_FRAMES }, (_, f) => render((m => (u, v, z) => m(u * 0.75, v * 0.75, z))(wellModel(k, f)), 32, 2, null, { outline: false }))),
@@ -1816,7 +2161,12 @@ function wreckVox(vx, kind, s) {
 
 // Sprites that aren't needed at boot bake a few at a time between frames, mostly while the menu is up.
 // Anything asked for before it's ready draws intact for a frame or two.
-const BAKE = [], BAKED = new Map(), QUEUED = new Set();
+// A bake can't be cut short once it starts, so one only starts when the time left looks like it fits: JOB is a
+// running guess at what one costs. In play a frame bakes only in the headroom the sim and the draw left it,
+// and when there's never any (a slow phone, a covered board) one still goes every STARVE frames, so the
+// queue keeps moving without every frame paying for it
+const BAKE = [], BAKED = new Map(), QUEUED = new Set(), STARVE = 12;
+let JOB = 4, starved = 0;
 function need(key, fn) {
   const c = BAKED.get(key); if (c) return c;
   if (!QUEUED.has(key)) { QUEUED.add(key); BAKE.unshift([key, fn]); }
@@ -1824,8 +2174,16 @@ function need(key, fn) {
 }
 function later(key, fn) { if (!QUEUED.has(key)) { QUEUED.add(key); BAKE.push([key, fn]); } }
 function bakeSome(ms) {
+  if (!BAKE.length) return;
   const t0 = performance.now();
-  while (BAKE.length && performance.now() - t0 < ms) { const [k, fn] = BAKE.shift(); BAKED.set(k, fn() || true); }
+  if (ms < JOB && ++starved < STARVE) return;
+  starved = 0;
+  for (let n = 0; BAKE.length; n++) {
+    const s = performance.now();
+    if (n && s - t0 + JOB > ms) break;
+    const [k, fn] = BAKE.shift(); BAKED.set(k, fn() || true);
+    JOB = JOB * 0.8 + (performance.now() - s) * 0.2;
+  }
 }
 const wreckJob = (kind, vx, s, over, tag, angle = 0) => [`${kind}|${tag}|${s}`, () => paint(trace(wreckVox(vx, kind, s), angle), over)];
 const dmg = (intact, s, job) => s ? need(...job) || intact : intact;
@@ -1898,7 +2256,12 @@ function pitImg(keys) {
 const TOPS = {
   base: SPR.base[0].ay - SPR.base[0].top, lamp: SPR.lamp[1].ay - SPR.lamp[1].top, refinery: SPR.refinery[0][1].ay - SPR.refinery[0][1].top,
   turret: 14, missile: 18, auger: SPR.auger[0][1].ay - SPR.auger[0][1].top,
+  // the Warden standing tall; its dock (scrapped on its own, a step behind the walker) a low slab
+  mech: (() => { const t = head('mech', Math.PI * 0.375); return t.ay - t.top + MECH_LIFT[MECH_STAND]; })(), dock: 3,
+  arbiter: (() => { const t = head('arbiter', Math.PI * 0.375); return t.ay - t.top + MECH_LIFT[MECH_STAND]; })(),
 };
+// a building's height as it stands (an Arbiter's mortar stands over a Warden's shoulders)
+const topKey = b => b.type === 'mech' && b.up ? 'arbiter' : b.type, topOf = b => TOPS[topKey(b)];
 
 /* ART:END */
 
@@ -1911,6 +2274,9 @@ const ICON = {
   rail: stack(SPR.railBase[1], head('rail', Math.PI * 0.5)),
   ion: stack(SPR.ionBase[1], head('ion', Math.PI * 0.5)),
   auger: onoff(VOX.augerIcon)[1],
+  // the Warden stands on its dock, three-quarters on, so its visor and its cannon both show
+  mech: stack(SPR.dock[1], mechLegs(MECH_STAND, Math.PI * 0.375, true), raised(head('mech', Math.PI * 0.375), MECH_LIFT[MECH_STAND])),
+  arbiter: stack(SPR.arbDock[1], mechLegs(MECH_STAND, Math.PI * 0.375, true, 0, true), raised(head('arbiter', Math.PI * 0.375), MECH_LIFT[MECH_STAND])),
 };
 // pictures the DOM shows (the drag ghost) become a URL once each
 const ICON_URL = {}, iconURL = k => ICON_URL[k] || (ICON_URL[k] = ICON[k].toDataURL());
@@ -2058,7 +2424,7 @@ function fit() {
   const vw = cv.clientWidth, vh = cv.clientHeight;
   DPR = Math.min(2, window.devicePixelRatio || 1);
   const bw = Math.round(vw * DPR), bh = Math.round(vh * DPR);
-  for (const c of [cv, ground]) if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
+  if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
   const r = stage.getBoundingClientRect();
   VS = Math.min(r.width / W, r.height / H) || 1;
   // Centre on the open field the eye sees: from the stage's top to the top of the tallest pad piece.
@@ -2082,6 +2448,10 @@ function fitFx() {
   wake();
 }
 const view = c => { c.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * VX, DPR * VY); c.imageSmoothingEnabled = false; };
+// the world canvas and its layers (the void, the emissives, the silhouettes) all share one grid: board pixels
+// from the field's top-left corner, shaken by the quake (SHX, SHY board pixels)
+let SHX = 0, SHY = 0;
+const wview = c => { c.setTransform(1, 0, 0, 1, SHX - FG.sx0, SHY - FG.sy0); c.imageSmoothingEnabled = false; };
 
 /* The night ground, one sprite pixel at a time: the cracked apron of an abandoned campus, with
    the field coming back through it. Each pixel asks which tile it is in, so tiles meet with no
@@ -2128,10 +2498,7 @@ function bakeGround() {
     d[k + 3] = 255;
   }
   gpctx.putImageData(im, 0, 0);
-  gctx.setTransform(1, 0, 0, 1, 0, 0);
-  gctx.fillStyle = GROUND_BG; gctx.fillRect(0, 0, ground.width, ground.height);
-  view(gctx);
-  gctx.drawImage(gpx, x0, y0);
+  GPX0 = x0; GPY0 = y0;
 }
 
 /* ---------- the unlit field: the void ----------
@@ -2145,10 +2512,18 @@ function bakeGround() {
 
    The pipeline, per frame: fine (4 cells a tile) and coarse (2 a tile) shade layers, holes cut
    where lit, the fine one kept to the ring → projected into lay (sprite pixels, nearest, so
-   diamond edges step 2:1) → lit buildings cut out of lay → lay drawn over the frame. */
+   diamond edges step 2:1) → lit buildings cut out of lay → lay drawn over the frame.
+   Your light on the ground goes down before anything stands on it (drawGlow), so what stands
+   covers it by itself; Lithium's green goes on after the void (so a pool still glows out in it),
+   with what stands near a pool cut out. The cut-outs are silhouettes the painter's pass lays down
+   as it draws (sil: what's lit, silG: what's near a live pool), so each sprite is drawn once for
+   them, not looked up again here. The masks are only rebuilt when the lights change. */
 const mk = () => { const c = document.createElement('canvas'); return [c, c.getContext('2d')]; };
 const [cf, cfx] = mk(), [cc, ccx] = mk();
-const [mf, mfx] = mk(), [mc, mcx] = mk(), [gl, glx] = mk(), [lay, layx] = mk();
+const [mf, mfx] = mk(), [mc, mcx] = mk(), [gl, glx] = mk(), [gli, glix] = mk(), [lay, layx] = mk();
+const [sil, silx] = mk(), [silG, silGx] = mk();
+// the layers once projected off the cell grid onto board pixels (unshaken), so a frame only lays them down
+const [voidP, voidPx] = mk(), [glowP, glowPx] = mk(), [liP, liPx] = mk();
 let FG = null;
 
 // a cell grid of c tiles a cell, starting at ground (u0, v0) → sprite pixels
@@ -2160,11 +2535,50 @@ function fieldGeom() {
   const u0 = Math.floor(Math.min(...cs.map(g => g.u))) - 1, v0 = Math.floor(Math.min(...cs.map(g => g.v))) - 1;
   const nu = Math.ceil(Math.max(...cs.map(g => g.u))) + 1 - u0, nv = Math.ceil(Math.max(...cs.map(g => g.v))) + 1 - v0;
   const fw = Math.round(nu / CELL), fh = Math.round(nv / CELL);
-  lay.width = sw; lay.height = sh;
-  cf.width = mf.width = gl.width = fw; cf.height = mf.height = gl.height = fh;
+  for (const c of [world, lay, sil, silG, voidP, glowP, liP]) { c.width = sw; c.height = sh; }
+  cf.width = mf.width = gl.width = gli.width = fw; cf.height = mf.height = gl.height = gli.height = fh;
   cc.width = mc.width = fw / 2; cc.height = mc.height = fh / 2;
-  FG = { sx0, sy0, sw, sh, u0, v0, fw, fh, mF: new ImageData(fw, fh), mC: new ImageData(fw / 2, fh / 2), glow: new ImageData(fw, fh),
-         toLay: new DOMMatrix([1, 0, 0, 1, -sx0, -sy0]), Af: cellM(CELL, u0, v0), Ac: cellM(CELL * 2, u0, v0) };
+  const mF = new ImageData(fw, fh), mC = new ImageData(fw / 2, fh / 2), glow = new ImageData(fw, fh), glowLi = new ImageData(fw, fh);
+  FG = { sx0, sy0, sw, sh, u0, v0, fw, fh, mF, mC, glow, glowLi, Af: cellM(CELL, u0, v0), Ac: cellM(CELL * 2, u0, v0),
+         // 32-bit views of the masks, and the light per cell before it's turned into colour
+         mF32: new Uint32Array(mF.data.buffer), mC32: new Uint32Array(mC.data.buffer),
+         glow32: new Uint32Array(glow.data.buffer), glowLi32: new Uint32Array(glowLi.data.buffer), gF: new Float32Array(fw * fh),
+         // what each layer was last built from (see lightKey); a new grid builds them all again
+         keys: {} };
+}
+// a fingerprint of the lights a layer is built from, so it's rebuilt only when one moves, comes, goes or changes
+function lightKey(list, f) { let s = list.length; for (const o of list) s = (Math.imul(s, 31) + f(o)) | 0; return s; }
+const atKey = o => Math.imul(Math.round(o.u * 16), 7919) + Math.round(o.v * 16) * 131 + (o.id | 0);
+// your lights' edges shimmer a hair, in steps (SHIMMER a second) like every other fade on the board
+const SHIMMER = 15, shimmer = e => reduceMotion ? 1 : 1 + Math.sin(Math.floor(S.t * SHIMMER) / SHIMMER * 7 + e.id) * 0.012;
+// a light-per-cell array (light × colour) into a glow layer's pixels
+function tint(gF, out, [r, g, b]) {
+  for (let i = 0; i < gF.length; i++) {
+    const a = gF[i];
+    out[i] = a ? 0xff000000 | Math.min(255, Math.round(b * a)) << 16 | Math.min(255, Math.round(g * a)) << 8 | Math.min(255, Math.round(r * a)) : 0;
+  }
+}
+// The cells (c tiles a cell, on a w × h grid) whose centres fall inside the circle (u, v, r), and what to do
+// to each: HOLE marks it lit in a mask (out: its 32-bit view); BAND keeps the brightest of the bands' strengths
+// × k (out: a light-per-cell array); BAND_ADD adds it, so Lithium pools stack. Bands are [edge, strength],
+// edges in shares of r. Plain loops and no garbage: it runs for every light, every frame
+const HOLE = 0, BAND = 1, BAND_ADD = 2;
+function cellsIn(out, w, h, c, u, v, r, mode, bands, k) {
+  const { u0, v0 } = FG, a0 = Math.max(0, Math.floor((u - r - u0) / c)), a1 = Math.min(w - 1, Math.ceil((u + r - u0) / c));
+  const b0 = Math.max(0, Math.floor((v - r - v0) / c)), b1 = Math.min(h - 1, Math.ceil((v + r - v0) / c)), r2 = r * r;
+  for (let b = b0; b <= b1; b++) {
+    const dv = v0 + (b + 0.5) * c - v, dv2 = dv * dv;
+    if (dv2 >= r2) continue;
+    for (let a = a0; a <= a1; a++) {
+      const du = u0 + (a + 0.5) * c - u, q = (du * du + dv2) / r2;
+      if (q >= 1) continue;
+      const i = b * w + a;
+      if (mode === HOLE) { out[i] = 0xff000000; continue; }
+      const d = Math.sqrt(q); let f = 0;
+      for (let n = 0; n < bands.length; n++) if (d < bands[n][0]) { f = bands[n][1] * k; break; }
+      if (mode === BAND) { if (f > out[i]) out[i] = f; } else out[i] += f;
+    }
+  }
 }
 
 // mark the cells (of size c tiles) whose centres fall inside any of the circles [u, v, r, ...]
@@ -2181,65 +2595,102 @@ function cellMask(img, c, circles, write) {
 }
 const GLOW_USER = [127, 120, 134], GLOW_LI = [116, 204, 128];   // Lithium's: phosphor green   // your light on the ground: a near-neutral warm lift with only a trace of violet, so the ground stays ground-coloured
 const USER_BANDS = [[0.42, 0.12], [0.72, 0.075], [1, 0.04]], LI_BANDS = [[0.45, 0.24], [1, 0.1]];
+const LI_R = 1.15;   // a live pool's green on the ground, in tiles
+const livePools = () => S.pools.filter(p => p.amt > 0);
+// a pool's green, stepped like the shimmer: its strength (with a slow breath) in 64ths
+const poolGlow = p => Math.round(p.amt / p.max * (reduceMotion ? 1 : 0.85 + Math.sin(Math.floor(S.t * SHIMMER) / SHIMMER * 1.7 + p.tx) * 0.15) * 64) / 64;
+// a cell-grid layer (cells, of A: G.Af or G.Ac) projected onto board pixels in p, unshaken; nearest sampling keeps
+// every diamond edge a clean 2:1 step
+function project(p, cells, A, clear = true) {
+  p.setTransform(1, 0, 0, 1, 0, 0); p.imageSmoothingEnabled = false; p.globalCompositeOperation = 'source-over';
+  if (clear) p.clearRect(0, 0, p.canvas.width, p.canvas.height);
+  p.setTransform(new DOMMatrix([1, 0, 0, 1, -FG.sx0, -FG.sy0]).multiply(A)); p.drawImage(cells, 0, 0);
+}
+// a projected layer into another of the world's, shaken with the field (op: how it goes on)
+function layOn(x, p, op = 'source-over') { x.setTransform(1, 0, 0, 1, SHX, SHY); x.globalCompositeOperation = op; x.drawImage(p, 0, 0); x.globalCompositeOperation = 'source-over'; }
+
+// Your light on the ground, in stepped bands on the half-tile diamonds, added to the ground before anything
+// stands on it, so it lands on the ground and not on what stands there. Overlapping lights don't stack up
+function drawGlow() {
+  const G = FG, { gF, fw, fh } = G, lamps = emitters.filter(e => e.type !== 'refinery' && e.type !== 'auger');
+  const key = lightKey(lamps, atKey);
+  if (G.keys.glow !== key) {
+    G.keys.glow = key; gF.fill(0);
+    for (const e of lamps) cellsIn(gF, fw, fh, CELL, e.u, e.v, DEF[e.type].radius, BAND, USER_BANDS, 1);
+    tint(gF, G.glow32, GLOW_USER); glx.putImageData(G.glow, 0, 0);
+    project(glowPx, gl, G.Af);
+  }
+  layOn(ctx, glowP, 'lighter'); wview(ctx);
+}
+
+// what a standing sprite at (x, y, w, h) on the board might hide of a live pool's green: such sprites leave a
+// silhouette on silG, so the green isn't painted over them. POOLBOX is each live pool's glow box, made each frame
+const POOLBOX = [];
+function poolBoxes() {
+  POOLBOX.length = 0;
+  for (const p of S.pools) if (p.amt > 0) { const { x, y } = scr(p.tx + 0.5, p.ty + 0.5), rx = LI_R * RX + 1, ry = LI_R * RY + 1; POOLBOX.push(x - rx, y - ry, x + rx, y + ry); }
+}
+function overPool(x, y, w, h) {
+  for (let i = 0; i < POOLBOX.length; i += 4) if (x < POOLBOX[i + 2] && x + w > POOLBOX[i] && y < POOLBOX[i + 3] && y + h > POOLBOX[i + 1]) return true;
+  return false;
+}
+
 function drawField() {
   const G = FG;
 
   // the void: a flat shade, lighter in a ring just outside each light, then the light cut out.
   // The frame under it stays sharp, so every bot reads in the void.
-  const lights = emitters.map(e => [e.u, e.v, DEF[e.type].radius * (reduceMotion ? 1 : 1 + Math.sin(S.t * 7 + e.id) * 0.012)]);
-  for (const f of S.fx) if (f.k === 'fire' && f.t < f.life * 0.5) lights.push([f.u, f.v, 0.5 + f.r * 1.7]);
-  for (const [x, m, img, c, reach, shade] of [[ccx, mcx, G.mC, CELL * 2, 1, 0.45], [cfx, mfx, G.mF, CELL, 0.78, 0.24]]) {
-    x.setTransform(1, 0, 0, 1, 0, 0); x.imageSmoothingEnabled = false;
-    x.globalCompositeOperation = 'copy'; x.fillStyle = `rgba(10,6,7,${shade})`; x.fillRect(0, 0, x.canvas.width, x.canvas.height);
-    img.data.fill(0);
-    cellMask(img, c, lights.map(([u, v, r]) => [u, v, r * reach]), (d, k) => { d[k + 3] = 255; });
-    m.putImageData(img, 0, 0);
-    x.globalCompositeOperation = 'destination-out'; x.drawImage(m.canvas, 0, 0);
+  // (fires light the ground too, for the first half of their life)
+  const fires = S.fx.filter(f => f.k === 'fire' && f.t < f.life * 0.5);
+  const key = lightKey(emitters, atKey) ^ Math.imul(lightKey(fires, f => Math.round(f.u * 16) * 7919 + Math.round(f.v * 16) + Math.round(f.r * 64) * 31), 17) ^ (reduceMotion ? 0 : Math.floor(S.t * SHIMMER));
+  if (G.keys.void !== key) {
+    G.keys.void = key;
+    for (const [x, m, img, d32, c, reach, shade] of [[ccx, mcx, G.mC, G.mC32, CELL * 2, 1, 0.45], [cfx, mfx, G.mF, G.mF32, CELL, 0.78, 0.24]]) {
+      x.setTransform(1, 0, 0, 1, 0, 0); x.imageSmoothingEnabled = false;
+      x.globalCompositeOperation = 'copy'; x.fillStyle = `rgba(10,6,7,${shade})`; x.fillRect(0, 0, x.canvas.width, x.canvas.height);
+      d32.fill(0);
+      for (const e of emitters) cellsIn(d32, img.width, img.height, c, e.u, e.v, DEF[e.type].radius * shimmer(e) * reach, HOLE);
+      for (const f of fires) cellsIn(d32, img.width, img.height, c, f.u, f.v, (0.5 + f.r * 1.7) * reach, HOLE);
+      m.putImageData(img, 0, 0);
+      x.globalCompositeOperation = 'destination-out'; x.drawImage(m.canvas, 0, 0);
+    }
+    // the fine shade is only the ring: keep it where the coarse shade was cut, so the two never stack
+    cfx.globalCompositeOperation = 'destination-in'; cfx.drawImage(mc, 0, 0, cf.width, cf.height);
+    // back onto the board's pixel grid
+    project(voidPx, cf, G.Af); project(voidPx, cc, G.Ac, false);
   }
-  // the fine shade is only the ring: keep it where the coarse shade was cut, so the two never stack
-  cfx.globalCompositeOperation = 'destination-in'; cfx.drawImage(mc, 0, 0, cf.width, cf.height);
 
-  // back onto the screen's pixel grid: nearest sampling keeps every diamond edge a clean 2:1 step
-  layx.globalCompositeOperation = 'source-over'; layx.imageSmoothingEnabled = false;
+  // lay shares the world canvas's grid, shake and all, so it goes over the frame as it is.
+  // A lit building is never veiled, even where it rises out of its own pool of light
   layx.setTransform(1, 0, 0, 1, 0, 0); layx.clearRect(0, 0, lay.width, lay.height);
-  layx.setTransform(G.toLay.multiply(G.Af)); layx.drawImage(cf, 0, 0);
-  layx.setTransform(G.toLay.multiply(G.Ac)); layx.drawImage(cc, 0, 0);
+  layOn(layx, voidP);
+  layx.setTransform(1, 0, 0, 1, 0, 0); layx.globalCompositeOperation = 'destination-out'; layx.drawImage(sil, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(lay, 0, 0);
 
-  // a lit building is never veiled, even where it rises out of its own pool of light
-  layx.setTransform(1, 0, 0, 1, -G.sx0, -G.sy0); layx.globalCompositeOperation = 'destination-out';
-  for (const e of emitters) { const { x, y } = scr(e.u, e.v); for (const img of looks(e)) layx.drawImage(img, snap(x) - img.ax, snap(y) - img.ay); }
-  view(ctx); ctx.drawImage(lay, G.sx0, G.sy0);
-
-  // light on the ground, in stepped bands on the same diamonds, added over the frame
-  const gd = G.glow.data; gd.fill(0);
-  const add = (rgb, bands, k) => (d, i, q, [a]) => {
-    const band = bands.find(([t]) => q < t); if (!band) return;
-    const f = band[1] * a * k;
-    for (let n = 0; n < 3; n++) d[i + n] = Math.max(d[i + n], rgb[n] * f);   // overlapping lights don't stack up
-    d[i + 3] = 255;
-  };
-  cellMask(G.glow, CELL, emitters.filter(e => e.type !== 'refinery' && e.type !== 'auger').map(e => [e.u, e.v, DEF[e.type].radius, 1]), add(GLOW_USER, USER_BANDS, 1));
-  const pools = S.pools.filter(p => p.amt > 0).map(p => [p.tx + 0.5, p.ty + 0.5, 1.15, p.amt / p.max * (reduceMotion ? 1 : 0.85 + Math.sin(S.t * 1.7 + p.tx) * 0.15)]);
-  const liAdd = add(GLOW_LI, LI_BANDS, 1);
-  cellMask(G.glow, CELL, pools, (d, i, q, r) => {
-    // lithium adds to purple where they meet, so a pool by a server still reads green
-    const keep = [d[i], d[i + 1], d[i + 2]]; d[i] = d[i + 1] = d[i + 2] = 0; liAdd(d, i, q, r);
-    for (let n = 0; n < 3; n++) d[i + n] = Math.min(255, d[i + n] + keep[n]);
-  });
-  glx.putImageData(G.glow, 0, 0);
-  layx.globalCompositeOperation = 'copy'; layx.setTransform(G.toLay.multiply(G.Af)); layx.drawImage(gl, 0, 0);
-
-  // light lands on the ground, not on what stands on it
-  layx.setTransform(1, 0, 0, 1, -G.sx0, -G.sy0); layx.globalCompositeOperation = 'destination-out';
-  for (const b of S.b) { const { x, y } = scr(b.u, b.v); for (const img of looks(b)) layx.drawImage(img, snap(x) - img.ax, snap(y) - img.ay); }
-  ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(lay, G.sx0, G.sy0); ctx.globalCompositeOperation = 'source-over';
+  // Lithium's green on the ground round a live pool, added over the void so it still glows out there. Pools add to
+  // each other (and to your light, already down), so a pool by a server still reads green. Not on what stands near it
+  const pools = livePools();
+  if (pools.length) {
+    const lk = lightKey(pools, p => (p.tx * 97 + p.ty) * 131 + poolGlow(p) * 64);
+    if (G.keys.li !== lk) {
+      G.keys.li = lk; G.gF.fill(0);
+      for (const p of pools) cellsIn(G.gF, G.fw, G.fh, CELL, p.tx + 0.5, p.ty + 0.5, LI_R, BAND_ADD, LI_BANDS, poolGlow(p));
+      tint(G.gF, G.glowLi32, GLOW_LI); glix.putImageData(G.glowLi, 0, 0);   // (gF is only scratch: each layer keeps its own pixels)
+      project(liPx, gli, G.Af);
+    }
+    layx.setTransform(1, 0, 0, 1, 0, 0); layx.clearRect(0, 0, lay.width, lay.height);
+    layOn(layx, liP);
+    layx.setTransform(1, 0, 0, 1, 0, 0); layx.globalCompositeOperation = 'destination-out'; layx.drawImage(silG, 0, 0);
+    ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(lay, 0, 0); ctx.globalCompositeOperation = 'source-over';
+  }
+  wview(ctx);
 }
 new ResizeObserver(fit).observe(stage);
 addEventListener('resize', fit);
 
 /* ---------- state ---------- */
 function newGame() {
-  S = { lithium: 10, m: [], wave: 1, calm: 30, spawnLeft: 0, spawnT: 0, t: 0, mined: 0, kills: 0, pits: [], holes: new Set(), bite: null, scar: null,
+  S = { lithium: 10, m: [], wave: 1, calm: 30, spawnLeft: 0, spawnT: 0, t: 0, mined: 0, kills: 0, pits: [], holes: new Set(), scars: [], due: 0, bossMax: 0,
         over: false, clearing: false, flash: 0, pools: [], b: [], h: [], fx: [], id: 1,
         p: [], dec: [], tm: [], pip: [], gone: [], dying: 0, corpse: null };
   quake = 0;
@@ -2266,31 +2717,54 @@ function newGame() {
 
   // no deep wells yet: they surface on wave AUGER_FROM (surfaceWells)
   S.wells = []; S.augerOn = false; S.wellsLit = 0; S.tips = {}; inspect(null);
+  // the Warden isn't on the pad until wave MECH_FROM; S.lanes are the Megapanzer lanes it keeps out of
+  S.mechOn = false; S.lanes = [];
   power();
 }
 
 // Where the deep wells come up: out past the first two pools, clear of the pools and of each other, far
 // enough in from the edge that the whole dark patch lies on the board, and on a bore nothing stands on or
-// has bitten away. By wave 25 the board is built up, so the first pass also keeps the patch round the bore
+// has bitten away. By wave 13 the board is built up, so the first pass also keeps the patch round the bore
 // clear of your pieces; if that finds nowhere, the patch may run under them, and then the ring widens.
+// On a board built up wall to wall the last pass lets the bore break through your pieces (never the Base):
+// it takes the site that wrecks the fewest, and wellBreaks wrecks them as it cracks open.
 function siteWells() {
   const bc = base(), out = [];
   const free = (tx, ty) => !bAt(tx, ty) && !S.holes.has(tx + ',' + ty);
+  const crushable = (tx, ty) => !S.holes.has(tx + ',' + ty) && bAt(tx, ty)?.type !== 'base';
   const PATCH = [-1, 0, 1, 2];
-  // the last pass lets them come up closer in and nearer each other, for a crowded small board
-  for (const [lo, hi, clear, apart = 6] of [[6.5, 13, true], [6.5, 13, false], [5, 17, false], [4.5, 17, false, 4.5]]) {
-    for (let k = out.length; k < WELLS; k++) for (let n = 0; n < 400; n++) {
-      const [tx, ty] = TILES[Math.floor(Math.random() * TILES.length)];
-      const d = Math.sqrt(d2(tx + 0.5, ty + 0.5, bc.u, bc.v));
-      // (tx, ty) is the top tile of the well's 2 × 2 bore, where an Auger stands; the patch spreads a tile past it
-      if (d < lo || d > hi || !WELL_BORE.every(([a, b]) => free(tx + a, ty + b))) continue;
-      if (!PATCH.every(a => PATCH.every(b => onBoard(tx + a, ty + b) && (!clear || !bAt(tx + a, ty + b))))) continue;
-      if (S.pools.some(p => d2(p.tx, p.ty, tx, ty) < 2.8 * 2.8) || out.some(l => d2(l.tx, l.ty, tx, ty) < apart * apart)) continue;
-      out.push({ tx, ty, k: k % WELL_LOOKS }); break;
+  // the later passes let them come up closer in and nearer each other, for a crowded small board
+  for (const [lo, hi, clear, apart = 6, crush = false] of [[6.5, 13, true], [6.5, 13, false], [5, 17, false], [4.5, 17, false, 4.5], [4.5, 17, false, 4.5, true]]) {
+    const ok = crush ? crushable : free;
+    for (let k = out.length; k < WELLS; k++) {
+      let best = null, cost = Infinity;
+      for (let n = 0; n < 400 && cost > 0; n++) {
+        const [tx, ty] = TILES[Math.floor(Math.random() * TILES.length)];
+        const d = Math.sqrt(d2(tx + 0.5, ty + 0.5, bc.u, bc.v));
+        // (tx, ty) is the top tile of the well's 2 × 2 bore, where an Auger stands; the patch spreads a tile past it
+        if (d < lo || d > hi || !WELL_BORE.every(([a, b]) => ok(tx + a, ty + b))) continue;
+        if (!PATCH.every(a => PATCH.every(b => onBoard(tx + a, ty + b) && (!clear || !bAt(tx + a, ty + b))))) continue;
+        if (S.pools.some(p => d2(p.tx, p.ty, tx, ty) < 2.8 * 2.8) || out.some(l => d2(l.tx, l.ty, tx, ty) < apart * apart)) continue;
+        // what it would wreck: the pieces standing on its bore
+        const c = crush ? new Set(WELL_BORE.map(([a, b]) => bAt(tx + a, ty + b)).filter(Boolean)).size : 0;
+        if (c < cost) { best = { tx, ty, k: k % WELL_LOOKS }; cost = c; }
+      }
+      if (best) out.push(best);
     }
     if (out.length >= WELLS) break;
   }
   return out;
+}
+// a deep well cracking open wrecks whatever stands on its bore (a piece put down there since, or one the
+// last pass of siteWells broke through), and says how many went
+function wellBreaks(l) {
+  const keys = new Set(WELL_BORE.map(([a, b]) => (l.tx + a) + ',' + (l.ty + b)));
+  const gone = S.b.filter(b => b.type !== 'base' && b.cells.some(([i, j]) => keys.has(i + ',' + j)));
+  if (!gone.length) return;
+  for (const b of gone) explode(b.u, b.v, 'wreck', CHIP[b.type]);
+  S.b = S.b.filter(b => !gone.includes(b));
+  power();
+  say(`Deep well broke through · ${gone.length} wrecked`, 'wave');
 }
 
 // (tx, ty) is the footprint's top tile; u, v is its centre on the ground
@@ -2298,6 +2772,10 @@ function addB(type, tx, ty) {
   const d = DEF[type], n = d.size;
   const b = { id: S.id++, type, tx, ty, n, u: tx + n / 2, v: ty + n / 2, hp: d.hp, max: d.hp, cd: 0, snuff: 0, powered: false, cells: [] };
   for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) b.cells.push([tx + i, ty + j]);
+  // a Warden: its dock is home (what's wired in, and what a cable runs to); u, v is the walker itself, which
+  // walks off it. It looks the way the pad shows it, and it's gun's ready
+  if (type === 'mech') Object.assign(b, { home: { u: b.u, v: b.v, n: 1, id: b.id }, face: Math.PI * 0.375, aim: Math.PI * 0.375, look: Math.PI * 0.375,
+    gait: 0, moved: 9, kneel: 0, boost: MECH.boost, gcd: 0.4, cd: 0.8, think: 0, wp: null, wait: 0.6, loop: Math.random() * Math.PI * 2, turn: b.id & 1 ? 1 : -1 });
   S.b.push(b); return b;
 }
 const poolAt = (tx, ty) => S.pools.find(p => p.tx === tx && p.ty === ty);
@@ -2309,8 +2787,16 @@ const bAt = (tx, ty) => S.b.find(b => tx >= b.tx && tx < b.tx + b.n && ty >= b.t
 const base = () => S.b.find(b => b.type === 'base');
 const isNode = b => (b.type === 'base' || b.type === 'lamp') && !(b.snuff > 0);
 
-// distance from a ground point to a building's footprint square (0 inside it)
-const toFoot = (u, v, b) => Math.hypot(Math.max(b.tx - u, 0, u - b.tx - b.n), Math.max(b.ty - v, 0, v - b.ty - b.n));
+// distance from a ground point to a building's footprint square (0 inside it). A Warden's footprint is its
+// body, wherever it's walked to: that's what the bots chase and what a blast catches, not its dock
+const toFoot = (u, v, b) => b.home ? Math.max(0, Math.hypot(u - b.u, v - b.v) - MECH.r)
+  : Math.hypot(Math.max(b.tx - u, 0, u - b.tx - b.n), Math.max(b.ty - v, 0, v - b.ty - b.n));
+// the point of a building a bot at (u, v) goes for: the nearest point of its footprint, or a Warden's body
+function nearestOf(b, u, v) {
+  if (!b.home) return [Math.max(b.tx, Math.min(b.tx + b.n, u)), Math.max(b.ty, Math.min(b.ty + b.n, v))];
+  const du = u - b.u, dv = v - b.v, l = Math.hypot(du, dv) || 1, k = Math.min(l, MECH.r) / l;
+  return [b.u + du * k, b.v + dv * k];
+}
 
 // the nodes a cable chain reaches from the Base, leaving out `ex` (the scrap preview asks what's left without it)
 function linked(c, ex) {
@@ -2321,13 +2807,14 @@ function linked(c, ex) {
   }
   return on;
 }
-const fed = (live, b) => live.some(n => d2(n.u, n.v, b.u, b.v) <= DEF[n.type].link ** 2);
+// (a Warden is fed at its dock, however far it's walked)
+const fed = (live, b) => { const p = b.home || b; return live.some(n => d2(n.u, n.v, p.u, p.v) <= DEF[n.type].link ** 2); };
 function power() {
   for (const b of S.b) b.powered = false;
   const c = base(); if (!c) { emitters = []; return; }
   const live = [...linked(c)];
   for (const n of live) n.powered = true;
-  for (const b of S.b) if (b.type === 'refinery' || b.type === 'turret' || b.type === 'missile' || b.type === 'auger') b.powered = fed(live, b);
+  for (const b of S.b) if (b.type === 'refinery' || b.type === 'turret' || b.type === 'missile' || b.type === 'auger' || b.type === 'mech') b.powered = fed(live, b);
   emitters = S.b.filter(b => b.powered && !(b.snuff > 0));
 }
 function isLit(u, v) {
@@ -2351,6 +2838,7 @@ function canPlace(t, tx, ty) {
     if (WELL_BORE.some(([a, b]) => S.holes.has((tx + a) + ',' + (ty + b)))) return { ok: false, msg: 'Nothing left to build on.' };
     if (WELL_BORE.some(([a, b]) => bAt(tx + a, ty + b))) return { ok: false, msg: 'Taken. Hold to scrap.', tx, ty };
   }
+  if (t === 'mech' && !mechOpen()) return { ok: false, msg: `The Warden opens on wave ${MECH_FROM}.` };
   if (t !== 'remove' && S.holes.has(tx + ',' + ty)) return { ok: false, msg: 'Nothing left to build on.' };   // the Borer ate it
   if (t === 'remove') {
     const b = bAt(tx, ty);
@@ -2361,7 +2849,7 @@ function canPlace(t, tx, ty) {
   const there = bAt(tx, ty);
   if (there && UP[t] && there.type === t) {
     const U = UP[t];
-    if (!upOpen()) return { ok: false, msg: `Upgrades open on wave ${UP_FROM}.` };
+    if (!upOpen(t)) return { ok: false, msg: upLocked(t) };
     if (there.up) return { ok: false, msg: `Already a ${U.name}.` };
     if (S.lithium < U.cost) return { ok: false, msg: `${U.name} needs ${U.cost} Lithium.`, li: true };
     return { ok: true, up: there };
@@ -2421,6 +2909,15 @@ const SFX = {
   // dart a small, quick launch (its own channel, so a swarm doesn't swallow the plain launchers' cue)
   rail:    { file: 'fire-turrets', gain: 0.6,  gap: 0.08, drift: 0.03 },
   dart:    { file: 'fire-missles', gain: 0.28, gap: 0.07, drift: 0.1 },
+  // the Warden's cannon: a turret's crack, quicker and a touch higher, on its own channel so a burst isn't
+  // swallowed by the turrets round it (its missiles use the launchers' own cue)
+  mech:    { file: 'fire-turrets', gain: 0.32, gap: 0.05, drift: 0.05 },
+  // a Sniper's round: a turret's crack played low and quiet, from out in the void (the hit is userHit, as for any bot)
+  snipe:   { file: 'fire-turrets', gain: 0.24, gap: 0.12, drift: 0.04 },
+  // the Arbiter's mortar: a launch played low, a thump; its round bursting is the EMP cue played high and short,
+  // so it never sounds like a boss on its way
+  lob:     { file: 'fire-missles', gain: 0.45, gap: 0.2, drift: 0.04 },
+  emp:     { file: 'EMP',          gain: 0.34, gap: 0.12, drift: 0.05 },
 };
 const SFX_DIR = 'sfx/', SFX_VOICES = 14;
 let soundOn = true;
@@ -2546,17 +3043,25 @@ function act(t, tx, ty) {
     if (!reduceMotion) {
       // its ghost de-prints in its place (see drawGhost): lit for the wash, then dark
       const on = looks(b); b.powered = false; b.flick = 0; b.print = null;
-      const g = { ghost: 1, on, off: looks(b), x, y, u: b.u, v: b.v, tx: b.tx, ty: b.ty, n: b.n, type: b.type, top: TOPS[b.type], t0: NOW, d: printDur(b.type, b.n) / 1.4, cut: 0, trail: [] };
+      const g = { ghost: 1, on, off: looks(b), x, y, u: b.u, v: b.v, tx: b.tx, ty: b.ty, n: b.n, type: topKey(b), top: topOf(b), t0: NOW, d: printDur(topKey(b), b.n) / 1.4, cut: 0, trail: [] };
       S.gone.push(g); wake(ghostLife(g) * 1000 + 100);
+      // a Warden goes in two: the walker where it stands (bare, no outline on the ground under it), and its dock,
+      // which keeps the outline
+      if (b.home) {
+        g.bare = true;
+        const h = b.home, p = scr(h.u, h.v);
+        const dk = SPR[b.up ? 'arbDock' : 'dock'];
+        S.gone.push({ ghost: 1, on: [dk[1]], off: [dk[0]], x: p.x, y: p.y, u: h.u, v: h.v, tx: b.tx, ty: b.ty, n: 1, type: 'dock', top: TOPS.dock, t0: NOW, d: printDur('dock', 1) / 1.4, cut: 0, trail: [] });
+      }
     }
-    pip(b.u, b.v, TOPS[b.type], c);
+    pip(b.u, b.v, topOf(b), c);
     S.b = S.b.filter(o => o !== b); say(`Scrapped. +${c} Lithium.`); sfx('blip', { rate: 0.8 });
   } else {
     S.lithium -= DEF[t].cost;
     const b = addB(t, tx, ty);
     printIn(b);
     if (reduceMotion) S.fx.push({ k: 'ring', u: b.u, v: b.v, r0: 0.25, r1: 0.8, pal: PAL.dust, life: 0.35, t: 0 });
-    say(t === 'lamp' ? '+1 Data. Hits harder. They noticed.' : t === 'refinery' ? 'Refining.' : t === 'auger' ? 'Drilling. It’s loud: +1 Data.' : t === 'missile' ? 'Missiles up. +1 Data.' : 'Turret up. +1 Data.');
+    say(t === 'lamp' ? '+1 Data. Hits harder. They noticed.' : t === 'refinery' ? 'Refining.' : t === 'auger' ? 'Drilling. It’s loud: +1 Data.' : t === 'mech' ? 'Warden on patrol. +1 Data.' : t === 'missile' ? 'Missiles up. +1 Data.' : 'Turret up. +1 Data.');
   }
   buzz('place'); power(); hud(); wake();
 }
@@ -2568,11 +3073,12 @@ const upOf = b => b && UP[b.type] && !b.up ? UP[b.type] : null;
 // what scrapping a piece pays back: its price, and its upgrade's
 const refund = b => DEF[b.type].cost + (b.up ? UP[b.type].cost : 0);
 // how far a piece reaches (a weapon's range, a server's light), as it stands or upgraded
-const rangeOf = (t, up) => t === 'turret' ? (up ? RAIL.range : TURRET_RANGE) : t === 'missile' ? (up ? ION.range : MISSILE_RANGE) : t === 'lamp' ? DEF.lamp.radius : 0;
+// (a Warden's is its cannon's, from wherever it stands; its patrol ring is drawn round its dock beside it)
+const rangeOf = (t, up) => t === 'turret' ? (up ? RAIL.range : TURRET_RANGE) : t === 'missile' ? (up ? ION.range : MISSILE_RANGE) : t === 'lamp' ? DEF.lamp.radius : t === 'mech' ? MECH.range : 0;
 function refit(b) {
   const U = upOf(b);
   if (!U || S.over) return;
-  if (!upOpen()) { deny(`Upgrades open on wave ${UP_FROM}.`); return; }
+  if (!upOpen(b.type)) { deny(upLocked(b.type)); return; }
   if (S.lithium < U.cost) { deny(`${U.name} needs ${U.cost} Lithium.`, true); return; }
   S.lithium -= U.cost;
   b.up = true; b.hp += U.hp - b.max; b.max = U.hp; b.lag = b.hp0 = b.hp; b.st = stageOf(b); b.cd = 0.4;
@@ -2593,6 +3099,8 @@ function dmgOf(b) {
   const m = dmgMul();
   if (b.type === 'turret') return `${Math.round((b.up ? RAIL.dmg : 10) * m)}`;
   if (b.type === 'missile') return b.up ? `${Math.round(ION.dmg * m)}<small>×${ION.swarm}</small>` : `${Math.round(MISSILE.dmg * m)}<small>×2</small>`;
+  // the Warden: its cannon's burst, then its pair of missiles
+  if (b.type === 'mech') return `${Math.round(MECH.dmg * m)}<small>×${MECH.burst}</small> ` + (b.up ? `${Math.round(ARB.dmg * m)}<small>EMP</small>` : `${Math.round(MECH.mDmg * m)}<small>×2</small>`);
   return null;
 }
 function inspect(b) {
@@ -2624,13 +3132,13 @@ function insTick() {
   INS.el.classList.toggle('low', f <= 0.3);
   const d = dmgOf(b); if (d) setHTML(INS.dmg, d);
   if (U) {
-    const open = upOpen(), can = open && S.lithium >= U.cost;
-    setText(INS.cost, open ? `${U.name} · ${U.cost} Li` : `Unlocks at wave ${UP_FROM}`);
+    const open = upOpen(b.type), can = open && S.lithium >= U.cost;
+    setText(INS.cost, open ? `${U.name} · ${U.cost} Li` : `Unlocks at wave ${upFrom(b.type)}`);
     if (INS.go._can !== can || INS.go._open !== open) {
       INS.go._can = can; INS.go._open = open;
       INS.go.classList.toggle('lock', !open); INS.go.classList.toggle('off', open && !can);
       INS.go.setAttribute('aria-disabled', String(!can));
-      INS.go.setAttribute('aria-label', open ? `Upgrade to ${U.name}, ${U.cost} Lithium` : `Upgrade locked until wave ${UP_FROM}`);
+      INS.go.setAttribute('aria-label', open ? `Upgrade to ${U.name}, ${U.cost} Lithium` : `Upgrade locked until wave ${upFrom(b.type)}`);
     }
   }
 }
@@ -2639,7 +3147,7 @@ function insTick() {
 const fresh = () => performance.now() - (INS.at || 0) < 450;
 INS.go.addEventListener('click', () => {
   const b = ins, U = upOf(b); if (!U || fresh()) return;
-  if (!upOpen()) return deny(`Upgrades open on wave ${UP_FROM}.`);
+  if (!upOpen(b.type)) return deny(upLocked(b.type));
   if (S.lithium < U.cost) return deny(`${U.name} needs ${U.cost} Lithium.`, true);
   inspect(null); refit(b);
 });
@@ -2647,18 +3155,45 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && ins) inspect(null);
 
 // a hint, once a run, the first calm you could afford an upgrade you haven't been told about
 function refitTip() {
-  if (S.over || !upOpen()) return;
-  for (const k of Object.keys(UP)) if (!S.tips[k] && S.lithium >= UP[k].cost && S.b.some(b => b.type === k && !b.up)) { S.tips[k] = 1; return say(UP[k].tip); }
+  if (S.over) return;
+  for (const k of Object.keys(UP)) if (upOpen(k) && !S.tips[k] && S.lithium >= UP[k].cost && S.b.some(b => b.type === k && !b.up)) { S.tips[k] = 1; return say(UP[k].tip); }
 }
 // upgrades open: every piece that can take one answers with a purple ring, as the wave-held sweep does
 function upgradesOpen() {
   if (S.over) return;
   say('Upgrades online', 'held'); buzz('held');
-  if (!reduceMotion) for (const b of S.b) if (upOf(b)) S.fx.push({ k: 'ring', u: b.u, v: b.v, r0: b.n * 0.45, r1: b.n * 0.45 + 0.9, pal: [RAMP.gold[4], RAMP.gold[3], RAMP.gold[2], RAMP.gold[1]], life: 0.6, t: 0 });
+  if (!reduceMotion) for (const b of S.b) if (upOf(b) && upOpen(b.type)) S.fx.push({ k: 'ring', u: b.u, v: b.v, r0: b.n * 0.45, r1: b.n * 0.45 + 0.9, pal: [RAMP.gold[4], RAMP.gold[3], RAMP.gold[2], RAMP.gold[1]], life: 0.6, t: 0 });
   insTick(); wake(1500);
 }
-/* —— the deep wells surface (wave 25) ——
-   Once wave 24 is held the ground gives. A toast first, then for each well in turn, a beat apart:
+/* —— the Arbiter opens (wave 37) ——
+   Once wave 36 is held, every Warden on the board answers: its visor flares, and a purple shock runs out
+   from it over the ground, the EMP it's about to carry, then the comms name the upgrade. */
+function arbiterOpens() {
+  if (S.over) return;
+  say('Arbiter online · upgrade a Warden', 'held'); buzz('held'); sfx('blip', { rate: 1.2 });
+  if (!reduceMotion) for (const b of S.b) if (b.type === 'mech' && !b.up) { b.lock = 0.3; S.fx.push({ k: 'emp', u: b.u, v: b.v, r: 1.1, life: 0.6, t: 0, seed: b.id }); }
+  insTick(); wake(1500);
+}
+/* —— the Warden opens (wave 28) ——
+   Once wave 27 is held, the Base calls it up: the radome flashes and three purple rings run out from it,
+   a beat apart, then the Warden's pad piece prints in on its plinth the way a piece prints on the board,
+   and the comms name it. Reduced motion: the pad piece is simply there, and the toast still says so. */
+function mechOpens() {
+  if (S.over) return;
+  S.mechOn = true;
+  const c = base();
+  if (c && !reduceMotion) {
+    c.ping = PING_T;
+    for (const d of [0, 0.16, 0.32]) S.tm.push({ t: d, fn: () => S.fx.push({ k: 'ring', u: c.u, v: c.v, r0: 1.6, r1: 3.4, pal: [RAMP.gold[4], RAMP.gold[3], RAMP.gold[2], RAMP.gold[1]], life: 0.6, t: 0 }) });
+  }
+  say('Warden online · it patrols its dock', 'held'); buzz('held'); sfx('blip', { rate: 1.12 });
+  const was = new Map(EL.tools.map(b => [b, b.getBoundingClientRect()]));
+  hud();
+  printTool(EL.tools.find(b => b.dataset.tool === 'mech'), was);
+  wake(2500);
+}
+/* —— the deep wells surface (wave 13) ——
+   Once wave 12 is held the ground gives. A toast first, then for each well in turn, a beat apart:
    · a rumble: a small shake and dust lifting off the slab where it will break;
    · it breaks: a deep thud and a harder shake, a ring of dust, clods of earth thrown out, and the
      patch cracks open in six stepped stages, the cracks racing out ahead with white-hot tips;
@@ -2672,7 +3207,7 @@ const WELL_RISE = 0.9, WELL_GAP = 1.1, LI_RAMP = [RAMP.li[4], RAMP.li[3], RAMP.l
 function surfaceWells() {
   if (S.over) return;
   const sites = siteWells();
-  if (reduceMotion || !sites.length) { S.wells.push(...sites); return augerOpens(); }
+  if (reduceMotion || !sites.length) { S.wells.push(...sites); sites.forEach(wellBreaks); return augerOpens(); }
   say('Deep wells surfacing', 'wave'); buzz('impact');
   sites.forEach((l, i) => {
     const u = l.tx + 1, v = l.ty + 1, at = (t, fn) => S.tm.push({ t: 0.6 + i * WELL_GAP + t, fn });
@@ -2682,6 +3217,7 @@ function surfaceWells() {
     at(0.45, () => {
       if (S.over) return;
       S.wells.push({ ...l, born: S.t });
+      wellBreaks(l);
       shake(0.42); buzz('impact'); sfx('blast', { rate: 0.5, vol: 0.85 });
       S.fx.push({ k: 'ring', u, v, r0: 0.5, r1: 2.3, pal: PAL.dust, life: 0.55, t: 0 });
       emit(10, u, v, 1, { chips: CHIP.earth, sp: 1.9, sp0: 0.5, vz: 70, vz0: 25, g: 210, life: 3, l0: 2, bounce: 0.3 });
@@ -2792,10 +3328,12 @@ const CHIP = {
   turret:   [RAMP.steel[3], RAMP.steel[2], RAMP.slab[3], RAMP.wire[3]],
   missile:  [RAMP.steel[3], RAMP.steel[2], RAMP.slab[3], RAMP.wire[3]],
   auger:    [RAMP.steel[3], RAMP.steel[2], RAMP.wire[3], RAMP.li[2], RAMP.li[1]],
+  mech:     [RAMP.steel[3], RAMP.steel[2], RAMP.steel[4], RAMP.wire[3], RAMP.gold[1]],
   walker:  [RAMP.husk[3], RAMP.husk[2], RAMP.husk[4], RAMP.eye[2]],
   runner:   [RAMP.plate[3], RAMP.plate[4], RAMP.husk[2]],
   panzer:   [RAMP.plate[3], RAMP.plate[2], RAMP.tread[3], RAMP.husk[3]],
   infiltrator: [RAMP.shade[3], RAMP.shade[2], RAMP.shade[4]],
+  sniper:      [RAMP.shade[3], RAMP.shade[2], RAMP.shade[4], RAMP.eye[1]],
   megapanzer: [RAMP.plate[3], RAMP.plate[2], RAMP.plate[4], RAMP.tread[3], RAMP.husk[3], RAMP.husk[2]],
   borer:      [RAMP.chrome[3], RAMP.chrome[2], RAMP.chrome[4], RAMP.tread[2], RAMP.husk[3], RAMP.eye[1]],
   earth:      [RAMP.conc[2], RAMP.conc[3], RAMP.slab[3], RAMP.bark[2], RAMP.bark[1], RAMP.moss[3]],   // the ground the Borer throws up
@@ -2877,11 +3415,18 @@ function baseDown(b) {
 function spawnDrone() {
   const w = S.wave, th = S.theme && THEMES[S.theme];
   let roll = Math.random(), type = 'walker';
-  if (th) for (const k in th.mix) { if ((roll -= th.mix[k]) < 0) { type = k; break; } }
-  else {
+  if (th) {
+    for (const k in th.mix) { if ((roll -= th.mix[k]) < 0) { type = k; break; } }
+    // from the Sniper's wave on, an Infiltrator raid brings its spotters in place of its Runners
+    if (S.theme === 'raid' && w >= SNIPE.from && type === 'runner') type = 'sniper';
+  } else {
+  const pSnipe = w >= SNIPE.from ? Math.min(0.1, 0.06 + (w - SNIPE.from) * 0.004) : 0;
   const pInfil = w >= 6 ? 0.14 : 0, pPanzer = w >= 3 ? Math.min(0.22, 0.12 + (w - 3) * 0.02) : 0, pRun = Math.min(0.42, 0.08 + w * 0.04);
-  if (roll < pInfil) type = 'infiltrator'; else if (roll < pInfil + pPanzer) type = 'panzer'; else if (roll < pInfil + pPanzer + pRun) type = 'runner';
+  if (roll < pSnipe) type = 'sniper'; else if ((roll -= pSnipe) < pInfil) type = 'infiltrator'; else if (roll < pInfil + pPanzer) type = 'panzer'; else if (roll < pInfil + pPanzer + pRun) type = 'runner';
   }
+  // its debut isn't left to the roll: the first wave that can bring a Sniper leads with one
+  if (w >= SNIPE.from && !S.sniped) type = 'sniper';
+  if (type === 'sniper') S.sniped = true;
 
   // a point just outside the board rectangle, taken back onto the ground
   const d = DRONE[type], edge = Math.random() * (2 * W + 2 * H), o = 18;
@@ -2889,13 +3434,13 @@ function spawnDrone() {
   if (edge < W) { x = edge; y = -o; } else if (edge < W + H) { x = W + o; y = edge - W; }
   else if (edge < 2 * W + H) { x = edge - W - H; y = H + o; } else { x = -o; y = edge - 2 * W - H; }
   const g = gnd(x, y), mul = 1 + (w - 1) * 0.12;
-  S.h.push({ id: S.id++, type, u: g.u, v: g.v, hp: d.hp * mul, max: d.hp * mul, hit: 0, tgt: null, retarget: 0, wob: rand(0, 6.28), dir: 0, atk: rand(0, 0.3) });
+  S.h.push({ id: S.id++, type, u: g.u, v: g.v, hp: d.hp * mul, max: d.hp * mul, hit: 0, tgt: null, retarget: 0, wob: rand(0, 6.28), dir: 0, atk: rand(0, 0.3), cd: SNIPE.settle });
   meet(type);
 }
 function boom(u, v) {
   explode(u, v, 'panzer', CHIP.panzer);
   let out = false;
-  for (const b of S.b) if (toFoot(u, v, b) <= BURST) { b.hp -= 22; b.hit = 0.1; b.jit = 0.12; if (b.type === 'lamp') out = snuff(b) || out; }
+  for (const b of S.b) if (toFoot(u, v, b) <= BURST) { b.hp -= PANZER_BLAST; b.hit = 0.1; b.jit = 0.12; if (b.type === 'lamp') out = snuff(b) || out; }
   if (out) knockout();
   buzz('burst');
 }
@@ -2915,12 +3460,96 @@ function kill(h, counted) {
   h.dead = true;
 }
 
+/* —— the Sniper ——
+   It works off a perch: a spot out in the void within reach of its target (see SNIPE). It walks there, settles,
+   then paints the target and fires, again and again, until the target goes, your light finds the perch, or it
+   finds a better one. */
+// out in the void, with `pad` tiles to spare: no light reaches it, nor would one a step bigger
+const inVoid = (u, v, pad = 0) => emitters.every(e => d2(u, v, e.u, e.v) > (DEF[e.type].radius + pad) ** 2);
+// on the board, where you can see it, not off past the edge it came in from
+const onField = (u, v) => { const c = scr(u, v); return c.x >= TW / 2 && c.x <= BW - TW / 2 && c.y >= TH && c.y <= BH - TH / 2; };
+const SNIPE_RING = 16;
+// Of every server's ring of spots in reach, the nearest one out in the void and clear of the other Snipers' perches
+// (and if no server has one, the same for anything else you've built). The spots sit a little inside the reach, so
+// a step off one still reaches. With no dark anywhere in reach, an open perch in the light (open: true) at the nearest server.
+function perchFor(h) {
+  const lamps = S.b.filter(b => b.type === 'lamp' && b.hp > 0), all = S.b.filter(b => b.hp > 0);
+  const taken = S.h.filter(o => o !== h && o.type === 'sniper' && !o.dead && o.perch).map(o => o.perch);
+  for (const set of lamps.length ? [lamps, all] : [all]) {
+    let best = null, bd = Infinity;
+    for (const b of set) {
+      const half = b.home ? MECH.r : b.n / 2;
+      for (const r of [SNIPE.range - 0.4, SNIPE.range - 1.4]) for (let k = 0; k < SNIPE_RING; k++) {
+        const a = (k + (b.id & 1) * 0.5) / SNIPE_RING * Math.PI * 2, u = b.u + Math.cos(a) * (r + half), v = b.v + Math.sin(a) * (r + half);
+        const dd = d2(h.u, h.v, u, v);
+        if (dd >= bd || !onField(u, v) || holeAt(u, v) || !inVoid(u, v, SNIPE.edge) || taken.some(p => d2(u, v, p.u, p.v) < 0.8 ** 2)) continue;
+        bd = dd; best = { b, u, v };
+      }
+    }
+    if (best) return best;
+  }
+  // nowhere dark in reach: walk into reach of the nearest server (or anything) and shoot from the light
+  let b = null, bd = Infinity;
+  for (const o of lamps.length ? lamps : all) { const dd = toFoot(h.u, h.v, o); if (dd < bd) { bd = dd; b = o; } }
+  if (!b) return null;
+  const [pu, pv] = nearestOf(b, h.u, h.v), l = Math.hypot(h.u - pu, h.v - pv) || 1, r = Math.min(l, SNIPE.range - 0.6);
+  return { b, u: pu + (h.u - pu) / l * r, v: pv + (h.v - pv) / l * r, open: true };
+}
+function sniper(h, dt) {
+  const tg = h.tgt, ok = tg && tg.hp > 0 && S.b.includes(tg);
+  h.retarget -= dt;
+  // its cloak (see CLOAK) draws in once it's settled out in the void, and drops twice as fast when it moves or is lit
+  h.cloak = Math.max(0, Math.min(1, (h.cloak || 0) + (h.perched && inVoid(h.u, h.v) ? dt : -dt * 2) / 0.6));
+  // the perch is blown once your light reaches it. An open one it trades up from whenever it can, and while it's
+  // on anything but a server it keeps an eye out for one
+  const blown = ok && h.perch && !h.perch.open && !inVoid(h.perch.u, h.perch.v);
+  if (!ok || blown || !h.perch || h.retarget <= 0 && (h.perch.open || tg.type !== 'lamp')) {
+    h.retarget = SNIPE.look;
+    const p = perchFor(h);
+    if (!p) return;
+    if (!h.perch || d2(p.u, p.v, h.perch.u, h.perch.v) > 0.01) { h.perch = p; h.perched = false; }
+    h.tgt = p.b;
+  }
+  const P = h.perch, du = P.u - h.u, dv = P.v - h.v, dist = Math.hypot(du, dv), step = DRONE.sniper.spd * dt;
+  if (dist > 0.04) {
+    // slinking to the perch: no weave, straight there, and it'll settle before it shoots. It walks, so it steps
+    // round the Borer's holes like a Drone does
+    h.perched = false; h.cd = Math.max(h.cd, SNIPE.settle + SNIPE.aim);
+    let ang = Math.atan2(dv, du);
+    if (S.holes.size && !holeAt(h.u, h.v)) {
+      const st = step * 4, clear = a => !holeAt(h.u + Math.cos(a) * st, h.v + Math.sin(a) * st);
+      if (!clear(ang)) { const side = h.id & 1 ? 1 : -1; for (const k of [0.8, 1.6, 2.4]) { if (clear(ang + side * k)) { ang += side * k; break; } if (clear(ang - side * k)) { ang -= side * k; break; } } }
+    }
+    const k = Math.min(dist, step); h.u += Math.cos(ang) * k; h.v += Math.sin(ang) * k; h.dir = ang;
+    return;
+  }
+  h.perched = true;
+  const [pu, pv] = nearestOf(h.tgt, h.u, h.v);
+  h.dir = Math.atan2(pv - h.v, pu - h.u);
+  if ((h.cd -= dt) > 0) return;
+  h.cd = SNIPE.every;
+  if (toFoot(h.u, h.v, h.tgt) <= SNIPE.range + 0.3) snipe(h, h.tgt, pu, pv);
+}
+// the muzzle: the rifle's tip, a little under half a tile ahead of the body
+const snipeMuzzle = h => scr(h.u + Math.cos(h.dir) * 0.46, h.v + Math.sin(h.dir) * 0.46, 6);
+// where its laser and its round land on what it's shooting: a little over halfway up the piece, at its middle
+const snipeMark = b => scr(b.u, b.v, Math.round((TOPS[b.type] || 8) * 0.55));
+function snipe(h, b, pu, pv) {
+  b.hp -= DRONE.sniper.dmg;
+  strike(h, b, pu, pv);
+  h.lunge = 0; h.kick = 0.08; h.ka = h.dir + Math.PI;   // it kicks back off the shot, never lunges
+  const m = snipeMuzzle(h), t = snipeMark(b);
+  S.fx.push({ k: 'snipe', x: m.x, y: m.y, x2: t.x, y2: t.y, life: 0.16, t: 0 });
+  sfx('snipe', { rate: 0.72 });
+}
+
 /* —— the Megapanzer ——
    A lane is two rows of tiles, run along one grid axis (ax 0: it rolls along u, its rows are v;
    ax 1 the other way), so on screen it runs down one of the board's diagonals. It takes any lane
    long enough to cross, at random (not where you've built), flashes it red, then rolls the
    whole length of it. r is the first row, so the lane is rows r..r+1 and its centre line is r+1. */
-function megaLane() {
+// The second of a pair takes the same axis, well clear of the first (6 rows or more) and rolling the other way.
+function megaLane(other) {
   const lanes = [];
   for (const ax of [0, 1]) for (let r = -24; r <= 23; r++) {
     let n = 0, kmin = Infinity, kmax = -Infinity;
@@ -2931,21 +3560,30 @@ function megaLane() {
     }
     if (n >= 8 * MEGA_ROWS) lanes.push({ ax, r, kmin, kmax });   // a corner clip is too short a run to count
   }
-  const best = lanes[Math.floor(Math.random() * lanes.length)], dir = Math.random() < 0.5 ? 1 : -1, off = MEGA_LONG + 0.6;
+  const clear = other && lanes.filter(l => l.ax === other.ax && Math.abs(l.r - other.r) >= 6);
+  const pool = clear && clear.length ? clear : lanes;
+  const best = pool[Math.floor(Math.random() * pool.length)], off = MEGA_LONG + 0.6;
+  const dir = other && best.ax === other.ax ? -other.dir : Math.random() < 0.5 ? 1 : -1;
   const lo = best.kmin - off, hi = best.kmax + 1 + off;
   return { ...best, dir, start: dir > 0 ? lo : hi, end: dir > 0 ? hi : lo, boss: null };
 }
-function megaInbound() {
-  S.lane = megaLane(); S.megaDue = true;
-  S.tm.push({ t: MEGA_WARN, fn: spawnMega });
+// n of them: each rolls in MEGA_WARN after the call, the second of a pair MEGA_PAIR_GAP behind the first
+function megaInbound(n) {
+  const max = bossHp('megapanzer', S.wave);
+  let L = null;
+  for (let i = 0; i < n; i++) {
+    const lane = L = megaLane(L);
+    S.lanes.push(lane);   // known from the call, so a Warden can step out of it before it comes
+    S.due++; S.bossMax += max;
+    S.tm.push({ t: MEGA_WARN + i * MEGA_PAIR_GAP, fn: () => spawnMega(lane, max) });
+  }
 }
-function spawnMega() {
-  const L = S.lane; S.megaDue = false;
-  if (!L || S.over) return;
-  // it grows 12% a wave from wave 1, like the rest
-  const d = DRONE.megapanzer, mul = 1 + (S.wave - 1) * 0.12, du = L.ax ? 0 : L.dir, dv = L.ax ? L.dir : 0;
+function spawnMega(L, max) {
+  S.due = Math.max(0, S.due - 1);
+  if (S.over) return;
+  const du = L.ax ? 0 : L.dir, dv = L.ax ? L.dir : 0;
   const h = { id: S.id++, type: 'megapanzer', u: L.ax ? L.r + MEGA_HALF : L.start, v: L.ax ? L.start : L.r + MEGA_HALF, du, dv, dir: Math.atan2(dv, du),
-    hp: d.hp * mul, max: d.hp * mul, hit: 0, wob: 0, atk: 0, lane: L };
+    hp: max, max, hit: 0, wob: 0, atk: 0, lane: L };
   L.boss = h; S.h.push(h); meet('megapanzer');
   shake(0.3); sfx('blast', { vol: 0.7, rate: 0.6 }); buzz('burst');
 }
@@ -2957,20 +3595,22 @@ function crush(h, dt) {
   const hu = L.ax ? MEGA_HALF : MEGA_LONG, hv = L.ax ? MEGA_LONG : MEGA_HALF;
   const u0 = h.u - hu, u1 = h.u + hu, v0 = h.v - hv, v1 = h.v + hv;
   let hit = null, n = 0;
-  for (const b of S.b) if (b.hp > 0 && b.tx < u1 && b.tx + b.n > u0 && b.ty < v1 && b.ty + b.n > v0) {
+  // (a Warden is caught by its body, not its dock: one that stepped out of the lane in time isn't)
+  const under = b => b.home ? b.u + MECH.r > u0 && b.u - MECH.r < u1 && b.v + MECH.r > v0 && b.v - MECH.r < v1 : b.tx < u1 && b.tx + b.n > u0 && b.ty < v1 && b.ty + b.n > v0;
+  for (const b of S.b) if (b.hp > 0 && under(b)) {
     b.hp -= d.dmg * dt;
     if (Math.random() * ++n < 1) hit = b;
   }
   if (hit && (h.atk -= dt) <= 0) {
     h.atk = rand(0.22, 0.4);
-    const pu = Math.max(hit.tx, Math.min(hit.tx + hit.n, h.u + h.du * MEGA_LONG)), pv = Math.max(hit.ty, Math.min(hit.ty + hit.n, h.v + h.dv * MEGA_LONG));
+    const [pu, pv] = nearestOf(hit, h.u + h.du * MEGA_LONG, h.v + h.dv * MEGA_LONG);
     strike(h, hit, pu, pv); shake(0.05);
   }
-  if (((L.ax ? h.v : h.u) - L.end) * L.dir > 0) { h.dead = true; S.lane = null; say('Megapanzer rolled through', 'wave'); }
+  if (((L.ax ? h.v : h.u) - L.end) * L.dir > 0) { h.dead = true; say('Megapanzer rolled through', 'wave'); }
 }
 // its core goes, then the hull in a short chain: a wide blast, servers snuffed, and a bounty
 function megaDown(h) {
-  const { u, v } = h; S.lane = null;
+  const { u, v } = h;
   explode(u, v, 'mega', CHIP.megapanzer);
   let out = false;
   for (const b of S.b) if (toFoot(u, v, b) <= MEGA_BURST) { b.hp -= MEGA_BLAST; b.hit = 0.1; b.jit = 0.14; if (b.type === 'lamp') out = snuff(b) || out; }
@@ -3002,11 +3642,14 @@ function brood(type, u, v) {
   S.h.push({ id: S.id++, type, u, v, hp: d.hp * mul, max: d.hp * mul, hit: 0, tgt: null, retarget: 0, wob: rand(0, 6.28), dir: rand(0, 6.28), atk: rand(0, 0.3) });
   meet(type);
 }
-function biteSite() {
+// h is the Borer biting: the chunk keeps clear of the holes and of any other Borer's marked chunk
+function biteSite(h) {
   const c = base(), lit = (u, v) => emitters.some(e => d2(u, v, e.u, e.v) <= DEF[e.type].radius ** 2);
+  const marks = S.h.filter(o => o !== h && o.type === 'borer' && !o.dead && o.bite).map(o => o.bite);
   const ok = ([i, j], light, gap) => {
     const u = i + 0.5, v = j + 0.5;
-    return !S.holes.has(i + ',' + j) && (!c || d2(u, v, c.u, c.v) >= BORER_CLEAR ** 2) && S.pits.every(p => d2(u, v, p.u, p.v) >= gap * gap) && (!light || lit(u, v));
+    return !S.holes.has(i + ',' + j) && (!c || d2(u, v, c.u, c.v) >= BORER_CLEAR ** 2) && S.pits.every(p => d2(u, v, p.u, p.v) >= gap * gap)
+      && marks.every(p => d2(u, v, p.u, p.v) >= (gap + BORER_BITE) ** 2) && (!light || lit(u, v));
   };
   let cand = TILES.filter(t => ok(t, true, 3.4));
   if (!cand.length) cand = TILES.filter(t => ok(t, false, 3.4));
@@ -3024,17 +3667,28 @@ function borerFace(h) {
   const a = Math.atan2(c.v - h.v, c.u - h.u), off = Math.atan2(Math.sin(a - Math.PI / 4), Math.cos(a - Math.PI / 4));
   return Math.PI / 4 + Math.max(-Math.PI / 4, Math.min(Math.PI / 4, off));
 }
-function borerInbound() {
-  const d = DRONE.borer, max = d.hp * (1 + (S.wave - 1) * 0.12), from = edgePoint(), back = S.scar !== null;
-  const h = { id: S.id++, type: 'borer', u: from.u, v: from.v, fu: from.u, fv: from.v, hp: max * (back ? S.scar : 1), max, hit: 0, wob: 0, atk: 0, dir: 0,
+// n of them: the first starts tunnelling at the call, the second of a pair BORER_PAIR_GAP behind it
+function borerInbound(n) {
+  const max = bossHp('borer', S.wave);
+  for (let i = 0; i < n; i++) {
+    S.bossMax += max;
+    if (i) { S.due++; S.tm.push({ t: i * BORER_PAIR_GAP, fn: () => { S.due = Math.max(0, S.due - 1); if (!S.over) spawnBorer(max, true); } }); }
+    else spawnBorer(max, n > 1);
+  }
+}
+function spawnBorer(max, pair) {
+  // one that got away last time comes back carrying its wounds
+  const from = edgePoint(), scar = S.scars.shift(), back = scar !== undefined;
+  const h = { id: S.id++, type: 'borer', u: from.u, v: from.v, fu: from.u, fv: from.v, hp: max * (back ? scar : 1), max, hit: 0, wob: 0, atk: 0, dir: 0,
     under: true, t: BORER_WARN, bites: 0, emerge: 0, diving: false, puff: 0 };
-  S.scar = null; S.bite = { ...biteSite(), h }; S.h.push(h); meet('borer');
-  S.tm.push({ t: 2.2, fn: () => { if (S.bite?.h === h) say(back ? 'Borer back · scrap what’s marked' : 'Borer below · scrap what’s marked', 'wave'); } });
+  h.bite = biteSite(h); S.h.push(h); meet('borer');
+  const who = back ? 'Borer back' : pair ? 'Borers below' : 'Borer below';
+  S.tm.push({ t: 2.2, fn: () => { if (!h.dead && h.under) say(`${who} · scrap what’s marked`, 'wave'); } });
 }
 function borer(h, dt) {
   h.wob += dt * 2;
   if (h.under) {
-    const B = S.bite; if (!B) { h.dead = true; return; }
+    const B = h.bite; if (!B) { h.dead = true; return; }
     h.t -= dt;
     const k = Math.min(1, (BORER_WARN - h.t) / (BORER_WARN - BORER_LURK));
     h.u = h.fu + (B.u - h.fu) * k; h.v = h.fv + (B.v - h.fv) * k;
@@ -3086,9 +3740,10 @@ function borerJolt(h) {
   return grind || tell ? Math.round((hash(Math.floor(S.t * 22), h.id, 4) - 0.5) * (tell ? 2.4 : 2.9)) : 0;
 }
 function erupt(h) {
-  const B = S.bite; S.bite = null; h.rumbled = false;
+  const B = h.bite; h.bite = null; h.rumbled = false;
   const keys = new Set(B.tiles.map(([i, j]) => i + ',' + j));
-  const gone = S.b.filter(b => b.type !== 'base' && b.cells.some(([i, j]) => keys.has(i + ',' + j)));
+  // (a Warden goes down with its dock, or if it's standing on the chunk itself; it steps off marked ground if it can)
+  const gone = S.b.filter(b => b.type !== 'base' && (b.cells.some(([i, j]) => keys.has(i + ',' + j)) || b.home && keys.has(Math.floor(b.u) + ',' + Math.floor(b.v))));
   for (const b of gone) explode(b.u, b.v, 'gulp', CHIP[b.type]);
   S.b = S.b.filter(b => !gone.includes(b));
   S.pools = S.pools.filter(p => !keys.has(p.tx + ',' + p.ty));
@@ -3106,8 +3761,8 @@ function erupt(h) {
 }
 function dived(h) {
   h.emerge = 0; h.diving = false; h.under = true;
-  if (h.bites >= BORER_BITES) { h.dead = true; S.scar = Math.max(0.5, h.hp / h.max); say('Borer gone deep · it’ll be back', 'wave'); return; }
-  S.bite = { ...biteSite(), h }; h.fu = h.u; h.fv = h.v; h.t = BORER_WARN; h.puff = 0;
+  if (h.bites >= BORER_BITES) { h.dead = true; S.scars.push(Math.max(0.5, h.hp / h.max)); say('Borer gone deep · it’ll be back', 'wave'); return; }
+  h.bite = biteSite(h); h.fu = h.u; h.fv = h.v; h.t = BORER_WARN; h.puff = 0;
   say('It’s tunnelling. Scrap what’s marked.');
 }
 // a hole cracks open a seam: a fresh pool on a free tile beside it
@@ -3123,7 +3778,7 @@ function seam(tiles) {
 // it comes apart from the head back down the body into its hole, and pays out
 function borerDown(h) {
   const { u, v } = h, du = Math.cos(h.dir), dv = Math.sin(h.dir);
-  S.bite = null; S.scar = null;
+  h.bite = null;
   explode(u + du * 0.6, v + dv * 0.6, 'borer', CHIP.borer);
   for (const [t, s] of [[0.1, 0.8], [0.22, 0.5], [0.34, 0.25], [0.48, 0]]) S.tm.push({ t, fn: () => explode(u + du * s, v + dv * s, 'chunkL', CHIP.borer) });
   S.lithium += BORER_BOUNTY; pip(u, v, 40, BORER_BOUNTY);
@@ -3200,19 +3855,269 @@ function burst(m) {
   }
   buzz('impact');
 }
+
+/* —— the Warden on patrol ——
+   Every MECH.think s it picks where to stand (mechThink), then walks there: the legs turn to face the
+   way it walks before they step, the stride is paced to the ground so a foot never skates, and each
+   footfall kicks a little dust. The waist turns on its own, so the guns track a bot while the legs carry
+   it round the ring; with nothing to shoot it looks where it's walking, and at each pause on its round it
+   looks about. When it locks onto a new bot its visor flares. A burst is three rounds a beat apart, each
+   kicking the upper body back a pixel and throwing a casing off the arm; the pod goes dark once its pair
+   is away and lights again halfway through its reload. Dashing clear, its jets burn purple under it. */
+// a point in the Warden's upper body (along its aim, across, up), on the ground: its muzzle, its pod, its visor, its jets
+const mechPose = b => b.kneel >= 0.5 ? MECH_KNEEL : b.moved < 0.12 ? Math.floor(mod(b.gait, 1) * 6) : MECH_STAND;
+const mechAt = (b, [a, c, z], ang = b.aim) => {
+  const ca = Math.cos(ang), sa = Math.sin(ang);
+  return { u: b.u + (a * ca - c * sa) / 16, v: b.v + (a * sa + c * ca) / 16, z: z + MECH_LIFT[mechPose(b)] };
+};
+// how dangerous a spot is to stand on, right now: a bot closing in, a Panzer's blast (it bursts on whatever it
+// touches, and when it dies), a Megapanzer's lane ahead of it (or one that's been called and is on its way),
+// and the ground the Borer is under
+function mechRisk(u, v) {
+  let s = 0;
+  for (const h of S.h) {
+    if (h.dead) continue;
+    if (h.type === 'borer') {
+      const B = h.bite; if (!B) continue;
+      const d = Math.hypot(u - B.u, v - B.v), R = BORER_BITE + 0.6;
+      if (d < R) s += 2 + 2 * (1 - d / R);
+      continue;
+    }
+    if (h.under) continue;
+    if (h.type === 'megapanzer') { s += laneRisk(h.lane, u, v, h); continue; }
+    const d = Math.hypot(u - h.u, v - h.v);
+    if (h.type === 'panzer') { const R = BURST + 0.4; if (d < R) s += 2.5 * (1 - d / R); }
+    else if (d < 1.5) s += (1 - d / 1.5) * (h.type === 'runner' ? 1.3 : 1);
+  }
+  for (const L of S.lanes) if (!L.boss) s += laneRisk(L, u, v) * 0.7;
+  return s;
+}
+// a Megapanzer's lane: rows run across it (u when it rolls along v), and only what's ahead of it, or under it, is in danger
+function laneRisk(L, u, v, h) {
+  if (Math.abs((L.ax ? u : v) - (L.r + MEGA_HALF)) > MEGA_HALF + MECH.r + 0.3) return 0;
+  if (!h) return 2;
+  const ahead = ((L.ax ? v : u) - (L.ax ? h.v : h.u)) * L.dir;
+  return ahead < -MEGA_LONG - 0.5 || ahead > 8 ? 0 : 3 * (1 - Math.max(0, ahead) / 8) + 0.6;
+}
+// where it can stand: on the board, on ground the Borer hasn't eaten, inside its ring, and clear of every other piece
+// (other Wardens' bodies included; docks are flat, and it walks over them)
+function mechFree(b, u, v) {
+  const i = Math.floor(u), j = Math.floor(v);
+  if (!onBoard(i, j) || S.holes.has(i + ',' + j) || Math.hypot(u - b.home.u, v - b.home.v) > MECH.patrol + 0.01) return false;
+  for (const o of S.b) if (o !== b && toFoot(u, v, o) < (o.home ? MECH.r + 0.15 : 0.2)) return false;
+  return true;
+}
+// a straight walk there, clear all the way (the first steps are let off, so one that's been built round can walk out)
+function mechPath(b, u, v) {
+  const d = Math.hypot(u - b.u, v - b.v), n = Math.ceil(d / 0.2);
+  for (let i = 1; i < n; i++) { const k = i / n; if (k * d >= 0.4 && !mechFree(b, b.u + (u - b.u) * k, b.v + (v - b.v) * k)) return false; }
+  return mechFree(b, u, v);
+}
+// the nearest bot in the light within reach of its body
+function mechTarget(b, range) {
+  let best = null, bd = range * range;
+  for (const h of S.h) { if (h.dead) continue; const dd = d2(b.u, b.v, h.u, h.v); if (dd < bd && seen(h)) { bd = dd; best = h; } }
+  return best;
+}
+function mechThink(b, on) {
+  const H = b.home;
+  b.think = MECH.think;
+  // switched off, it goes home to its dock
+  if (!on) { b.wp = Math.hypot(b.u - H.u, b.v - H.v) > 0.04 ? { u: H.u, v: H.v } : null; b.evade = false; return; }
+  const here = mechRisk(b.u, b.v), tg = mechTarget(b, MECH.patrol + MECH.range);   // anything it could reach from somewhere in its ring
+  b.evade = here > 0.35;
+  if (!tg && here < 0.05) {
+    // a quiet round: from point to point on its ring, the way it's going, with a pause and a look about at each
+    if (b.wp || b.wait > 0) return;
+    for (let n = 0; n < 6; n++) {
+      b.loop += b.turn * rand(0.9, 1.6);
+      const r = rand(0.7, MECH.patrol), u = H.u + Math.cos(b.loop) * r, v = H.v + Math.sin(b.loop) * r;
+      if (mechPath(b, u, v)) { b.wp = { u, v }; return; }
+    }
+    b.turn = -b.turn; b.wait = 1;   // boxed in that way: turn round
+    return;
+  }
+  // a fight: of the spots in its ring (and where it stands, and its dock), the one with the least risk, at a
+  // standoff from what it's shooting, and not much of a walk
+  let best = null, bs = Infinity;
+  const spots = [[b.u, b.v], [H.u, H.v]];
+  for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6 + b.id; for (const r of [MECH.patrol, MECH.patrol * 0.55]) spots.push([H.u + Math.cos(a) * r, H.v + Math.sin(a) * r]); }
+  for (const [u, v] of spots) {
+    const move = Math.hypot(u - b.u, v - b.v);
+    if (move > 0.05 && !mechPath(b, u, v)) continue;
+    let s = mechRisk(u, v) * 3 + move * 0.12;
+    if (tg) s += Math.abs(Math.hypot(u - tg.u, v - tg.v) - MECH.standoff) * 0.35;
+    if (s < bs) { bs = s; best = [u, v]; }
+  }
+  b.wp = best && Math.hypot(best[0] - b.u, best[1] - b.v) > 0.12 ? { u: best[0], v: best[1] } : null;
+  b.wait = 0;
+}
+// the legs' stride runs on with the ground walked; each footfall (twice a stride) kicks up a little dust
+function mechStride(b, k) {
+  const was = Math.floor(b.gait * 2); b.gait += k;
+  if (Math.floor(b.gait * 2) === was || reduceMotion) return;
+  const side = Math.floor(b.gait * 2) & 1 ? 1 : -1, p = mechAt(b, [1.5, side * MECH_LV, 0], b.face);
+  emit(b.dashing ? 3 : 2, p.u, p.v, 0, { pal: PAL.dust, sp: 0.35, sp0: 0.1, vz: 7, vz0: 2, drag: 1.4, life: 0.5, l0: 0.3, grow: 1 });
+}
+function mechStep(b, dt) {
+  const on = b.powered && !(b.snuff > 0), H = b.home;
+  b.gcd -= dt; b.cd -= dt; b.moved += dt; b.lock = Math.max(0, (b.lock || 0) - dt); b.dashing = false;
+  if (b.print && !b.print.landed) return;   // it stands on its dock while it prints
+  // in your hand (its card open, or a press on it), it holds still so you can read it
+  const held = ins === b || (press && press.b === b);
+  // switched off and home, it kneels; switched back on, it stands before it walks
+  const home = Math.hypot(b.u - H.u, b.v - H.v) < 0.05;
+  b.kneel = Math.max(0, Math.min(1, b.kneel + (!on && home ? dt : -dt) / 0.3));
+  if ((b.think -= dt) <= 0) mechThink(b, on);
+  if (b.wait > 0) b.wait -= dt;
+
+  // walking: face the way first, then step; slower switched off, and braced while the cannon fires
+  let spd = 0;
+  if (b.wp && !held && b.kneel <= 0) {
+    const du = b.wp.u - b.u, dv = b.wp.v - b.v, dist = Math.hypot(du, dv);
+    if (dist < 0.04) { b.wp = null; if (on) b.wait = rand(0.7, 1.5); }
+    else {
+      const dash = on && b.evade && b.boost > 0;
+      let d = Math.atan2(dv, du) - b.face; d = Math.atan2(Math.sin(d), Math.cos(d));
+      const turn = Math.max(-1, Math.min(1, d / ((dash ? 10 : 5) * dt))) * (dash ? 10 : 5) * dt;
+      b.face += turn;
+      spd = (dash ? MECH.dash : MECH.walk) * Math.max(0, Math.cos(d)) ** 2 * (on ? 1 : 0.7) * (!dash && S.t - (b.shot ?? -9) < 0.3 ? 0.6 : 1);
+      const s = Math.min(dist, spd * dt);
+      b.u += du / dist * s; b.v += dv / dist * s;
+      // turning on the spot, it steps round
+      if (s > 0.0005 || Math.abs(turn) > 0.004) { mechStride(b, s / MECH.stride + Math.abs(turn) * 0.1); b.moved = 0; }
+      if (dash) {
+        b.boost -= dt; b.dashing = true;
+        // the jets burn under its back, purple, falling and dying on the ramp
+        if (!reduceMotion && Math.random() < dt * 40) {
+          const j = mechAt(b, [MECH_JET[0], (Math.random() < 0.5 ? -1 : 1) * MECH_JET[1], MECH_JET[2]]);
+          emit(1, j.u, j.v, j.z, { pal: PAL.yours.slice(1), light: 1, sp: 0.4, vz: -24, vz0: -8, g: 40, life: 0.24, l0: 0.12, tail: 1 });
+        }
+      }
+    }
+  }
+  if (!b.dashing) b.boost = Math.min(MECH.boost, b.boost + dt * 0.45);
+
+  // aiming: the waist turns to its target; with none it looks where it walks, and about when it stops
+  const tg = on ? mechTarget(b, MECH.range) : null;
+  let want = b.face;
+  if (tg) want = Math.atan2(tg.v - b.v, tg.u - b.u);
+  else if (on && (held || !b.wp)) want = b.face + Math.sin(S.t * 1.1 + b.id) * 1.1;
+  if (tg && tg !== b.tgt) b.lock = 0.14;
+  b.tgt = tg;
+  let d = want - b.aim; d = Math.atan2(Math.sin(d), Math.cos(d));
+  const tr = (tg ? 7 : 2.5) * dt; b.aim += Math.max(-tr, Math.min(tr, d)); b.look = b.aim;
+
+  // the cannon: a burst, once it's on target
+  if (tg && b.gcd <= 0 && Math.abs(d) < 0.22) {
+    b.gcd = MECH.every; b.shot = S.t;
+    for (let k = 0; k < MECH.burst; k++) S.tm.push({ t: k * MECH.beat, fn: () => mechRound(b, tg) });
+  }
+  // an Arbiter's mortar: one EMP round at the biggest crowd anywhere in the light
+  if (b.up) { if (on && b.cd <= 0) arbFire(b); return; }
+  // the pod: a pair at the biggest crowd in reach, a beat apart (the second goes to the next crowd if the first's bot is down)
+  if (on && b.cd <= 0) {
+    const crowd = [];
+    for (const h of S.h) {
+      if (h.dead || d2(b.u, b.v, h.u, h.v) > MECH.mRange ** 2 || !seen(h)) continue;
+      let n = 0; for (const o of S.h) if (d2(h.u, h.v, o.u, o.v) < MECH.mSplash ** 2) n++;
+      crowd.push([n, h]);
+    }
+    if (crowd.length) {
+      crowd.sort((p, q) => q[0] - p[0]);
+      const best = crowd[0][1];
+      b.cd = MECH.mEvery; mechMissile(b, best, 0);
+      S.tm.push({ t: 0.14, fn: () => { if (S.b.includes(b) && b.powered && !S.over) mechMissile(b, best.dead ? crowd.map(c => c[1]).find(h => !h.dead) : best, 1); } });
+    }
+  }
+}
+// one round of a burst: a tracer off the muzzle, a flash, a casing thrown off the arm, the upper body kicked back
+function mechRound(b, h) {
+  if (!S.b.includes(b) || !b.powered || S.over) return;
+  let t = h;
+  if (t.dead || !seen(t) || d2(b.u, b.v, t.u, t.v) > (MECH.range + 0.3) ** 2) t = mechTarget(b, MECH.range);
+  if (!t) return;
+  hurt(t, MECH.dmg * dmgMul(), b.aim);
+  const m = mechAt(b, MECH_MUZZLE), p = scr(m.u, m.v, m.z), hz = t.type === 'borer' ? 26 * BORER_SCALE : 6, q = scr(t.u, t.v, hz);
+  S.fx.push({ k: 'shot', x: p.x, y: p.y, x2: q.x, y2: q.y, life: 0.06, t: 0 }, { k: 'muzzle', x: p.x, y: p.y, life: 0.05, t: 0 });
+  emit(2, t.u, t.v, hz, { pal: PAL.yours.slice(1), light: 1, sp: 1.3, sp0: 0.4, vz: 45, vz0: 10, g: 170, life: 0.24, l0: 0.14, tail: 1 });
+  const side = b.aim - Math.PI / 2;   // out past the gun arm
+  if (S.p.length < PMAX) S.p.push({ u: m.u, v: m.v, z: m.z - 1, vu: Math.cos(side) * rand(0.6, 1), vv: Math.sin(side) * rand(0.6, 1), vz: rand(34, 52), g: 260,
+    t: 0, life: rand(0.8, 1.2), pal: PAL.brass, col: null, lay: 0, sz: 1, grow: 0, bounce: 0.35, drag: 0, tail: 0, spin: 1, rest: 0 });
+  b.recoil = 0.05; sfx('mech', { rate: 1.2 });
+  if (t.hp <= 0) kill(t, true);
+}
+/* —— the Arbiter's EMP mortar ——
+   It picks its mark from every bot in the light, wherever it is: the one with the most unstunned company
+   inside the burst (a crowd that's already stunned is left alone till it wakes). Ties go to the one nearest
+   your Base. The round leaves the tube with a thump, a flash and a puff, the body kicked back a pixel,
+   and arcs high over the board to land on its bot, wherever that bot has got to. */
+function arbFire(b) {
+  const c = base();
+  let best = null, bn = 0, bd = Infinity;
+  for (const h of S.h) {
+    if (h.dead || !seen(h) || h.stun > 0.4) continue;
+    let n = 0; for (const o of S.h) if (!o.dead && !o.under && !(o.stun > 0.4) && d2(h.u, h.v, o.u, o.v) < ARB.radius ** 2) n += o.type === 'megapanzer' || o.type === 'borer' ? 3 : 1;
+    const dd = c ? d2(h.u, h.v, c.u, c.v) : 0;
+    if (n > bn || n === bn && dd < bd) { bn = n; bd = dd; best = h; }
+  }
+  if (!best) return;
+  b.cd = ARB.every; b.shot = S.t; b.recoil = 0.08;
+  const p = mechAt(b, ARB_MOUTH), d = Math.hypot(best.u - p.u, best.v - p.v);
+  S.m.push({ emp: true, u: p.u, v: p.v, z: p.z, u0: p.u, v0: p.v, z0: p.z, tu: best.u, tv: best.v, tgt: best, t: 0, T: ARB.flight + d * ARB.perTile, trail: [], sm: 0 });
+  const q = scr(p.u, p.v, p.z);
+  S.fx.push({ k: 'muzzle', x: q.x, y: q.y, life: 0.08, t: 0 });
+  emit(3, p.u, p.v, p.z, { pal: PAL.smoke, sp: 0.4, vz: 10, vz0: 3, drag: 1, life: 0.9, l0: 0.5, grow: 1 });
+  sfx('lob', { rate: 0.62 });
+}
+// a round in flight: across the ground toward its bot (it follows it, so it always lands on it), and up and
+// over in a high arc that's highest over a long throw
+function flyEmp(m, dt) {
+  m.t += dt;
+  if (m.tgt && !m.tgt.dead && !m.tgt.under) { m.tu = m.tgt.u; m.tv = m.tgt.v; }
+  const k = Math.min(1, m.t / m.T), arc = Math.min(ARB.arc, 18 + m.T * 22);
+  m.u = m.u0 + (m.tu - m.u0) * k; m.v = m.v0 + (m.tv - m.v0) * k;
+  m.z = m.z0 * (1 - k) + 2 + arc * 4 * k * (1 - k);
+  if ((m.sm += dt) >= 0.025) { m.sm = 0; m.trail.push(m.u, m.v, m.z); if (m.trail.length > 18) m.trail.splice(0, 3); }
+  if (k >= 1) empBurst(m);
+}
+// the burst: every bot under it takes the hit and stops dead, and the ground floods with the shock
+function empBurst(m) {
+  m.done = true;
+  const u = m.tu, v = m.tv, n = ARB.dmg * dmgMul();
+  for (const h of S.h) {
+    if (h.dead || h.under || d2(u, v, h.u, h.v) > (ARB.radius + DRONE[h.type].r * 0.5) ** 2) continue;
+    hurt(h, n);
+    if (h.type !== 'borer') h.stun = Math.max(h.stun || 0, h.type === 'megapanzer' ? ARB.stun * 0.6 : ARB.stun);
+    if (h.hp <= 0) kill(h, true);
+  }
+  S.fx.push({ k: 'emp', u, v, r: ARB.radius, life: 0.55, t: 0, seed: Math.floor(Math.random() * 1e4) }, { k: 'ring', u, v, r0: 0.3, r1: ARB.radius, pal: PAL.yours.slice(1), life: 0.4, t: 0 });
+  emit(10, u, v, 3, { pal: PAL.yours.slice(1), light: 1, sp: 2.4, sp0: 0.8, vz: 60, vz0: 15, g: 170, life: 0.45, l0: 0.22, tail: 1 });
+  sfx('emp', { rate: 1.35 }); shake(0.12); buzz('impact');
+}
+// one missile off the pod, from its near or far pair of cells; it lobs from the shoulder, not from a launcher's deck
+function mechMissile(b, tgt, k) {
+  if (!tgt) return;
+  const p = mechAt(b, [MECH_POD[0], MECH_POD[1] + (k ? 1 : -1), MECH_POD[2]]);
+  S.m.push({ u: p.u, v: p.v, z: p.z, zb: p.z, tu: tgt.u, tv: tgt.v, tgt, a: b.aim, d0: Math.sqrt(d2(p.u, p.v, tgt.u, tgt.v)), sm: 0, dmg: MECH.mDmg, sp: MECH.mSplash });
+  emit(2, p.u, p.v, p.z, { pal: PAL.smoke, sp: 0.4, vz: 9, vz0: 3, drag: 1, life: 0.8, l0: 0.5, grow: 1 });
+  sfx('launch', { rate: 1.15 });
+}
 function step(dt) {
   S.t += dt;
   S.flash = Math.max(0, S.flash - dt * 1.6);
   for (const b of S.b) if (b.snuff > 0) b.snuff -= dt;
   power();
+  // a Megapanzer's lane stops mattering once it has rolled through or gone up
+  if (S.lanes.length) prune(S.lanes, L => !L.boss || !L.boss.dead);
 
   if (S.spawnLeft > 0) {
     S.spawnT -= dt;
-    if (S.spawnT <= 0) { spawnDrone(); S.spawnLeft--; S.spawnT = Math.max(0.2, 9 / (6 + S.wave * 2) * (S.theme ? THEMES[S.theme].gap : 1)); }
+    if (S.spawnT <= 0) { spawnDrone(); S.spawnLeft--; S.spawnT = Math.max(0.2, 9 / (6 + S.wave * 2) * SPAWN_GAP * (S.theme ? THEMES[S.theme].gap : 1)); }
     if (S.spawnLeft === 0) S.clearing = true;
   } else if (S.clearing) {
     // the wave counts once its last bot is down, not once it has spawned
-    if (!S.h.length && !S.megaDue) {
+    if (!S.h.length && !S.due) {
       S.clearing = false; S.calm = CALM; const pay = waveBonus(S.wave); S.wave++; S.lithium += pay;
       say(`Wave ${S.wave - 1} held · +${pay} Li`, 'held'); held(pay);
       pop(EL.ph, '#c4a6ff');
@@ -3221,18 +4126,28 @@ function step(dt) {
       const opens = S.wave === AUGER_FROM, ups = S.wave === UP_FROM;
       if (opens) S.tm.push({ t: 2.8, fn: surfaceWells });
       if (ups) S.tm.push({ t: 2.8, fn: upgradesOpen });
-      S.tm.push({ t: opens ? 10 : ups ? 5.6 : 2.8, fn: refitTip });
+      if (S.wave === MECH_FROM) S.tm.push({ t: 2.8, fn: mechOpens });
+      if (S.wave === UP.mech.from) S.tm.push({ t: 2.8, fn: arbiterOpens });
+      S.tm.push({ t: opens ? 10 : ups || S.wave === UP.mech.from ? 5.6 : 2.8, fn: refitTip });
     }
   } else {
     S.calm -= dt;
     if (S.calm <= 0) {
       S.theme = themeWave(S.wave) ? nextTheme(S.wave) : null;
       const th = S.theme && THEMES[S.theme];
-      S.spawnLeft = Math.max(3, Math.round(waveCount(S.wave) * (th ? th.n : 1))); S.spawnT = 0;
-      const mega = megaWave(S.wave), bore = borerWave(S.wave);
-      if (mega) megaInbound();
-      if (bore) borerInbound();
-      say(bore ? `Wave ${S.wave} · Borer + ${S.spawnLeft}` : mega ? `Wave ${S.wave} · Megapanzer + ${S.spawnLeft}` : th ? `Wave ${S.wave} · ${th.name} · ${S.spawnLeft}` : `Wave ${S.wave} · ${S.spawnLeft} incoming`, 'wave'); buzz('wave'); sfx(mega || bore ? 'warn' : 'wave');
+      const mega = megaWave(S.wave), bore = borerWave(S.wave), n = bossCount(S.wave);
+      S.spawnT = 0;
+      if (mega || bore) {
+        // a boss wave is the boss alone (the Borer's Runners are its own): nothing to spawn, it holds once the boss is done
+        S.spawnLeft = 0; S.clearing = true; S.bossMax = 0;
+        if (mega) megaInbound(n); else borerInbound(n);
+        const name = mega ? 'Megapanzer' : 'Borer';
+        say(`Wave ${S.wave} · ${n > 1 ? n + ' ' + name + 's' : name}`, 'wave');
+      } else {
+        S.spawnLeft = Math.max(3, Math.round(waveCount(S.wave) * (th ? th.n : 1)));
+        say(th ? `Wave ${S.wave} · ${th.name} · ${S.spawnLeft}` : `Wave ${S.wave} · ${S.spawnLeft} incoming`, 'wave');
+      }
+      buzz('wave'); sfx(mega || bore ? 'warn' : 'wave');
       pop(EL.ph, '#ff5d57');
     }
   }
@@ -3301,20 +4216,26 @@ function step(dt) {
       S.tm.push({ t: k * ION.beat, fn: () => { if (S.b.includes(b) && b.powered && !S.over) dart(b, h.dead ? best : h, k); } });
     }
   }
+  // the Wardens: walk, aim, fire (mechStep)
+  for (const b of S.b) if (b.type === 'mech') mechStep(b, dt);
   for (const m of S.m) {
     if (m.pl) { flyDart(m, dt); continue; }
+    if (m.emp) { flyEmp(m, dt); continue; }
     if (m.tgt && !m.tgt.dead) { m.tu = m.tgt.u; m.tv = m.tgt.v; }
     const du = m.tu - m.u, dv = m.tv - m.v, dist = Math.hypot(du, dv), v = 7.4 * dt;
     m.a = Math.atan2(dv, du);
 
-    // a lob: climbs out of the tube, then falls onto the target
-    m.z = 4 + Math.min(22, dist * 5) * Math.min(1, (m.d0 - dist + 0.6) / 0.9);
+    // a lob: climbs out of the tube, then falls onto the target. A Warden's starts from its shoulder (zb) and
+    // comes down from there to the launchers' arc as it closes
+    const zb = m.zb ? 4 + (m.zb - 4) * Math.min(1, dist / (m.d0 || 1)) : 4;
+    m.z = zb + Math.min(22, dist * 5) * Math.min(1, (m.d0 - dist + 0.6) / 0.9);
     if ((m.sm += dt) > 0.035) { m.sm = 0; emit(1, m.u, m.v, m.z, { pal: PAL.smoke, vz: 3, drag: 1, life: 0.75, l0: 0.45, grow: 1 }); }
     if (dist <= v) {
       m.done = true;
       explode(m.tu, m.tv, 'missile');
-      for (const h of S.h) if (!h.dead && !h.under && d2(m.tu, m.tv, h.u, h.v) <= SPLASH ** 2) {
-        hurt(h, (h.type === 'infiltrator' ? MISSILE.dmg / 2 : MISSILE.dmg) * dmgMul());
+      const sp = m.sp ?? SPLASH, dm = m.dmg ?? MISSILE.dmg;
+      for (const h of S.h) if (!h.dead && !h.under && d2(m.tu, m.tv, h.u, h.v) <= sp ** 2) {
+        hurt(h, (h.type === 'infiltrator' ? dm / 2 : dm) * dmgMul());
         if (h.hp <= 0) kill(h, true);
       }
       buzz('impact');
@@ -3327,8 +4248,11 @@ function step(dt) {
     const d = DRONE[h.type];
     if (h.hit > 0) h.hit -= dt;
     if (h.hp <= 0) { kill(h, true); continue; }
-    if (h.type === 'megapanzer') { crush(h, dt); continue; }
+    // stunned by an EMP: it stands dead where it is (a Megapanzer only slows)
+    if (h.stun > 0) { h.stun -= dt; if (h.type !== 'megapanzer') continue; }
+    if (h.type === 'megapanzer') { crush(h, h.stun > 0 ? dt * ARB.slow : dt); continue; }
     if (h.type === 'borer') { borer(h, dt); continue; }
+    if (h.type === 'sniper') { sniper(h, dt); continue; }
     h.retarget -= dt;
     if (h.retarget <= 0 || !h.tgt || h.tgt.hp <= 0 || !S.b.includes(h.tgt)) {
       h.retarget = 0.6;
@@ -3342,14 +4266,14 @@ function step(dt) {
     if (toFoot(h.u, h.v, tg) < d.r) {
       if (h.type === 'panzer') { kill(h, false); continue; }
       tg.hp -= d.dmg * dt;
-      // head for the nearest point of the footprint, weaving a little
-      const pu = Math.max(tg.tx, Math.min(tg.tx + tg.n, h.u)), pv = Math.max(tg.ty, Math.min(tg.ty + tg.n, h.v));
+      // head for the nearest point of the footprint (a Warden's body), weaving a little
+      const [pu, pv] = nearestOf(tg, h.u, h.v);
       h.dir = Math.atan2(pv - h.v, pu - h.u);
       if ((h.atk -= dt) <= 0) { h.atk = rand(0.3, 0.55); strike(h, tg, pu, pv); }
     } else {
       h.wob += dt * 3;
 
-      const pu = Math.max(tg.tx, Math.min(tg.tx + tg.n, h.u)), pv = Math.max(tg.ty, Math.min(tg.ty + tg.n, h.v));
+      const [pu, pv] = nearestOf(tg, h.u, h.v);
       let ang = Math.atan2(pv - h.v, pu - h.u) + Math.sin(h.wob) * 0.35;
       // the Borer's holes: walkers step round the rim (anything already down one climbs straight out; infiltrators hover over)
       if (S.holes.size && h.type !== 'infiltrator' && !holeAt(h.u, h.v)) {
@@ -3395,6 +4319,9 @@ function ambient(dt) {
     if (b.snuff > 0 && Math.random() < dt * 1.4)
       emit(2, b.u, b.v, top - 2, { pal: PAL.theirs.slice(1), light: 1, sp: 0.6, sp0: 0.2, vz: 40, vz0: 10, g: 160, life: 0.3, l0: 0.15, tail: 1 });
   }
+  // an EMP's charge crackling off a stunned bot, in your purple
+  if (!reduceMotion) for (const h of S.h) if (h.stun > 0 && !h.dead && !h.under && Math.random() < dt * (h.type === 'megapanzer' ? 14 : 6))
+    emit(1, h.u + rand(-0.2, 0.2), h.v + rand(-0.2, 0.2), rand(3, h.type === 'megapanzer' ? 22 : 9), { pal: PAL.yours.slice(1), light: 1, sp: 0.9, sp0: 0.3, vz: 30, vz0: 8, g: 120, life: 0.2, l0: 0.1, tail: 1 });
   for (const h of S.h) if (!h.dead && !h.under && h.hp < h.max * 0.5 && Math.random() < dt * 1.4)
     emit(1, h.u, h.v, h.type === 'borer' ? 34 * BORER_SCALE : 10, { pal: PAL.smoke.slice(1), vz: 8, vz0: 4, du: 0.1, dv: -0.1, drag: 0.4, life: 1.1, l0: 0.7, grow: 1 });
   // a hurt Borer spits sparks from its joints, all the way up the body
@@ -3456,7 +4383,7 @@ function gameOver() {
   $('#ovTitle').textContent = `${n} ${n === 1 ? 'wave' : 'waves'} held.`; $('#ovTitle').classList.remove('name');
   $('#ovText').textContent = n > prev ? 'A new best. The Base went dark anyway.' : 'The Base went dark.';
   $('#tBest').textContent = best; $('#tLi').textContent = Math.round(S.mined); $('#tKills').textContent = S.kills;
-  $('#rules').hidden = true; $('#guideBtn').hidden = true; $('#tally').hidden = false; $('#ovText').hidden = false;
+  $('#rules').hidden = true; $('#tally').hidden = false; $('#ovText').hidden = false;
   cardIn.scrollTop = 0;
   $('#ovBtn').textContent = 'Again';
 }
@@ -3470,11 +4397,23 @@ function gameOver() {
    behind it, so lights in the dark never show through a building in front. */
 const anim = (rate, n, off = 0) => reduceMotion ? 0 : ((Math.floor(S.t * rate + off) % n) + n) % n;
 const emis = document.createElement('canvas'), ectx = emis.getContext('2d');
+// the silhouettes the painter's pass lays down for drawField: SIL is the lit pieces' layer while a lit piece is
+// drawn, and GCUT is set while anything that stands is, so it leaves one on silG wherever it might hide a pool's green
+let SIL = null, GCUT = false;
+// the layers a sprite drawn now leaves its silhouette on, as [ctx, …] (shared, so no garbage)
+const SILS = [];
+function silsAt(dx, dy, w, h) {
+  SILS.length = 0;
+  if (SIL) SILS.push(SIL);
+  if (GCUT && POOLBOX.length && overPool(dx, dy, w, h)) SILS.push(silGx);
+  return SILS;
+}
 function put(img, x, y, a = 1, glow = true) {
   sprite(img, x, y, a);
   const dx = snap(x) - img.ax, dy = snap(y) - img.ay;
   ectx.globalCompositeOperation = 'destination-out'; ectx.drawImage(img, dx, dy);
   if (glow && img.em) { ectx.globalCompositeOperation = 'source-over'; ectx.drawImage(img.em, dx, dy); }
+  for (const s of silsAt(dx, dy, img.width, img.height)) s.drawImage(img, dx, dy);
 }
 
 const SCANS = [];
@@ -3486,6 +4425,7 @@ function putCut(img, x, y, cut, glow) {
   ctx.drawImage(img, 0, c, img.width, h, dx, dy + c, img.width, h);
   ectx.globalCompositeOperation = 'destination-out'; ectx.drawImage(img, 0, c, img.width, h, dx, dy + c, img.width, h);
   if (glow && img.em) { ectx.globalCompositeOperation = 'source-over'; ectx.drawImage(img.em, 0, c, img.width, h, dx, dy + c, img.width, h); }
+  for (const s of silsAt(dx, dy + c, img.width, h)) s.drawImage(img, 0, c, img.width, h, dx, dy + c, img.width, h);
   if (c > 0 && img.mask) {
     const row = c * img.width; let a = -1, b = -1;
     for (let i = 0; i < img.width; i++) if (img.mask[row + i]) { if (a < 0) a = i; b = i; }
@@ -3509,6 +4449,13 @@ function looks(b) {
   if (b.type === 'lamp') { const i = on ? 1 + anim(5, LAMP_FRAMES, b.id * 2.37) : 0; return [s ? dmg(SPR.lamp[i], s, wreckJob('lamp', VOX.lamp[i ? i - 1 : 0], s, i ? null : OFF, i)) : SPR.lamp[i]]; }
   if (b.type === 'refinery') { const p = poolAt(b.tx, b.ty), run = on && p && p.amt > 0, f = run ? anim(8, REFINERY_FRAMES) : 0, L = run ? 1 : 0; return [s ? dmg(SPR.refinery[f][L], s, wreckJob('refinery', VOX.refinery[f], s, L ? null : OFF, f * 2 + L)) : SPR.refinery[f][L]]; }
   if (b.type === 'auger') { const f = on ? anim(8, AUGER_FRAMES, b.id * 0.3) : 0; return [s ? dmg(SPR.auger[f][L], s, wreckJob('auger', VOX.auger[f], s, L ? null : OFF, f * 2 + L)) : SPR.auger[f][L]]; }
+  // the Warden: its legs in their pose, walking its way, and its upper body riding them, turned to aim. (Its dock is
+  // drawn with the ground: see drawDock.) The pod goes dark once its pair is away, and lights again halfway through the reload
+  // An Arbiter's drum and muzzle go dark the same way once its round is away
+  if (b.type === 'mech') {
+    const f = mechPose(b), tag = !on ? 'off' : b.cd > (b.up ? ARB.every : MECH.mEvery) / 2 ? 'spent' : '', hk = b.up ? 'arbiter' : 'mech';
+    return [mechLegs(f, b.face, on, s, !!b.up), raised(head(hk, phi, !on ? OFF_SPENT : tag ? SPENT : null, tag, s), MECH_LIFT[f])];
+  }
   // a refit stands on its own base and turns its own head
   const kind = b.type === 'turret' ? (b.up ? 'railBase' : 'turretBase') : (b.up ? 'ionBase' : 'missileBase'), foot = s ? dmg(SPR[kind][L], s, wreckJob(kind, VOX[kind], s, L ? null : OFF, L)) : SPR[kind][L];
   if (b.type === 'turret') { const hk = b.up ? 'rail' : 'turret'; return [foot, on ? head(hk, phi, null, '', s) : head(hk, phi, OFF, 'off', s)]; }
@@ -3535,7 +4482,7 @@ const printRun = (type, n) => n * TH / 2 + 1 + TOPS[type] + 3;
 const printDur = (type, n) => Math.min(0.75, Math.max(0.3, printRun(type, n) / PRINT_V));
 function printIn(b) {
   if (reduceMotion) return;
-  b.print = { t0: NOW, d: printDur(b.type, b.n), cut: 0, landed: 0 };
+  b.print = { t0: NOW, d: printDur(topKey(b), b.n), cut: 0, landed: 0 };
   wake((PRINT_LAY + b.print.d + PRINT_LAND) * 1000 + 100);
 }
 function drawBuilding(b) {
@@ -3547,13 +4494,21 @@ function drawBuilding(b) {
   const imgs = looks(b);
   const ox = b.jit > 0 ? (Math.floor(S.t * 60) & 1 ? 1 : -1) : 0;
   const glow = !(stageOf(b) === 2 && !reduceMotion && hash(Math.floor(S.t * 12), b.id, 5) < 0.1);
-  if (P && !P.landed) P.cut = y + b.n * TH / 2 + 1 - printRun(b.type, b.n) * Math.max(0, t - PRINT_LAY) / P.d;
+  if (P && !P.landed) P.cut = y + b.n * TH / 2 + 1 - printRun(topKey(b), b.n) * Math.max(0, t - PRINT_LAY) / P.d;
   for (let i = 0; i < imgs.length; i++) {
     let dx = ox, dy = 0;
     if (i === 1 && b.recoil > 0) { const [rx, ry] = sdir(b.look ?? b.aim ?? 0); dx -= rx; dy -= ry; }
     if (b.print && !P.landed) putCut(imgs[i], x + dx, y + dy, P.cut, glow);
     else put(imgs[i], x + dx, y + dy, 1, glow);
   }
+}
+const MECH_SHADOW = shadow(0.34);
+// a Warden's dock: a low slab on the ground, drawn under everything that stands. It prints in with its walker,
+// behind the same scanline, and its posts light while it's wired in
+function drawDock(b) {
+  const { x, y } = scr(b.home.u, b.home.v), P = b.print, img = SPR[b.up ? 'arbDock' : 'dock'][b.powered && !(b.snuff > 0) && !(P && !P.landed) ? 1 : 0];
+  if (P && !P.landed) putCut(img, x, y, y + TH / 2 + 1 - printRun(topKey(b), 1) * Math.max(0, NOW - P.t0 - PRINT_LAY) / P.d, true);
+  else put(img, x, y);
 }
 // a scrapped piece's ghost, drawn in its place in the depth sort: lit for the wash, then dark, eaten from the top
 const ghostLife = g => SCRAP_WASH + g.d + SCRAP_OUT;
@@ -3604,7 +4559,9 @@ function drawPrints() {
   }
   for (const g of S.gone) {
     const t = NOW - g.t0, s = t - SCRAP_WASH, o = s - g.d;
-    if (o < 0) footprint(g, t < 0.05 ? 'ticks' : 'full', t < SCRAP_WASH ? RAMP.gold[4] : RAMP.gold[3]);
+    // (a Warden's walker is bare: the outline is its dock's)
+    if (g.bare);
+    else if (o < 0) footprint(g, t < 0.05 ? 'ticks' : 'full', t < SCRAP_WASH ? RAMP.gold[4] : RAMP.gold[3]);
     else if (o < 0.1) footprint(g, 'full', RAMP.gold[2]);
     else if (o < 0.18) footprint(g, 'dots', RAMP.gold[2]);
     else footprint(g, 'dots', RAMP.gold[1]);
@@ -3629,7 +4586,7 @@ function drawPrints() {
 }
 function droneFrame(h) {
   const f = h.type === 'borer' ? anim(BORER_FPS, BORER_FRAMES) : anim(6, 2, h.wob);
-  return { f, lift: f && (h.type === 'infiltrator' || h.type === 'walker') ? 1 : 0 };
+  return { f, lift: f && (h.type === 'infiltrator' || h.type === 'sniper' || h.type === 'walker') ? 1 : 0 };
 }
 const DIRS = 8, dirOf = a => ((Math.round(a / (Math.PI * 2) * DIRS) % DIRS) + DIRS) % DIRS;
 function droneAt(h) {
@@ -3641,18 +4598,39 @@ function droneAt(h) {
 }
 // the Borer rising out of its hole (or sinking back): how far below the rim it still is, in board pixels
 const sinkOf = h => h.type === 'borer' && h.emerge < 1 ? Math.round((1 - ease(Math.max(0, h.emerge))) * BORER_SINK) : 0;
+// the sprite a bot is drawn with this frame
+function droneImg(h, p) {
+  const img = SPR.drone[h.type][p.d][p.f].img;
+  return h.hp < h.max * 0.5 ? need(`bot|${h.type}|${p.d}${p.f}`, () => paint(trace(wreckVox(DRONE_VOX[h.type][p.f], 'bot' + h.type, 1), p.d * Math.PI / 4))) || img : img;
+}
 function drawDrone(h) {
   if (h.under) return;   // the Borer underground shows only as the ground it heaves
-  const p = droneAt(h), s = SPR.drone[h.type][p.d][p.f], sink = sinkOf(h);
+  const p = droneAt(h), sink = sinkOf(h);
   if (sink < BORER_SINK / 2) sprite(SPR.shadow[h.type], p.x, p.y, 1);
   // what's still below the rim is cut off, on the frame and on the emissive layer alike
-  if (sink) { for (const c of [ctx, ectx]) { c.save(); c.beginPath(); c.rect(p.x - 140, p.y - 320, 280, 323); c.clip(); } p.y += sink; }
-  let img = s.img;
-  if (h.hp < h.max * 0.5) img = need(`bot|${h.type}|${p.d}${p.f}`, () => paint(trace(wreckVox(DRONE_VOX[h.type][p.f], 'bot' + h.type, 1), p.d * Math.PI / 4))) || img;
+  if (sink) { for (const c of [ctx, ectx, silGx]) { c.save(); c.beginPath(); c.rect(p.x - 140, p.y - 320, 280, 323); c.clip(); } p.y += sink; }
+  const img = droneImg(h, p);
   // optics blink now and then in the dark; in the light they simply stay lit
   const blink = !reduceMotion && Math.sin(S.t * 3 + h.wob * 4) < -0.93 && !isLit(h.u, h.v);
-  put(img, p.x + p.ox, p.y + p.oy, h.type === 'infiltrator' ? 0.88 : 1, !blink);
-  if (sink) { ctx.restore(); ectx.restore(); }
+  // stunned: its optics gutter out, catching now and then, and it shudders a pixel on the spot
+  const stun = h.stun > 0, q = stun && hash(Math.floor(S.t * 18), h.id, 31);
+  const jx = stun && !reduceMotion && q > 0.6 ? (q > 0.8 ? 1 : -1) : 0;
+  put(img, p.x + p.ox + jx, p.y + p.oy, h.type === 'sniper' ? CLOAK[Math.min(CLOAK.length - 1, Math.floor((h.cloak || 0) * CLOAK.length))] : h.type === 'infiltrator' ? 0.88 : 1, stun ? q > 0.86 : !blink);
+  if (sink) { ctx.restore(); ectx.restore(); silGx.restore(); }
+}
+// A Sniper settled on its perch in the void draws its cloak round it: its body steps down to a ghost, while
+// its lens stays lit (the emissive layer isn't faded), so what you see out there is a red glint, then its laser
+const CLOAK = [0.88, 0.74, 0.6];
+// its laser sight, on the light layer: while it aims, a dotted red line from the muzzle to the mark, closing up
+// and brightening as the shot comes, and a point on what it's painting. It drops while it's stunned
+function drawSights() {
+  for (const h of S.h) {
+    if (h.type !== 'sniper' || h.dead || !h.perched || h.stun > 0 || h.cd > SNIPE.aim || !h.tgt || !S.b.includes(h.tgt)) continue;
+    const k = 1 - h.cd / SNIPE.aim, m = snipeMuzzle(h), t = snipeMark(h.tgt), y = -droneFrame(h).lift;
+    ctx.fillStyle = k < 0.5 ? RAMP.eye[1] : k < 0.85 ? RAMP.eye[2] : RAMP.eye[3];
+    pxLine(m.x, m.y + y, t.x, t.y, k < 0.5 ? 4 : k < 0.85 ? 3 : 2);
+    ctx.fillStyle = k < 0.85 ? RAMP.eye[3] : RAMP.eye[4]; dot(ctx, t.x, t.y, k < 0.85 ? 1 : 2);
+  }
 }
 // Hit flashes go on the light layer, after the field, so they stay bright even where the void shades
 // the bot itself.
@@ -3663,9 +4641,12 @@ function droneLights(h) {
 }
 // The chunk the Borer is under: every tile of it dashed in their red, blinking faster as the bite comes
 function drawBite() {
-  const B = S.bite; if (!B || S.over) return;
-  const left = B.h.t, rate = left < BORER_LURK ? 10 : 4, dim = !reduceMotion && Math.floor(S.t * rate) & 1;
-  for (const [i, j] of B.tiles) { const p = scr(i + 0.5, j + 0.5); sprite(SPR.bite[dim ? 1 : 0], p.x, p.y); }
+  if (S.over) return;
+  for (const h of S.h) {
+    const B = h.type === 'borer' && !h.dead && h.bite; if (!B) continue;
+    const rate = h.t < BORER_LURK ? 10 : 4, dim = !reduceMotion && Math.floor(S.t * rate) & 1;
+    for (const [i, j] of B.tiles) { const p = scr(i + 0.5, j + 0.5); sprite(SPR.bite[dim ? 1 : 0], p.x, p.y); }
+  }
 }
 // a sprite's silhouette in one flat colour, made once and kept on the sprite
 function tintOf(img, key, col) {
@@ -3702,7 +4683,11 @@ function packet(a, b) {
 }
 function drawFx(f) {
   const k = f.t / f.life;
-  if (f.k === 'shot') {
+  if (f.k === 'snipe') {
+    // a Sniper's round: a hard white line out of the void, stepping down their red, a red flash at the muzzle
+    ctx.fillStyle = k < 0.35 ? '#ffffff' : k < 0.7 ? RAMP.eye[4] : RAMP.eye[3]; pxLine(f.x, f.y, f.x2, f.y2, k < 0.7 ? 1 : 2);
+    if (k < 0.5) { const x = snap(f.x), y = snap(f.y); ctx.fillStyle = RAMP.eye[3]; ctx.fillRect(x - 1, y, 3, 1); ctx.fillRect(x, y - 1, 1, 3); ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y, 1, 1); }
+  } else if (f.k === 'shot') {
     if (k < 0.5) { ctx.fillStyle = 'rgba(236,226,255,.95)'; pxLine(f.x, f.y, f.x2, f.y2); }
     else { ctx.fillStyle = RAMP.gold[3]; pxLine(f.x, f.y, f.x2, f.y2, 2); }
   } else if (f.k === 'muzzle') {
@@ -3743,6 +4728,31 @@ function drawFx(f) {
       const dx = f.x2 - f.x, dy = f.y2 - f.y, l = Math.hypot(dx, dy) || 1, px = -dy / l, py = dx / l, w = n === 1 ? 2 : 3;
       ctx.fillStyle = n === 1 ? RAMP.gold[3] : RAMP.gold[2];
       for (let s = 0; s < l; s += 2) { const o = Math.sin(s * 0.55) * w; dot(ctx, f.x + dx * s / l + px * o, f.y + dy * s / l + py * o); }
+    }
+  } else if (f.k === 'emp') {
+    // an EMP bursting: the shock floods out over the ground on half-tile diamonds, each one flaring white as
+    // the front reaches it and stepping down the purple ramp, breaking to dots before it goes; and for the
+    // first beat, forks of charge jag out from the heart to the burst's edge
+    const R = f.r, c0u = Math.floor((f.u - R) * 2) / 2, c0v = Math.floor((f.v - R) * 2) / 2;
+    for (let a = c0u; a < f.u + R; a += 0.5) for (let b = c0v; b < f.v + R; b += 0.5) {
+      const dc = Math.hypot(a + 0.25 - f.u, b + 0.25 - f.v); if (dc > R) continue;
+      const age = k - dc / R * 0.38; if (age < 0 || age > 0.4) continue;
+      ctx.fillStyle = age < 0.04 ? '#ffffff' : age < 0.1 ? RAMP.gold[4] : age < 0.22 ? RAMP.gold[3] : RAMP.gold[2];
+      const e = 0.04, P = [scr(a + e, b + e), scr(a + 0.5 - e, b + e), scr(a + 0.5 - e, b + 0.5 - e), scr(a + e, b + 0.5 - e)], every = age < 0.22 ? 1 : 2;
+      for (let i = 0; i < 4; i++) pxLine(P[i].x, P[i].y, P[(i + 1) & 3].x, P[(i + 1) & 3].y, every);
+    }
+    if (k < 0.32) {
+      const s = f.seed + Math.floor(k * 30);
+      ctx.fillStyle = k < 0.12 ? '#ffffff' : RAMP.gold[4];
+      for (let n = 0; n < 4; n++) {
+        const th = (n + hash(s, n, 1)) / 4 * Math.PI * 2;
+        let p = scr(f.u, f.v, 4);
+        for (let j = 1; j <= 4; j++) {
+          const r = R * 0.9 * j / 4, w = j < 4 ? (hash(s, n * 7 + j, 2) - 0.5) * 0.5 : 0;
+          const q = scr(f.u + Math.cos(th + w) * r, f.v + Math.sin(th + w) * r, 4 - j);
+          pxLine(p.x, p.y, q.x, q.y); p = q;
+        }
+      }
     }
   } else if (f.k === 'held') {
     const s = f.seg, lock = f.t - f.sweep;
@@ -3785,17 +4795,20 @@ function drawPips() {
   // missiles glow, so they fly above the dark: a 2px warhead and a fading purple trail
 const TRAIL = [RAMP.gold[4], RAMP.gold[3], 'rgba(155,110,240,.7)', 'rgba(69,39,122,.45)', 'rgba(28,16,51,.3)'];
 const DART_TRAIL = [RAMP.gold[4], RAMP.gold[3], RAMP.gold[3], 'rgba(155,110,240,.75)', 'rgba(155,110,240,.55)', 'rgba(69,39,122,.5)', 'rgba(69,39,122,.35)', 'rgba(28,16,51,.3)', 'rgba(28,16,51,.2)'];
+const LABELS = [];
 function draw() {
-  const sx = quake > 0.01 ? Math.round(rand(-1, 1) * quake * quake * 2.4) : 0, sy = quake > 0.01 ? Math.round(rand(-1, 1) * quake * quake * 2) : 0;
-  const vx0 = VX, vy0 = VY; VX += sx * VS; VY += sy * VS;
+  // the quake: the whole field shaken by a board pixel or two (the marks and tips below it hold still)
+  SHX = quake > 0.01 ? Math.round(rand(-1, 1) * quake * quake * 2.4) : 0; SHY = quake > 0.01 ? Math.round(rand(-1, 1) * quake * quake * 2) : 0;
+  const shx = SHX, shy = SHY;
+  if (emis.width !== world.width || emis.height !== world.height) { emis.width = world.width; emis.height = world.height; }
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.globalCompositeOperation = 'source-over';
-  if (sx || sy) { ctx.fillStyle = GROUND_BG; ctx.fillRect(0, 0, cv.width, cv.height); }
-  ctx.drawImage(ground, Math.round(sx * VS * DPR), Math.round(sy * VS * DPR));
-  if (emis.width !== cv.width || emis.height !== cv.height) { emis.width = cv.width; emis.height = cv.height; }
-  ectx.setTransform(1, 0, 0, 1, 0, 0); ectx.clearRect(0, 0, emis.width, emis.height);
-  view(ctx); view(ectx);
-  SCANS.length = 0;
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  ctx.fillStyle = GROUND_BG; ctx.fillRect(0, 0, world.width, world.height);
+  for (const x of [ectx, silx, silGx]) { x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, world.width, world.height); }
+  wview(ctx); wview(ectx); wview(silx); wview(silGx);
+  poolBoxes();
+  ctx.drawImage(gpx, GPX0, GPY0);
+  SCANS.length = 0; LABELS.length = 0;
 
   // the Borer's holes, cut into the ground under everything else
   for (const p of S.pits) ctx.drawImage(p.img, p.img.ox, p.img.oy);
@@ -3816,15 +4829,22 @@ function draw() {
     const k = d.t / d.life, { x, y } = scr(d.u, d.v);
     sprite(d.img, x, y, k < 0.7 ? 1 : k < 0.88 ? 0.6 : 0.3);
   }
+  // the Wardens' docks, and a shadow under each walker, wherever it stands
+  for (const b of S.b) if (b.home) {
+    drawDock(b);
+    if (!(b.print && !b.print.landed)) { const { x, y } = scr(b.u, b.v); sprite(MECH_SHADOW, x, y); }
+  }
 
-  // power cables: dotted pixel runs along the ground to the nearest live node, with a pulse running out along each
+  // power cables: dotted pixel runs along the ground to the nearest live node, with a pulse running out along each.
+  // A Warden's runs to its dock, not to the walker
   const nodes = S.b.filter(b => isNode(b) && b.powered), links = [];
   ctx.fillStyle = 'rgba(196,166,255,.5)';
   for (const b of S.b) {
     if (!b.powered || b.type === 'base') continue;
+    const a = b.home || b;
     let best = null, bd = Infinity;
-    for (const n of nodes) { if (n === b) continue; const dd = d2(n.u, n.v, b.u, b.v); if (dd < bd && dd <= DEF[n.type].link ** 2) { bd = dd; best = n; } }
-    if (best) { cable(b, best); links.push(b, best); }
+    for (const n of nodes) { if (n === b) continue; const dd = d2(n.u, n.v, a.u, a.v); if (dd < bd && dd <= DEF[n.type].link ** 2) { bd = dd; best = n; } }
+    if (best) { cable(a, best); links.push(a, best); }
   }
   if (!reduceMotion) { ctx.fillStyle = 'rgba(236,226,255,.85)'; for (let i = 0; i < links.length; i += 2) packet(links[i], links[i + 1]); }
 
@@ -3838,19 +4858,34 @@ function draw() {
 
   // a scrapped piece's ghost sorts in with everything else, so what stands in front of it still hides it
   prune(S.gone, g => NOW - g.t0 < ghostLife(g));
-  const things =[...S.b, ...S.h, ...S.gone, ...(S.corpse ? [S.corpse] : [])].sort((a, b) => (a.u + a.v) - (b.u + b.v));
-  for (const o of things) o.ghost ? drawGhost(o) : o.cells ? drawBuilding(o) : drawDrone(o);
+  const things = [...S.b, ...S.h, ...S.gone, ...(S.corpse ? [S.corpse] : [])].sort((a, b) => (a.u + a.v) - (b.u + b.v));
+  // your light goes down on the ground now, under everything that stands
+  drawGlow();
+  // each standing thing leaves its silhouettes for drawField as it's drawn (see SIL)
+  for (const o of things) {
+    const stands = !o.ghost && o !== S.corpse;
+    SIL = stands && o.cells && o.powered && !(o.snuff > 0) ? silx : null; GCUT = stands;
+    o.ghost ? drawGhost(o) : o.cells ? drawBuilding(o) : drawDrone(o);
+  }
+  SIL = null; GCUT = false;
   drawParts(0);
 
   // the void's stepped shade and the light on the ground: see drawField
   drawField();
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(emis, 0, 0); view(ctx);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(emis, 0, 0); wview(ctx);
 
   // (a piece still printing in is only part drawn, so it takes no whole-sprite flash)
   for (const b of S.b) if (b.hit > 0.03 && b.type !== 'base' && !(b.print && !b.print.landed)) { const { x, y } = scr(b.u, b.v); for (const img of looks(b)) sprite(whiteOf(img), x, y, 0.22); }
   // answering the wave-held sweep: a purple wash over the whole piece, in two steps
   for (const b of S.b) if (b.ping > 0 && !(b.print && !b.print.landed)) { const { x, y } = scr(b.u, b.v), a = b.ping > PING_T / 2 ? 0.32 : 0.14; for (const img of looks(b)) sprite(purpleOf(img), x, y, a); }
   for (const h of S.h) if (h.hit > 0) droneLights(h);
+  drawSights();
+  // a Warden locking onto a new bot: its visor flares, a white point with a purple cross, then just the point
+  for (const b of S.b) if (b.lock > 0 && b.home && !reduceMotion) {
+    const p = mechAt(b, MECH_VISOR), q = scr(p.u, p.v, p.z), x = snap(q.x), y = snap(q.y);
+    if (b.lock > 0.07) { ctx.fillStyle = RAMP.gold[4]; ctx.fillRect(x - 2, y, 5, 1); ctx.fillRect(x, y - 1, 1, 3); }
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y, 1, 1);
+  }
   // the print scanlines: a bright row over a dim one, sparks flickering at both ends
   const sq = Math.floor(NOW * 30);
   for (let i = 0; i < SCANS.length; i += 3) {
@@ -3874,6 +4909,14 @@ function draw() {
       ctx.fillStyle = '#ffffff'; dot(ctx, p.x, p.y);
       continue;
     }
+    if (m.emp) {
+      // an EMP round: a fat charged bead, its core flickering, trailing a dotted purple wake down its arc
+      const tr = m.trail, n = tr.length / 3;
+      for (let i = 0; i < n; i++) { const q = scr(tr[i * 3], tr[i * 3 + 1], tr[i * 3 + 2]), j = n - 1 - i; if (j & 1) continue; ctx.fillStyle = TRAIL[Math.min(TRAIL.length - 1, j >> 1)]; dot(ctx, q.x, q.y, j < 2 ? 2 : 1); }
+      ctx.fillStyle = RAMP.gold[2]; dot(ctx, p.x, p.y, 4);
+      ctx.fillStyle = hash(Math.floor(S.t * 24), m.T * 1e3) > 0.4 ? RAMP.gold[4] : '#ffffff'; dot(ctx, p.x, p.y, 2);
+      continue;
+    }
     const q = scr(m.u - Math.cos(m.a) * 0.2, m.v - Math.sin(m.a) * 0.2, m.z - 1.2), dx = p.x - q.x, dy = p.y - q.y, l = Math.hypot(dx, dy) || 1;
     const fl = hash(Math.floor(S.t * 30), m.d0 * 100) > 0.5 ? 1 : 0;
     for (let i = 0; i < TRAIL.length; i++) { ctx.fillStyle = TRAIL[Math.min(TRAIL.length - 1, i + (i && fl))]; dot(ctx, p.x - dx / l * i * 1.5, p.y - dy / l * i * 1.5, i === 0 ? 2 : 1); }
@@ -3895,24 +4938,24 @@ function draw() {
   };
   for (const b of S.b) if (b.type === 'base' ? S.t - (b.hitAt ?? -9) < 2.5 || b.lag > b.hp : b.hp < b.max || b.lag > b.hp) {
     const { x: bx, y: by } = scr(b.u, b.v), f = b.hp / b.max;
-    hpLine(bx, snap(by - TOPS[b.type] - 4), b.type === 'base' ? 24 : 12, f, f > 0.4 ? RAMP.gold[2] : RAMP.eye[3], (b.lag ?? b.hp) / b.max);
+    hpLine(bx, snap(by - topOf(b) - 4), b.type === 'base' ? 24 : 12, f, f > 0.4 ? RAMP.gold[2] : RAMP.eye[3], (b.lag ?? b.hp) / b.max);
   }
-  ctx.font = '700 7px Oxygen, system-ui, sans-serif'; ctx.textAlign = 'center';
+  // (the type goes on the screen at its own resolution, once the world's scaled up: see LABELS)
   // refinery gauge: what's left in its pool, in Lithium green, under the rig; DRY once it's empty
   for (const b of S.b) if (b.type === 'refinery') {
     const p = poolAt(b.tx, b.ty), { x: bx, y: by } = scr(b.u, b.v);
-    if (!p || p.amt <= 0) { ctx.fillStyle = RAMP.li[1]; ctx.fillText('DRY', bx, by + 13); continue; }
+    if (!p || p.amt <= 0) { LABELS.push('DRY', bx, by + 13, RAMP.li[1]); continue; }
     hpLine(bx, snap(by + 8), 12, p.amt / p.max, RAMP.li[2]);
   }
-  for (const b of S.b) if (b.snuff > 0) { const { x, y } = scr(b.u, b.v); ctx.fillStyle = RAMP.eye[3]; ctx.fillText(Math.ceil(b.snuff) + 's', x, y + 13); }
+  for (const b of S.b) if (b.snuff > 0) { const { x, y } = scr(b.u, b.v); LABELS.push(Math.ceil(b.snuff) + 's', x, y + 13, RAMP.eye[3]); }
   // the boss wears a longer line of its own, in their red; the header carries its name and state
   for (const h of S.h) if (h.type === 'megapanzer') {
     const p = droneAt(h), s = SPR.drone[h.type][p.d][p.f].img;
     hpLine(p.x, snap(p.y - (s.ay - s.top) - 4), 24, h.hp / h.max, RAMP.eye[3]);
   }
 
-  VX = vx0; VY = vy0;
-  view(ctx);
+  SHX = SHY = 0;
+  wview(ctx);
 
   // Two kinds of target. A hold on a building: its outline fills in clockwise, then the scrap mark,
   // with the buildings that would lose power marked too. Otherwise the target tile: a pixel diamond,
@@ -3928,7 +4971,13 @@ function draw() {
       for (const l of S.wells) if (!WELL_BORE.some(([a, b]) => bAt(l.tx + a, l.ty + b))) for (const [a, b] of WELL_BORE) { const p = scr(l.tx + a + 0.5, l.ty + b + 0.5); sprite(SPR.wellMark, p.x, p.y); }
     // an open card: its piece ringed on its tile (the Base round its radome), its range dotted dim, and
     // the upgrade's range dotted bright round it, so you see what the upgrade buys
-    if (ins && S.b.includes(ins)) {
+    // A Warden's: its dock ringed, its patrol ring dotted dim round the dock, and its cannon's reach round the walker
+    if (ins && S.b.includes(ins) && ins.home) {
+      const b = ins, d = scr(b.home.u, b.home.v), p = scr(b.u, b.v);
+      sprite(SPR.mark.ok, d.x, d.y);
+      ctx.fillStyle = 'rgba(196,166,255,.4)'; pxEllipse(d.x, d.y, MECH.patrol, 3);
+      ctx.fillStyle = RAMP.gold[3]; pxEllipse(p.x, p.y, MECH.range, 2);
+    } else if (ins && S.b.includes(ins)) {
       const b = ins, U = upOf(b), { x, y } = scr(b.u, b.v), now = rangeOf(b.type, b.up), next = U ? rangeOf(b.type, true) : 0;
       if (b.n === 1) sprite(SPR.mark.ok, x, y); else { ctx.fillStyle = RAMP.gold[3]; pxEllipse(x, y, b.n * 0.62, 1); }
       if (now) { ctx.fillStyle = next ? 'rgba(196,166,255,.4)' : 'rgba(196,166,255,.8)'; pxEllipse(x, y, now, 3); }
@@ -3937,7 +4986,8 @@ function draw() {
     const now = performance.now(), sb = press && press.b && press.b.type !== 'base' && S.b.includes(press.b)
       && (press.long || !press.moved && now - press.t0 > HOLD_SHOW) ? press.b : null;
     if (sb) {
-      const { x, y } = scr(sb.u, sb.v), at = tipOver(sb.u, sb.v, (TOPS[sb.type] ?? 16) + 8, press);
+      // (a Warden's marks go on its dock, the tile you'd scrap; the tip rides over the walker)
+      const { x, y } = scr((sb.home || sb).u, (sb.home || sb).v), at = tipOver(sb.u, sb.v, (topOf(sb) ?? 16) + 8, press);
       if (!press.long) {
         const k = Math.floor(Math.min(1, (now - press.t0 - HOLD_SHOW) / (HOLD_MS - HOLD_SHOW)) * 8) / 8;
         holdRing(sb, k);
@@ -3966,19 +5016,30 @@ function draw() {
         const rad = rangeOf(t, !!r.up);
         ctx.fillStyle = 'rgba(196,166,255,.8)';
         if (rad) pxEllipse(x, y, rad, 3);
+        // a Warden's patrol ring, the ground it'll walk, brighter inside its reach
+        if (t === 'mech') { ctx.fillStyle = RAMP.gold[3]; pxEllipse(x, y, MECH.patrol, 2); }
         const n = S.b.filter(n => isNode(n) && n.powered).sort((a, b) => d2(a.u, a.v, gx + sz / 2, gy + sz / 2) - d2(b.u, b.v, gx + sz / 2, gy + sz / 2))[0];
         if (n) { ctx.fillStyle = 'rgba(196,166,255,.6)'; cable({ u: gx + sz / 2, v: gy + sz / 2, n: sz }, n); }
       }
       if (carry) {
         const at = tipOver(gx + sz / 2, gy + sz / 2, (TOPS[t] ?? 16) + CARRY + 6), p = poolAt(gx, gy);
         if (r.up) tip(`Upgrade to ${UP[t].name}<span class="li">${UP[t].cost} Li</span><small>no new Data</small>`, '', at.x, at.y);
-        else if (r.ok) tip(`${NAME[t] ?? t}<span class="li">${DEF[t].cost} Li</span>` + (t === 'refinery' && p ? `<small>${Math.ceil(p.amt)} Li in the pool</small>` : ''), '', at.x, at.y);
+        else if (r.ok) tip(`${NAME[t] ?? t}<span class="li">${DEF[t].cost} Li</span>` + (t === 'refinery' && p ? `<small>${Math.ceil(p.amt)} Li in the pool</small>` : t === 'mech' ? '<small>patrols the ring round its dock</small>' : ''), '', at.x, at.y);
         else tip(r.msg || 'Can’t go there', 'err', at.x, at.y);
         tipped = true;
       }
     } else if (drag && drag.on) { tip('Let go to cancel', 'err', drag.px, drag.py - 6); tipped = true; }
   }
   if (!tipped) tip(null);
+
+  // the world onto the screen: every board pixel a block of screen pixels, nearest, in one draw. Then the type
+  // over it, shaken with the field
+  view(sctx); sctx.globalCompositeOperation = 'source-over'; sctx.globalAlpha = 1;
+  sctx.drawImage(world, FG.sx0, FG.sy0);
+  if (LABELS.length) {
+    sctx.translate(shx, shy); sctx.font = '700 7px Oxygen, system-ui, sans-serif'; sctx.textAlign = 'center';
+    for (let i = 0; i < LABELS.length; i += 4) { sctx.fillStyle = LABELS[i + 3]; sctx.fillText(LABELS[i], LABELS[i + 1], LABELS[i + 2]); }
+  }
   if (!ovEl.hidden) blackout();
   else if (unveiling) { if (performance.now() - menuAt < UNVEIL_MS) blackout(true); else unveiling = false; }
 }
@@ -4005,10 +5066,9 @@ function blackout(out) {
   bmctx.setTransform(1 / k, 0, 0, 1 / k, -ox / k, -oy / k);
   bmctx.globalCompositeOperation = 'copy'; bmctx.imageSmoothingEnabled = true; bmctx.imageSmoothingQuality = 'high';
   bmctx.drawImage(cv, 0, 0);
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(bmos, ox, oy, w * k, h * k);
-  ctx.fillStyle = `rgba(8,5,5,${(0.3 * (rung + 1) / DERES.length).toFixed(3)})`; ctx.fillRect(0, 0, cv.width, cv.height);
-  view(ctx);
+  sctx.setTransform(1, 0, 0, 1, 0, 0); sctx.imageSmoothingEnabled = false;
+  sctx.drawImage(bmos, ox, oy, w * k, h * k);
+  sctx.fillStyle = `rgba(8,5,5,${(0.3 * (rung + 1) / DERES.length).toFixed(3)})`; sctx.fillRect(0, 0, cv.width, cv.height);
 }
 
 // a dotted run between two footprints, trimmed to their edges
@@ -4124,7 +5184,8 @@ function printTool(btn, was) {
     o.animate([{ transform: `translateX(${dx}px) scale(${sx})`, transformOrigin: '50% 100%' }, { transform: 'none', transformOrigin: '50% 100%' }],
       { duration: PAD_SLIDE, easing: 'steps(4, end)' });
   }
-  const t = btn.dataset.tool, on = ICON[t], off = padOff[t] ||= t === 'auger' ? onoff(VOX.augerIcon)[0] : SPR.refinery[0][0];
+  const t = btn.dataset.tool, on = ICON[t], off = padOff[t] ||= t === 'auger' ? onoff(VOX.augerIcon)[0]
+    : t === 'mech' ? stack(SPR.dock[0], mechLegs(MECH_STAND, Math.PI * 0.375, false), raised(head('mech', Math.PI * 0.375, OFF_SPENT, 'off'), MECH_LIFT[MECH_STAND])) : SPR.refinery[0][0];
   const tint = purpleOf(on), w = on.width, h = on.height;
   // each row's lit span, so the line runs across the piece and not the empty box round it
   const px = on.getContext('2d').getImageData(0, 0, w, h).data, span = [];
@@ -4209,31 +5270,36 @@ function hud() {
   const w = (c ? c.hp / c.max * 100 : 0).toFixed(1) + '%';
   if (EL.bar._w !== w) { EL.bar._w = w; EL.bar.style.width = w; }
   EL.baseStat.classList.toggle('low', !!c && c.hp / c.max <= 0.4);
-  if (S.spawnLeft > 0 || S.clearing) { setText(EL.phK, `Wave ${S.wave}`); setHTML(EL.ph, `${S.h.length + S.spawnLeft + (S.megaDue ? 1 : 0)}<small>left</small>`); }
+  if (S.spawnLeft > 0 || S.clearing) { setText(EL.phK, `Wave ${S.wave}`); setHTML(EL.ph, `${S.h.length + S.spawnLeft + S.due}<small>left</small>`); }
   else { setText(EL.phK, `Wave ${S.wave} in`); setHTML(EL.ph, `${Math.ceil(S.calm)}<small>s</small>`); }
   for (const btn of EL.tools) {
-    const t = btn.dataset.tool, lock = t === 'auger' ? !augerOpen() : t === 'refinery' && !refineryOpen(), off = lock || S.lithium < DEF[t].cost, p = String(t === tool);
+    const t = btn.dataset.tool, lock = t === 'auger' ? !augerOpen() : t === 'mech' ? !mechOpen() : t === 'refinery' && !refineryOpen(), off = lock || S.lithium < DEF[t].cost, p = String(t === tool);
     if (btn.getAttribute('aria-pressed') !== p) btn.setAttribute('aria-pressed', p);
     offTool(btn, off);
-    // the Auger stays off the pad until it opens, and the Refinery leaves it once the pools are dry,
-    // so the pad only ever shows what you can build
-    if ((t === 'auger' || t === 'refinery') && btn.hidden !== lock) { btn.hidden = lock; if (lock && tool === t) tool = 'lamp'; fit(); }
+    // the Auger and the Warden stay off the pad until they open, and the Refinery leaves it once the pools
+    // are dry, so the pad only ever shows what you can build
+    if ((t === 'auger' || t === 'mech' || t === 'refinery') && btn.hidden !== lock) { btn.hidden = lock; if (lock && tool === t) tool = 'lamp'; fit(); }
   }
   bossHud(); insTick();
 }
 // the boss row: up under the Base's health while a boss is on the board. It says what the boss is doing: for the Borer, when
 // to shoot (Exposed), and which bite is coming while it's underground
 const BOSS_EL = { plate: $('#bossPlate'), name: $('#bossName'), state: $('#bossState'), bar: $('#bossBar') };
+// A pair shares the one row: the name counts the ones still up, the bar is what's left of the pair's health, and
+// the state follows the one to act on (a Borer that's up before one that's below, and the bite that's soonest)
 function bossHud() {
-  const h = S.h.find(o => o.type === 'borer' || o.type === 'megapanzer'), E = BOSS_EL;
-  if (E.plate.hidden !== !h) E.plate.hidden = !h;
-  if (!h) return;
-  const bore = h.type === 'borer';
+  const all = S.h.filter(o => !o.dead && (o.type === 'borer' || o.type === 'megapanzer')), E = BOSS_EL;
+  if (E.plate.hidden !== !all.length) E.plate.hidden = !all.length;
+  if (!all.length) return;
+  const up = all.find(o => o.type === 'borer' && !o.under && !o.diving);
+  const h = up || all.slice().sort((a, b) => (a.under ? a.t : 99) - (b.under ? b.t : 99))[0];
+  const bore = h.type === 'borer', n = all.length + S.due;
   const [st, cls] = !bore ? ['Crushing', 'hot']
     : h.under ? [`Bite ${h.bites + 1}/${BORER_BITES}`, 'hot'] : h.diving ? ['Diving', ''] : ['Exposed', 'pin'];
-  setText(E.name, bore ? 'Borer' : 'Megapanzer'); setText(E.state, st);
+  setText(E.name, (bore ? 'Borer' : 'Megapanzer') + (n > 1 ? ` ×${n}` : '')); setText(E.state, st);
   if (E.state._c !== cls) { E.state._c = cls; E.state.className = ('st ' + cls).trim(); }
-  const w = (Math.max(0, h.hp) / h.max * 100).toFixed(1) + '%';
+  const hp = all.reduce((s, o) => s + Math.max(0, o.hp), 0) + S.due * (S.bossMax / Math.max(1, bossCount(S.wave)));
+  const w = (Math.min(1, hp / (S.bossMax || h.max)) * 100).toFixed(1) + '%';
   if (E.bar._w !== w) { E.bar._w = w; E.bar.style.width = w; }
 }
 
@@ -4249,6 +5315,8 @@ function pickB(cx, cy) {
   const p = boardPx(cx, cy);
   const order = S.b.slice().sort((a, b) => (b.u + b.v) - (a.u + a.v));
   for (const b of order) {
+    // a Warden is picked by the walker, wherever it stands: its standing box, a finger's slack wide
+    if (b.home) { const { x, y } = scr(b.u, b.v); if (Math.abs(p.x - x) < 8 && p.y > y - topOf(b) - 2 && p.y < y + 4) return b; continue; }
     const img = b.type === 'base' ? SPR.base[0] : b.type === 'lamp' ? SPR.lamp[1] : b.type === 'refinery' ? SPR.refinery[0][1] : b.type === 'auger' ? SPR.auger[0][1] : b.type === 'turret' ? SPR.turretBase[1] : SPR.missileBase[1];
     const { x, y } = scr(b.u, b.v), ix = Math.floor(p.x - (snap(x) - img.ax)), iy = Math.floor(p.y - (snap(y) - img.ay));
     if (ix >= 0 && iy >= 0 && ix < img.width && iy < img.height && (img.mask[iy * img.width + ix] || b.type !== 'base' && iy > img.ay - 18)) return b;
@@ -4310,8 +5378,9 @@ cv.addEventListener('pointerup', e => {
   else {
     // a tap on a piece opens its card (unless the tap could build right where it landed); a tap on the
     // open card's piece, or anywhere else while a card is open, just closes it. A tap on a dead zone,
-    // where the piece in hand can't go, puts it back; only a spot that's short on Lithium says so
-    const on = bAt(t.tx, t.ty) || (tool && canPlace(tool, t.tx, t.ty).ok ? null : p.b);
+    // where the piece in hand can't go, puts it back; only a spot that's short on Lithium says so. A Warden
+    // walks about over open tiles, so a tap on the walker itself always opens its card
+    const on = (p.b && p.b.home ? p.b : null) || bAt(t.tx, t.ty) || (tool && canPlace(tool, t.tx, t.ty).ok ? null : p.b);
     if (on) inspect(on === ins ? null : on);
     else if (ins) inspect(null);
     else if (tool) {
@@ -4411,13 +5480,13 @@ function menu(on) {
 const cardIn = $('.card-in');
 function fold() { if (!ovEl.hidden) $('.card').classList.toggle('scrolls', cardIn.scrollHeight > cardIn.clientHeight + 1); }
 addEventListener('resize', fold); fold(); document.fonts?.ready.then(fold);
-// one button for pause and the ? card: it pauses and opens the card, whose Resume plays on.
-// Paused without the card (space, or the app sent to the background), it shows \u25B6 and resumes.
+// pause and the ? card are two buttons: II pauses in place (and shows \u25B6 to resume),
+// ? pauses and opens the card, whose Resume plays on
 function setPaused(p) {
   paused = p;
   const bare = p && started && !S.over && ovEl.hidden;
   $('#pauseBtn').textContent = bare ? '\u25B6\uFE0E' : 'II';
-  $('#pauseBtn').setAttribute('aria-label', bare ? 'Resume' : 'Pause and how to play');
+  $('#pauseBtn').setAttribute('aria-label', bare ? 'Resume' : 'Pause');
   $('#pausedTag').hidden = !bare;
   wake();
 }
@@ -4432,9 +5501,13 @@ function rulesCard() {
   cardIn.scrollTop = 0; fold();
 }
 $('#pauseBtn').addEventListener('click', () => {
+  if (!started || S.over) return;
+  sfx('blip');
+  setPaused(!paused);
+});
+$('#helpBtn').addEventListener('click', () => {
   if (S.over) return;
   sfx('blip');
-  if (started && paused && ovEl.hidden) { setPaused(false); return; }
   if (started) setPaused(true);
   rulesCard();
   $('#ovBtn').textContent = started ? 'Resume' : 'Start';
@@ -4444,7 +5517,7 @@ $('#pauseBtn').addEventListener('click', () => {
 // the field guide is a page of its own over the ? card, at #guide, so the browser's back closes it
 const guideEl = $('#fieldGuide');
 function showGuide(on, quiet) {
-  if (on && S.over) return;
+  if (on && S.over && ovEl.hidden) return;   // the run's end opens it from its own card, once that card is up
   if (on === !guideEl.hidden) return;
   guideEl.hidden = !on;
   if (on) {
@@ -4472,26 +5545,20 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !guideEl.hidden) cl
    The literals are the ones step(), boom() and the pointer code use inline. */
 {
   const t = x => +x.toFixed(2), NUM = {
-    'base.hp': DEF.base.hp, 'base.light': DEF.base.radius, 'base.reach': DEF.base.link,
-    'lamp.cost': DEF.lamp.cost, 'lamp.hp': DEF.lamp.hp, 'lamp.light': DEF.lamp.radius, 'lamp.reach': DEF.lamp.link,
-    'refinery.cost': DEF.refinery.cost, 'refinery.hp': DEF.refinery.hp, 'refine.every': t(1 / REFINE_RATE),
-    'turret.cost': DEF.turret.cost, 'turret.hp': DEF.turret.hp, 'turret.range': TURRET_RANGE, 'turret.dmg': 10, 'turret.every': 0.45,
-    'missile.cost': DEF.missile.cost, 'missile.hp': DEF.missile.hp, 'missile.range': MISSILE_RANGE, 'missile.dmg': MISSILE.dmg, 'missile.every': 2.2, 'missile.splash': SPLASH,
-    'auger.cost': DEF.auger.cost, 'auger.hp': DEF.auger.hp, 'auger.every': t(1 / AUGER_RATE), 'auger.from': AUGER_FROM, wells: WELLS,
-    'rail.cost': UP.turret.cost, 'rail.hp': UP.turret.hp, 'rail.range': RAIL.range, 'rail.dmg': RAIL.dmg, 'rail.every': RAIL.every,
-    'ion.cost': UP.missile.cost, 'ion.hp': UP.missile.hp, 'ion.range': ION.range, 'ion.dmg': ION.dmg, 'ion.swarm': ION.swarm,
-    'ion.every': ION.every, 'ion.splash': ION.splash,
-    'up.from': UP_FROM,
-    'start.li': 10, 'pool.first': 20, 'pool.second': 25, 'pool.far': '35–55',
-    'data.dmg': t(DATA_DMG * 100), 'data.bots': 0.8, 'hp.grow': 12,
-    'panzer.from': 3, 'infil.from': 6, 'panzer.blast': 22, snuff: 10,
-    'mega.from': MEGA_FROM, 'mega.every': MEGA_EVERY, 'mega.rows': MEGA_ROWS, 'mega.blast': MEGA_BLAST, 'mega.bounty': MEGA_BOUNTY,
-    'mega.next': 'then ' + Array.from({ length: 40 }, (_, i) => MEGA_FROM + 1 + i).filter(megaWave).slice(0, 3).join(', ') + '…',
-    'borer.bites': BORER_BITES, 'borer.bite': BORER_BITE, 'borer.up': BORER_UP, 'borer.warn': BORER_WARN, 'borer.seam': BORER_SEAM,
-    'borer.bounty': BORER_BOUNTY, 'borer.from': BORER_FROM, 'borer.every': BORER_EVERY,
-    'wave.pay': `${waveBonus(1)}–${waveBonus(99)}`,
+    'base.hp': DEF.base.hp,
+    'lamp.cost': DEF.lamp.cost, 'lamp.light': DEF.lamp.radius,
+    'refinery.cost': DEF.refinery.cost, 'refine.every': t(1 / REFINE_RATE),
+    'turret.cost': DEF.turret.cost, 'turret.range': TURRET_RANGE, 'turret.dmg': 10,
+    'missile.cost': DEF.missile.cost, 'missile.range': MISSILE_RANGE, 'missile.dmg': MISSILE.dmg,
+    'auger.cost': DEF.auger.cost, 'auger.every': t(1 / AUGER_RATE), wells: WELLS,
+    'mech.cost': DEF.mech.cost, 'mech.range': MECH.range, 'mech.dmg': MECH.dmg, 'mech.burst': MECH.burst,
+    'rail.cost': UP.turret.cost, 'rail.range': RAIL.range, 'rail.dmg': RAIL.dmg,
+    'ion.cost': UP.missile.cost, 'ion.range': ION.range, 'ion.dmg': ION.dmg, 'ion.swarm': ION.swarm,
+    'arb.cost': UP.mech.cost, 'arb.stun': ARB.stun,
+    'data.dmg': t(DATA_DMG * 100), 'data.bots': DATA_BOTS,
   };
-  for (const [k, d] of Object.entries(DRONE)) { NUM[k + '.hp'] = d.hp; NUM[k + '.spd'] = d.spd; NUM[k + '.dmg'] = d.dmg; }
+  for (const [k, d] of Object.entries(DRONE)) { NUM[k + '.hp'] = d.hp; NUM[k + '.spd'] = d.spd; }
+  NUM['sniper.range'] = SNIPE.range;
   for (const el of document.querySelectorAll('[data-n]')) el.textContent = NUM[el.dataset.n] ?? '?';
   // every word of a bot's copy and readouts in a span of its own, so an unmet bot can black each one out
   // as a block bar of its own length (see .rx)
@@ -4519,7 +5586,7 @@ window.appSuspend = suspend;
 document.addEventListener('visibilitychange', () => { if (document.hidden) { suspend(); actx?.suspend(); } });
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase(), live = started && !S.over && ovEl.hidden;
-  const pick = { 1: 'lamp', 2: refineryOpen() ? 'refinery' : null, 3: 'turret', 4: 'missile', 5: augerOpen() ? 'auger' : null }[k];
+  const pick = { 1: 'lamp', 2: refineryOpen() ? 'refinery' : null, 3: 'turret', 4: 'missile', 5: augerOpen() ? 'auger' : null, 6: mechOpen() ? 'mech' : null }[k];
   if (pick) { setTool(pick); if (live) showZone(); }
   else if (k === 'escape' && (drag || press)) {
     if (press) { clearTimeout(press.timer); press = null; tip(null); }
@@ -4539,7 +5606,11 @@ document.addEventListener('gesturestart', e => e.preventDefault());
 // the sim runs in slices of at most 1/20 s, as many as the frame took (up to a quarter second), so a
 // slow device plays at full speed instead of slow motion
 let last = performance.now(), hudT = 0;
+// a frame's budget for its own work (sim + draw + baking), under the 16.7 ms of a 60 Hz frame so the
+// compositor and the browser keep theirs
+const FRAME_MS = 11;
 function frame(now) {
+  const t0 = performance.now();
   const dt = Math.max(0, Math.min(0.25, (now - last) / 1000)); last = now; NOW = now / 1000;
   if (!paused && !S.over) {
     const n = Math.ceil(dt / 0.05), h = dt / (n || 1);
@@ -4549,17 +5620,18 @@ function frame(now) {
   if (S.over && S.dying > 0) { vfx(dt); if ((S.dying -= dt) <= 0) menu(true); }
   hums();
   quake = Math.max(0, quake - dt * 2.6);
-  bakeSome(paused || !started ? 10 : 3);
   if (!paused || !started || S.dying > 0 || S.gone.length || now < wakeUntil) draw();
+  // behind the menu it bakes freely; in play, only in what's left of the frame
+  bakeSome(paused || !started ? 10 : FRAME_MS - (performance.now() - t0));
   hudT += dt; if (hudT > 0.1) { hudT = 0; hud(); }
   requestAnimationFrame(frame);
 }
 for (const ev of ['pointerdown', 'pointermove', 'pointerup', 'keydown']) addEventListener(ev, () => wake(), { passive: true, capture: true });
 // bake damaged sprites and every turret heading in the background, Base first since it's hit most
 function warm() {
-  // the Borer's headings are painted lazily: get them all done in the background long before wave 20
+  // the Borer's headings are painted lazily: get them all done in the background long before wave 30
   for (const d of dirsOf('borer')) for (let f = 0; f < framesOf('borer'); f++) later(`spr|borer|${d}${f}`, () => { SPR.drone.borer[d][f].img; });
-  // the deep wells cracking open, long before wave 25
+  // the deep wells cracking open, long before wave 13
   for (let k = 0; k < WELL_LOOKS; k++) WELL_GROW.forEach((_, i) => later(`wellGrow|${k}|${i}`, wellGrowBake(k, i)));
   for (const s of [1, 2]) VOX.base.forEach((vx, f) => later(...wreckJob('base', vx, s, null, f)));
   for (const s of [1, 2]) {
@@ -4584,6 +5656,21 @@ function warm() {
   }
   for (const k of Object.keys(DRONE_ART)) for (const d of dirsOf(k)) for (let f = 0; f < framesOf(k); f++)
     later(`bot|${k}|${d}${f}`, () => paint(trace(wreckVox(DRONE_VOX[k][f], 'bot' + k, 1), d * Math.PI / 4)));
+  // the Warden comes last of all (wave 28): its upper body at every heading, loaded, spent and off, and its legs in every
+  // pose at every heading. Its damaged looks bake when first asked for
+  for (let i = 0; i < HEAD_DIRS; i++) {
+    const a = i / HEAD_DIRS * Math.PI * 2;
+    later('warm:w' + i, () => { head('mech', a); head('mech', a, SPENT, 'spent'); head('mech', a, OFF_SPENT, 'off'); });
+  }
+  for (let f = 0; f < MECH_POSE.length; f++) for (let i = 0; i < MECH_LEG_DIRS; i++)
+    later(`warm:l${f}|${i}`, () => { const a = i / MECH_LEG_DIRS * Math.PI * 2; mechLegs(f, a, true); mechLegs(f, a, false); });
+  // and the Arbiter (wave 37) after it, the same way
+  for (let i = 0; i < HEAD_DIRS; i++) {
+    const a = i / HEAD_DIRS * Math.PI * 2;
+    later('warm:a' + i, () => { head('arbiter', a); head('arbiter', a, SPENT, 'spent'); head('arbiter', a, OFF_SPENT, 'off'); });
+  }
+  for (let f = 0; f < MECH_POSE.length; f++) for (let i = 0; i < MECH_LEG_DIRS; i++)
+    later(`warm:al${f}|${i}`, () => { const a = i / MECH_LEG_DIRS * Math.PI * 2; mechLegs(f, a, true, 0, true); mechLegs(f, a, false, 0, true); });
 }
 function start() {
   newGame(); fit(); hud(); warm(); requestAnimationFrame(frame);
